@@ -57,7 +57,14 @@ const RegisterScreen = ({ navigation }: AppScreenProps<"Register">) => {
 						controllerProps={{
 							control,
 							name: "email",
-							rules: { required: "Email is required" },
+							rules: {
+								required: "Email is required",
+								pattern: {
+									value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+									message:
+										"Email must be in the valid format",
+								},
+							},
 						}}
 					/>
 					<FormInput
