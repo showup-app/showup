@@ -19,7 +19,7 @@ export type AppStackParamList = {
   Search: undefined;
   CreatePost: undefined;
   ConfirmPost: { draftId: string };
-  GameDetails: { gameId: string };
+  GameDetails: { gameId: number };
 };
 
 export type AppScreenProps<T extends keyof AppStackParamList> =

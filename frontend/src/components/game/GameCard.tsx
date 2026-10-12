@@ -3,94 +3,133 @@ import { CustomTheme, useTheme } from "@react-navigation/native";
 import { ComponentProps } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Game, GameDetail } from "../../types/game";
-import { capitalize, formatCost, formatLongDate, formatTimeRange } from "../../utils/format";
+import {
+	capitalize,
+	cityFromAddress,
+	formatCost,
+	formatShortDate,
+	formatSpotsLeft,
+	formatTimeRange,
+} from "../../utils/format";
 import { sportIcon } from "../../utils/sports";
+
+// Change chip colour to orange below 3
+const LOW_SPOTS = 3;
+
+type IconName = ComponentProps<typeof MaterialCommunityIcons>["name"];
 
 type GameCardProps = {
 	game: Game | GameDetail;
-	onPress?: () => void;
+	onJoin?: () => void;
+	onSeePlayers?: () => void;
 };
 
-/** Full detail game card */
-const GameCard = ({ game, onPress }: GameCardProps) => {
+// Game card on explore/review page
+const GameCard = ({ game, onJoin, onSeePlayers }: GameCardProps) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
-
-	// The list endpoint doesn't send these yet
 	const hostName = "host_name" in game ? game.host_name : null;
 	const hostReputation = "host_reputation" in game ? game.host_reputation : null;
 	const spotsLeft = "spots_left" in game ? game.spots_left : game.spots;
 
+	const isFull = spotsLeft <= 0;
+	const isAlmostFull = !isFull && spotsLeft <= LOW_SPOTS;
+	const showFooter = hostName !== null || onSeePlayers !== undefined;
+
 	return (
-		<Pressable style={styles.card} onPress={onPress} disabled={!onPress}>
+		<View style={styles.card}>
+			{/* Title row */}
 			<View style={styles.header}>
-				<View style={styles.sportIcon}>
-					<MaterialCommunityIcons
-						name={sportIcon(game.sport)}
-						size={28}
-						color={theme.colors.background}
-					/>
-				</View>
+				<MaterialCommunityIcons
+					name={sportIcon(game.sport)}
+					size={28}
+					color={theme.colors.textSecondary}
+				/>
 				<View style={styles.headerText}>
 					<Text style={styles.title}>{capitalize(game.sport)} game</Text>
-					{game.min_reputation > 0 && (
-						<Text style={styles.caption}>
-							Only players with a reputation score of {game.min_reputation}+
+					<Text style={styles.subtitle} numberOfLines={1}>
+						{game.venue} · {cityFromAddress(game.address)}
+					</Text>
+				</View>
+				{onJoin && (
+					<Pressable
+						style={[styles.joinButton, isFull && styles.joinButtonDisabled]}
+						onPress={onJoin}
+						disabled={isFull}
+						hitSlop={8}
+					>
+						<Text style={[styles.joinText, isFull && styles.joinTextDisabled]}>
+							{isFull ? "Full" : "Join"}
 						</Text>
+					</Pressable>
+				)}
+			</View>
+
+			{/* Detail chips */}
+			<View style={styles.chips}>
+				<Chip icon="calendar-blank-outline" label={formatShortDate(game.starts_at)} />
+				<Chip
+					icon="clock-outline"
+					label={formatTimeRange(game.starts_at, game.duration_minutes)}
+				/>
+				<Chip
+					icon={isAlmostFull ? "fire" : "account-multiple-outline"}
+					label={formatSpotsLeft(spotsLeft)}
+					color={isAlmostFull ? theme.colors.warning : undefined}
+				/>
+				<Chip
+					label={formatCost(game.cost)}
+					color={game.cost === 0 ? theme.colors.success : undefined}
+				/>
+				{game.min_reputation > 0 && (
+					<Chip icon="star-outline" label={`${game.min_reputation}+ only`} />
+				)}
+			</View>
+
+			{/* Footer*/}
+			{showFooter && (
+				<View style={styles.footer}>
+					{hostName && (
+						<>
+							<MaterialCommunityIcons
+								name="account-circle"
+								size={24}
+								color={theme.colors.textMuted}
+							/>
+							<Text style={styles.hostName}>{hostName}</Text>
+							{hostReputation !== null && (
+								<Text style={styles.reputation}>★ {hostReputation}</Text>
+							)}
+						</>
+					)}
+					{onSeePlayers && (
+						<Pressable onPress={onSeePlayers} hitSlop={8} style={styles.seePlayers}>
+							<Text style={styles.link}>See players</Text>
+						</Pressable>
 					)}
 				</View>
-			</View>
-
-			<View style={styles.details}>
-				<DetailRow icon="map-marker-outline" title={game.venue} subtitle={game.address} />
-				<DetailRow
-					icon="calendar-blank-outline"
-					title={formatLongDate(game.starts_at)}
-					subtitle={formatTimeRange(game.starts_at, game.duration_minutes)}
-				/>
-				<DetailRow icon="account-multiple-outline" title={`${spotsLeft} available spots`} />
-				<DetailRow icon="currency-usd" title={formatCost(game.cost)} />
-			</View>
-
-			{hostName && (
-				<View style={styles.host}>
-					<MaterialCommunityIcons
-						name="account-circle"
-						size={40}
-						color={theme.colors.textMuted}
-					/>
-					<View>
-						<Text style={styles.hostName}>Hosted by {hostName}</Text>
-						{hostReputation !== null && (
-							<Text style={styles.reputation}>★ {hostReputation}</Text>
-						)}
-					</View>
-				</View>
 			)}
-		</Pressable>
+		</View>
 	);
 };
 
 export default GameCard;
 
-type DetailRowProps = {
-	icon: ComponentProps<typeof MaterialCommunityIcons>["name"];
-	title: string;
-	subtitle?: string;
+type ChipProps = {
+	label: string;
+	icon?: IconName;
+	color?: string;
 };
 
-/** One icon + text row inside the card (location, date, spots, cost). */
-const DetailRow = ({ icon, title, subtitle }: DetailRowProps) => {
+const Chip = ({ label, icon, color }: ChipProps) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
+	const textColor = color ?? theme.colors.text;
 
 	return (
-		<View style={styles.row}>
-			<MaterialCommunityIcons name={icon} size={22} color={theme.colors.textSecondary} />
-			<View style={styles.rowText}>
-				<Text style={styles.rowTitle}>{title}</Text>
-				{subtitle && <Text style={styles.caption}>{subtitle}</Text>}
-			</View>
+		<View style={styles.chip}>
+			{icon && <MaterialCommunityIcons name={icon} size={14} color={textColor} />}
+			<Text style={[styles.chipText, { color: textColor }]}>{label}</Text>
 		</View>
 	);
 };
@@ -101,24 +140,15 @@ const getStyles = (theme: CustomTheme) =>
 			backgroundColor: theme.colors.surface,
 			borderColor: theme.colors.border,
 			borderWidth: 1,
-			borderRadius: 8,
+			borderRadius: 10,
 			overflow: "hidden",
 		},
 		header: {
 			flexDirection: "row",
 			alignItems: "center",
 			gap: 12,
-			padding: 16,
-			borderBottomWidth: 1,
-			borderBottomColor: theme.colors.border,
-		},
-		sportIcon: {
-			width: 40,
-			height: 40,
-			borderRadius: 6,
-			backgroundColor: theme.colors.textSecondary,
-			alignItems: "center",
-			justifyContent: "center",
+			paddingHorizontal: 16,
+			paddingTop: 16,
 		},
 		headerText: {
 			flex: 1,
@@ -129,42 +159,70 @@ const getStyles = (theme: CustomTheme) =>
 			fontSize: 18,
 			fontWeight: "500",
 		},
-		caption: {
+		subtitle: {
 			color: theme.colors.textMuted,
-			fontSize: 12,
+			fontSize: 13,
 		},
-		details: {
+		joinButton: {
+			backgroundColor: theme.colors.textSecondary,
+			borderRadius: 16,
+			paddingHorizontal: 18,
+			paddingVertical: 8,
+		},
+		joinButtonDisabled: {
+			backgroundColor: "transparent",
+			borderWidth: 1,
+			borderColor: theme.colors.border,
+		},
+		joinText: {
+			color: theme.colors.background,
+			fontSize: 14,
+			fontWeight: "600",
+		},
+		joinTextDisabled: {
+			color: theme.colors.textMuted,
+		},
+		chips: {
+			flexDirection: "row",
+			flexWrap: "wrap",
+			gap: 8,
 			padding: 16,
-			gap: 16,
 		},
-		row: {
+		chip: {
 			flexDirection: "row",
 			alignItems: "center",
-			gap: 12,
+			gap: 4,
+			backgroundColor: theme.colors.border,
+			borderRadius: 12,
+			paddingHorizontal: 10,
+			paddingVertical: 5,
 		},
-		rowText: {
-			flex: 1,
-			gap: 2,
+		chipText: {
+			fontSize: 13,
 		},
-		rowTitle: {
-			color: theme.colors.text,
-			fontSize: 16,
-			fontWeight: "500",
-		},
-		host: {
+		footer: {
 			flexDirection: "row",
 			alignItems: "center",
-			gap: 12,
-			padding: 16,
-			backgroundColor: theme.colors.background,
+			gap: 8,
+			paddingHorizontal: 16,
+			paddingVertical: 12,
+			borderTopWidth: 1,
+			borderTopColor: theme.colors.border,
 		},
 		hostName: {
 			color: theme.colors.text,
 			fontSize: 14,
-			fontWeight: "500",
 		},
 		reputation: {
 			color: theme.colors.textSecondary,
 			fontSize: 12,
+		},
+		seePlayers: {
+			marginLeft: "auto",
+		},
+		link: {
+			color: theme.colors.textSecondary,
+			fontSize: 13,
+			fontWeight: "500",
 		},
 	});

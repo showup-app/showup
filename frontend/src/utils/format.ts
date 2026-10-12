@@ -31,9 +31,21 @@ export function formatTimeRange(iso: string, durationMinutes: number): string {
 	return `${formatTime(iso)} – ${formatTime(end.toISOString())}`;
 }
 
-/** "$5.00 per player", or "Free" */
+/** "$5.00", or "Free" */
 export function formatCost(cost: number): string {
-	return cost === 0 ? "Free" : `$${cost.toFixed(2)} per player`;
+	return cost === 0 ? "Free" : `$${cost.toFixed(2)}`;
+}
+
+/** "6550 Bonsor Ave, Burnaby" → "Burnaby" (the last part of the address) */
+export function cityFromAddress(address: string): string {
+	const parts = address.split(",");
+	return parts[parts.length - 1].trim();
+}
+
+/** "8 spots left", "1 spot left", or "Full" */
+export function formatSpotsLeft(spotsLeft: number): string {
+	if (spotsLeft <= 0) return "Full";
+	return `${spotsLeft} ${spotsLeft === 1 ? "spot" : "spots"} left`;
 }
 
 /** "soccer" → "Soccer" */
