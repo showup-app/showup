@@ -6,6 +6,7 @@ import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 export type MainTabParamList = {
   Home: undefined;
   Explore: undefined;
+  Create: undefined;
   Profile: undefined;
 };
 
@@ -18,7 +19,7 @@ export type AppStackParamList = {
   Search: undefined;
   CreatePost: undefined;
   ConfirmPost: { draftId: string };
-  GameDetails: { gameId: string };
+  GameDetails: { gameId: number };
 };
 
 export type AppScreenProps<T extends keyof AppStackParamList> =
