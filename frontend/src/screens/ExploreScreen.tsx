@@ -15,6 +15,7 @@ import GameCard from "../components/game/GameCard";
 import { TabScreenProps } from "../navigation/types";
 import { api } from "../services/api";
 import { Game } from "../types/game";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const MIN_SEARCH_LENGTH = 2;
 const SEARCH_DELAY_MS = 400;
@@ -68,7 +69,7 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 	};
 
 	return (
-		<View style={styles.screen}>
+		<SafeAreaView style={styles.screen} edges={["left", "right"]}>
 			<View style={styles.searchSection}>
 				<Text style={styles.label}>Search by location</Text>
 				<TextInput
@@ -124,7 +125,7 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 					}
 				/>
 			)}
-		</View>
+		</SafeAreaView>
 	);
 }
 
@@ -137,6 +138,7 @@ const getStyles = (theme: CustomTheme) =>
 		searchSection: {
 			paddingHorizontal: 20,
 			paddingTop: 20,
+			paddingBottom: 24,
 			gap: 6,
 		},
 		label: {
@@ -155,7 +157,8 @@ const getStyles = (theme: CustomTheme) =>
 			paddingVertical: 12,
 		},
 		list: {
-			padding: 20,
+			paddingHorizontal: 20,
+			paddingBottom: 20,
 			gap: 28,
 		},
 		centered: {
