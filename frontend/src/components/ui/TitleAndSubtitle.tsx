@@ -1,7 +1,7 @@
 import { CustomTheme, useTheme } from "@react-navigation/native";
 import { StyleSheet, Text } from "react-native";
 
-const TittleAndSubtitle = ({
+const TitleAndSubtitle = ({
 	titleText,
 	subtitleText,
 }: {
@@ -28,7 +28,7 @@ const TittleAndSubtitle = ({
 	);
 };
 
-export default TittleAndSubtitle;
+export default TitleAndSubtitle;
 
 const getStyles = (theme: CustomTheme) =>
 	StyleSheet.create({
