@@ -4,13 +4,8 @@ import { StyleSheet, View, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../components/ui/Button";
 import FormInput from "../components/ui/FormInput";
-import TittleAndSubtitle from "../components/ui/TittleAndSubtitle";
-import {
-	FormState,
-	SubmitErrorHandler,
-	SubmitHandler,
-	useForm,
-} from "react-hook-form";
+import TitleAndSubtitle from "../components/ui/TitleAndSubtitle";
+import { SubmitHandler, useForm } from "react-hook-form";
 
 type RegisterForm = {
 	email: string;
@@ -36,12 +31,13 @@ const RegisterScreen = ({ navigation }: AppScreenProps<"Register">) => {
 
 	const onSubmit: SubmitHandler<RegisterForm> = (formData: RegisterForm) => {
 		console.log("Submit: ", formData);
+		navigation.replace("Tabs", { screen: "Home" });
 	};
 
 	return (
 		<SafeAreaView style={styles.screen}>
 			<View style={{ alignSelf: "center" }}>
-				<TittleAndSubtitle
+				<TitleAndSubtitle
 					titleText="Register"
 					subtitleText="Create an account to start hosting and joining games"
 				/>

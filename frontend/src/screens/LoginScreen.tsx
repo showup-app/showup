@@ -4,8 +4,8 @@ import { AppScreenProps } from "../navigation/types";
 import FormInput from "../components/ui/FormInput";
 import { CustomTheme, useTheme } from "@react-navigation/native";
 import Button from "../components/ui/Button";
-import TittleAndSubtitle from "../components/ui/TittleAndSubtitle";
-import { SubmitErrorHandler, SubmitHandler, useForm } from "react-hook-form";
+import TitleAndSubtitle from "../components/ui/TitleAndSubtitle";
+import { SubmitHandler, useForm } from "react-hook-form";
 
 type LoginForm = {
 	email: string;
@@ -27,12 +27,13 @@ const LoginScreen = ({ navigation }: AppScreenProps<"Login">) => {
 
 	const onSubmit: SubmitHandler<LoginForm> = (formData: LoginForm) => {
 		console.log("Submit: ", formData);
+		navigation.replace("Tabs", { screen: "Home" });
 	};
 
 	return (
 		<SafeAreaView style={styles.screen}>
 			<View style={{ alignSelf: "center" }}>
-				<TittleAndSubtitle
+				<TitleAndSubtitle
 					titleText="Login"
 					subtitleText="Enter your email and password to log in"
 				/>
