@@ -6,6 +6,7 @@ import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 export type MainTabParamList = {
   Home: undefined;
   Explore: undefined;
+  Create: undefined;
   Profile: undefined;
 };
 
