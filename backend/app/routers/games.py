@@ -7,7 +7,14 @@ from sqlalchemy.orm import selectinload
 from app.deps import CurrentUser, DbDep
 from app.models import Game, GameStatus, Signup, SignupStatus, User
 from app.reputation import effective_min_reputation, player_stats
-from app.schemas.game import GameCreate, GameDetailOut, GameOut, GameUpdate, PlayerOut
+from app.schemas.game import (
+    GameCreate,
+    GameDetailOut,
+    GameOut,
+    GameSummaryOut,
+    GameUpdate,
+    PlayerOut,
+)
 
 router = APIRouter(prefix="/games", tags=["games"])
 
@@ -40,6 +47,16 @@ def _joined_count(db: DbDep, game_id: int) -> int:
     return db.scalar(stmt) or 0
 
 
+def _summary(game: Game, joined: int) -> GameSummaryOut:
+    """The list row for a game whose host is already loaded."""
+    return GameSummaryOut(
+        **GameOut.model_validate(game).model_dump(),
+        host_name=game.host.name,
+        host_reputation=game.host.reputation,
+        spots_left=max(game.spots - joined, 0),
+    )
+
+
 def _detail(db: DbDep, game_id: int) -> GameDetailOut:
     stmt = (
         select(Game)
@@ -65,11 +82,8 @@ def _detail(db: DbDep, game_id: int) -> GameDetailOut:
         for s in joined
     ]
     return GameDetailOut(
-        **GameOut.model_validate(game).model_dump(),
-        host_name=game.host.name,
-        host_reputation=game.host.reputation,
+        **_summary(game, len(players)).model_dump(),
         players=players,
-        spots_left=max(game.spots - len(players), 0),
         effective_min_reputation=effective_min_reputation(game),
     )
 
@@ -82,7 +96,7 @@ def _escape_like(text: str) -> str:
 # ---------- reading ----------
 
 
-@router.get("", response_model=list[GameOut])
+@router.get("", response_model=list[GameSummaryOut])
 def list_games(
     db: DbDep,
     sport: str | None = Query(None, description="Only this sport, case-insensitive"),
@@ -93,9 +107,24 @@ def list_games(
         description="Only games whose venue or address contains this text, e.g. burnaby",
     ),
     include_past: bool = Query(False, description="Also return games that already started"),
-) -> list[Game]:
-    """Upcoming games, soonest first. Cancelled games are never listed."""
-    stmt = select(Game).where(Game.status != GameStatus.CANCELLED).order_by(Game.starts_at)
+) -> list[GameSummaryOut]:
+    """Upcoming games, soonest first, each with its host and places left. Cancelled games are
+    never listed."""
+    # One grouped count of joined players per game, joined in, so the list is two queries
+    # (games + hosts) however long it gets.
+    joined = (
+        select(Signup.game_id, func.count().label("joined"))
+        .where(Signup.status == SignupStatus.JOINED)
+        .group_by(Signup.game_id)
+        .subquery()
+    )
+    stmt = (
+        select(Game, func.coalesce(joined.c.joined, 0))
+        .outerjoin(joined, joined.c.game_id == Game.id)
+        .options(selectinload(Game.host))
+        .where(Game.status != GameStatus.CANCELLED)
+        .order_by(Game.starts_at)
+    )
     if sport:
         stmt = stmt.where(func.lower(Game.sport) == sport.lower())
     if location:
@@ -105,7 +134,7 @@ def list_games(
         )
     if not include_past:
         stmt = stmt.where(Game.starts_at >= func.now())
-    return list(db.scalars(stmt).all())
+    return [_summary(game, count) for game, count in db.execute(stmt)]
 
 
 @router.get("/{game_id}", response_model=GameDetailOut)

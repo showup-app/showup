@@ -20,7 +20,7 @@ ALLOWED_SPORTS = (
 
 
 class GameOut(BaseModel):
-    """A game as the app sees it in lists."""
+    """A game row. What POST, PATCH and cancel return."""
 
     # Lets FastAPI build this straight from a Game ORM object.
     model_config = ConfigDict(from_attributes=True)
@@ -61,18 +61,22 @@ class PlayerOut(BaseModel):
     )
 
 
-class GameDetailOut(GameOut):
-    """A single game with its host and roster.
+class GameSummaryOut(GameOut):
+    """A game as the Explore list shows it: the row plus its host and the places left.
 
     `spots` is the number of player places the host offers, not counting the host.
     `spots_left` is `spots` minus the players who have joined.
-    `effective_min_reputation` is the requirement that applies right now, after any fallback.
     """
 
     host_name: str
     host_reputation: int
-    players: list[PlayerOut] = Field(description="Players who have joined, oldest signup first")
     spots_left: int = Field(description="spots minus the players who have joined")
+
+
+class GameDetailOut(GameSummaryOut):
+    """A single game with its roster and the reputation requirement that applies right now."""
+
+    players: list[PlayerOut] = Field(description="Players who have joined, oldest signup first")
     effective_min_reputation: int = Field(
         description="The requirement that applies right now: min_reputation, or the fallback "
         "once its window has started"
