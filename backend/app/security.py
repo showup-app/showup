@@ -7,10 +7,13 @@ Sent by the app as `Authorization: Bearer <token>`.
 from datetime import UTC, datetime, timedelta
 
 import jwt
+from pwdlib import PasswordHash
 
 from app.config import settings
 
 ALGORITHM = "HS256"
+
+_hasher = PasswordHash.recommended()
 
 
 def create_access_token(user_id: int) -> str:
@@ -30,3 +33,11 @@ def decode_access_token(token: str) -> int:
         return int(payload["sub"])
     except (KeyError, ValueError, TypeError) as exc:
         raise jwt.InvalidTokenError("missing or malformed sub") from exc
+
+
+def hash_password(password: str) -> str:
+    return _hasher.hash(password)
+
+
+def verify_password(password: str, password_hash: str) -> bool:
+    return _hasher.verify(password, password_hash)

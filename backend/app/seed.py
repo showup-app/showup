@@ -16,11 +16,14 @@ from sqlalchemy.orm import Session
 from app.db import SessionLocal
 from app.models import Attendance, Game, GameStatus, Signup, SignupStatus, User
 from app.reputation import recompute
+from app.security import hash_password
 
 SEED_DOMAIN = "seed.showup.local"
 
 # Replaced by a real hash once the signup card lands. Seed users cannot log in until then.
-PLACEHOLDER_HASH = "seed-user-no-login"
+# PLACEHOLDER_HASH = "seed-user-no-login"
+
+DEMO_PASSWORD = "showup-demo"
 
 # First names. Everyone starts at reputation 100; the attendance rows below move it.
 USERS: list[str] = ["Maya", "Jordan", "Sam", "Riley", "Alex"]
@@ -71,8 +74,9 @@ def seed(db: Session) -> dict[str, int]:
         db.execute(delete(Game).where(Game.host_id.in_(old_ids)))  # cascades to their rows
         db.execute(delete(User).where(User.id.in_(old_ids)))
 
+    demo_hash = hash_password(DEMO_PASSWORD)
     users = [
-        User(email=f"{name.lower()}@{SEED_DOMAIN}", password_hash=PLACEHOLDER_HASH, name=name)
+        User(email=f"{name.lower()}@{SEED_DOMAIN}", password_hash=demo_hash, name=name)
         for name in USERS
     ]
     db.add_all(users)
