@@ -6,17 +6,20 @@ import { CustomTheme, useTheme } from "@react-navigation/native";
 import Button from "../components/ui/Button";
 import TitleAndSubtitle from "../components/ui/TitleAndSubtitle";
 import { SubmitHandler, useForm } from "react-hook-form";
-
-type LoginForm = {
-	email: string;
-	password: string;
-};
+import { LoginForm } from "../types/auth";
+import { api } from "../services/api";
+import FormErrorMessage from "../components/ui/FormErrorMessage";
 
 const LoginScreen = ({ navigation }: AppScreenProps<"Login">) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
 
-	const { control, handleSubmit } = useForm<LoginForm>({
+	const {
+		control,
+		handleSubmit,
+		formState: { isSubmitting, errors },
+		setError,
+	} = useForm<LoginForm>({
 		mode: "onSubmit",
 		reValidateMode: "onSubmit",
 		defaultValues: {
@@ -25,9 +28,17 @@ const LoginScreen = ({ navigation }: AppScreenProps<"Login">) => {
 		},
 	});
 
-	const onSubmit: SubmitHandler<LoginForm> = (formData: LoginForm) => {
-		console.log("Submit: ", formData);
-		navigation.replace("Tabs", { screen: "Home" });
+	const onSubmit: SubmitHandler<LoginForm> = async (formData: LoginForm) => {
+		try {
+			const token = await api.login(formData);
+			const user = await api.me(token.access_token);
+			console.log(user); // TODO: add user to global state
+			navigation.replace("Tabs", { screen: "Home" });
+		} catch (error) {
+			setError("root.server", {
+				message: "Failed to login, please try again later",
+			});
+		}
 	};
 
 	return (
@@ -65,9 +76,18 @@ const LoginScreen = ({ navigation }: AppScreenProps<"Login">) => {
 							rules: { required: "Password is required." },
 						}}
 					/>
+					{errors.root?.server?.message && (
+						<FormErrorMessage
+							message={errors.root.server.message}
+						/>
+					)}
 				</View>
-				<Button variant="primary" onPress={handleSubmit(onSubmit)}>
-					Login
+				<Button
+					variant="primary"
+					onPress={handleSubmit(onSubmit)}
+					disabled={isSubmitting}
+				>
+					{isSubmitting ? "Logging in..." : "Login"}
 				</Button>
 			</View>
 		</SafeAreaView>

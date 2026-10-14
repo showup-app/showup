@@ -1,4 +1,4 @@
-import { RegisterBody, User } from "../types/auth";
+import { LoginForm, LoginReponse, RegisterBody, User } from "../types/auth";
 import { Game, GameDetail, GameFilters } from "../types/game";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
@@ -62,10 +62,18 @@ function getRequestBody(method: "POST" | "PUT", body: any): RequestInit {
 }
 
 export const api = {
-	// TODO: login
+	login: (loginBody: LoginForm) =>
+		request<LoginReponse>(`/auth/login`, {
+			...getRequestBody("POST", loginBody),
+		}),
 	register: (registerBody: RegisterBody) =>
 		request<User>(`/auth/signup`, {
 			...getRequestBody("POST", registerBody),
+		}),
+	me: (token: string) =>
+		request<User>(`/auth/me`, {
+			method: "GET",
+			headers: { Authorization: `Bearer ${token}` },
 		}),
 	getGames: (filters: GameFilters = {}) =>
 		request<Game[]>(`/games${toQueryString(filters)}`),
