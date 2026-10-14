@@ -1,7 +1,8 @@
 from sqlalchemy import select
 
 from app.models import User
-from app.security import verify_password
+from app.security import decode_access_token, hash_password, verify_password
+from app.seed import DEMO_PASSWORD, seed
 
 
 def test_signup_success(client, db):
@@ -59,3 +60,69 @@ def test_signup_blank_name(client):
 def test_signup_trims_name(client):
     body = {"email": "trim@test.com", "password": "longenough1", "name": "  Trim Me  "}
     assert client.post("/auth/signup", json=body).json()["name"] == "Trim Me"
+
+
+def make_user(db, email="login@test.com", password="correct-horse"):
+    user = User(email=email, name="Login Test", password_hash=hash_password(password))
+    db.add(user)
+    db.commit()
+    return user
+
+
+def test_login_returns_working_token(client, db):
+    user = make_user(db)
+    r = client.post("/auth/login", json={"email": "login@test.com", "password": "correct-horse"})
+    assert r.status_code == 200
+    assert r.json()["token_type"] == "bearer"
+    assert decode_access_token(r.json()["access_token"]) == user.id
+
+
+def test_login_wrong_password(client, db):
+    make_user(db)
+    r = client.post("/auth/login", json={"email": "login@test.com", "password": "nope"})
+    assert r.status_code == 401
+    assert r.headers["www-authenticate"] == "Bearer"
+
+
+def test_login_unknown_email_same_error(client):
+    r = client.post("/auth/login", json={"email": "ghost@test.com", "password": "whatever1"})
+    assert r.status_code == 401
+    assert r.json()["detail"] == "Invalid email or password"
+
+
+def test_seeded_user_can_log_in(client, db):
+    seed(db)
+    r = client.post(
+        "/auth/login",
+        json={"email": "maya@seed.showup.local", "password": DEMO_PASSWORD},
+    )
+    assert r.status_code == 200
+
+
+def test_login_strips_email(client, db):
+    make_user(db)
+    r = client.post("/auth/login", json={"email": " login@test.com ", "password": "correct-horse"})
+    assert r.status_code == 200
+
+
+def test_me_returns_the_signed_in_user(client, db):
+    user = make_user(db)
+    token = client.post(
+        "/auth/login", json={"email": "login@test.com", "password": "correct-horse"}
+    ).json()["access_token"]
+
+    r = client.get("/auth/me", headers={"Authorization": f"Bearer {token}"})
+
+    assert r.status_code == 200
+    assert r.json() == {
+        "id": user.id,
+        "email": "login@test.com",
+        "name": "Login Test",
+        "reputation": 100,
+    }
+
+
+def test_me_without_token_is_401(client):
+    r = client.get("/auth/me")
+    assert r.status_code == 401
+    assert r.headers["www-authenticate"] == "Bearer"

@@ -2,10 +2,10 @@ from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
-from app.deps import DbDep
+from app.deps import CurrentUser, DbDep
 from app.models import User
-from app.schemas.auth import SignupRequest, UserOut
-from app.security import hash_password
+from app.schemas.auth import LoginRequest, SignupRequest, TokenResponse, UserOut
+from app.security import DUMMY_HASH, create_access_token, hash_password, verify_password
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -23,4 +23,25 @@ def signup(body: SignupRequest, db: DbDep):
         db.rollback()
         raise HTTPException(status.HTTP_409_CONFLICT, "Email already registered") from None
     db.refresh(user)
+    return user
+
+
+@router.post("/login", response_model=TokenResponse)
+def login(body: LoginRequest, db: DbDep):
+    user = db.scalar(select(User).where(User.email == body.email.lower()))
+    # Always run the hash check, even for an unknown email, so timing does not reveal
+    # which emails are registered.
+    ok = verify_password(body.password, user.password_hash if user else DUMMY_HASH)
+    if user is None or not ok:
+        raise HTTPException(
+            status.HTTP_401_UNAUTHORIZED,
+            "Invalid email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return TokenResponse(access_token=create_access_token(user.id))
+
+
+@router.get("/me", response_model=UserOut)
+def me(user: CurrentUser):
+    """The signed-in user. What the app calls after login to fill the profile."""
     return user
