@@ -126,3 +126,18 @@ def test_me_without_token_is_401(client):
     r = client.get("/auth/me")
     assert r.status_code == 401
     assert r.headers["www-authenticate"] == "Bearer"
+
+
+def test_logout_with_valid_token(client, db):
+    make_user(db)
+    login = client.post(
+        "/auth/login", json={"email": "login@test.com", "password": "correct-horse"}
+    )
+    token = login.json()["access_token"]
+    r = client.post("/auth/logout", headers={"Authorization": f"Bearer {token}"})
+    assert r.status_code == 204
+
+
+def test_logout_without_token(client):
+    r = client.post("/auth/logout")
+    assert r.status_code == 401

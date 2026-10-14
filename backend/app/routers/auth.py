@@ -45,3 +45,9 @@ def login(body: LoginRequest, db: DbDep):
 def me(user: CurrentUser):
     """The signed-in user. What the app calls after login to fill the profile."""
     return user
+
+
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+def logout(_user: CurrentUser) -> None:
+    """Stateless: nothing to revoke server-side. The app discards the token and returns to
+    Login, whatever this returns, since an expired token gets a 401 here."""
