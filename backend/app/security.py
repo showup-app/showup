@@ -14,6 +14,9 @@ from app.config import settings
 ALGORITHM = "HS256"
 
 _hasher = PasswordHash.recommended()
+# Verified against when the email is unknown, so a login attempt takes the same time whether
+# or not the account exists. Otherwise response time reveals which emails are registered.
+DUMMY_HASH = _hasher.hash("not-a-real-password")
 
 
 def create_access_token(user_id: int) -> str:

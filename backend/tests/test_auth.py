@@ -97,3 +97,32 @@ def test_seeded_user_can_log_in(client, db):
         json={"email": "maya@seed.showup.local", "password": DEMO_PASSWORD},
     )
     assert r.status_code == 200
+
+
+def test_login_strips_email(client, db):
+    make_user(db)
+    r = client.post("/auth/login", json={"email": " login@test.com ", "password": "correct-horse"})
+    assert r.status_code == 200
+
+
+def test_me_returns_the_signed_in_user(client, db):
+    user = make_user(db)
+    token = client.post(
+        "/auth/login", json={"email": "login@test.com", "password": "correct-horse"}
+    ).json()["access_token"]
+
+    r = client.get("/auth/me", headers={"Authorization": f"Bearer {token}"})
+
+    assert r.status_code == 200
+    assert r.json() == {
+        "id": user.id,
+        "email": "login@test.com",
+        "name": "Login Test",
+        "reputation": 100,
+    }
+
+
+def test_me_without_token_is_401(client):
+    r = client.get("/auth/me")
+    assert r.status_code == 401
+    assert r.headers["www-authenticate"] == "Bearer"

@@ -27,6 +27,11 @@ class LoginRequest(BaseModel):
     email: str
     password: str
 
+    @field_validator("email")
+    @classmethod
+    def _strip_email(cls, value: str) -> str:
+        return value.strip()
+
 
 class TokenResponse(BaseModel):
     access_token: str
