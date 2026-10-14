@@ -49,8 +49,8 @@ const RegisterScreen = ({ navigation }: AppScreenProps<"Register">) => {
 
 		try {
 			const user = await api.register(registerBody);
-			console.log(user); // TODO: add user to global state
-			navigation.replace("Tabs", { screen: "Home" }); 
+			console.log(user);
+			navigation.replace('Login'); // TODO: add flash message on login screen with success message?
 		} catch (error) {
 			setError("root.server", {
 				message: "Failed to register, please try again later",
