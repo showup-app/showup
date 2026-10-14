@@ -49,4 +49,5 @@ def me(user: CurrentUser):
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 def logout(_user: CurrentUser) -> None:
-    """the app discards the token and returns to Login."""
+    """Stateless: nothing to revoke server-side. The app discards the token and returns to
+    Login, whatever this returns, since an expired token gets a 401 here."""
