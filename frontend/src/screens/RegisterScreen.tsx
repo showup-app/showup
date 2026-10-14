@@ -6,6 +6,9 @@ import Button from "../components/ui/Button";
 import FormInput from "../components/ui/FormInput";
 import TitleAndSubtitle from "../components/ui/TitleAndSubtitle";
 import { SubmitHandler, useForm } from "react-hook-form";
+import { api } from "../services/api";
+import { RegisterBody } from "../types/auth";
+import FormErrorMessage from "../components/ui/FormErrorMessage";
 
 type RegisterForm = {
 	email: string;
@@ -18,7 +21,13 @@ const RegisterScreen = ({ navigation }: AppScreenProps<"Register">) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
 
-	const { control, handleSubmit, getValues } = useForm<RegisterForm>({
+	const {
+		control,
+		handleSubmit,
+		getValues,
+		setError,
+		formState: { errors, isSubmitting },
+	} = useForm<RegisterForm>({
 		mode: "onSubmit",
 		reValidateMode: "onSubmit",
 		defaultValues: {
@@ -29,9 +38,24 @@ const RegisterScreen = ({ navigation }: AppScreenProps<"Register">) => {
 		},
 	});
 
-	const onSubmit: SubmitHandler<RegisterForm> = (formData: RegisterForm) => {
-		console.log("Submit: ", formData);
-		navigation.replace("Tabs", { screen: "Home" });
+	const onSubmit: SubmitHandler<RegisterForm> = async (
+		formData: RegisterForm,
+	) => {
+		const registerBody: RegisterBody = {
+			email: formData.email,
+			name: formData.name,
+			password: formData.password,
+		};
+
+		try {
+			const user = await api.register(registerBody);
+			console.log(user); // TODO: add user to global state
+			navigation.replace("Tabs", { screen: "Home" }); 
+		} catch (error) {
+			setError("root.server", {
+				message: "Failed to register, please try again later",
+			});
+		}
 	};
 
 	return (
@@ -113,9 +137,18 @@ const RegisterScreen = ({ navigation }: AppScreenProps<"Register">) => {
 							},
 						}}
 					/>
+					{errors.root?.server?.message && (
+						<FormErrorMessage
+							message={errors.root.server.message}
+						/>
+					)}
 				</View>
-				<Button variant="primary" onPress={handleSubmit(onSubmit)}>
-					Register
+				<Button
+					variant="primary"
+					onPress={handleSubmit(onSubmit)}
+					disabled={isSubmitting}
+				>
+					{isSubmitting ? "Registering..." : "Register"}
 				</Button>
 				<Text style={styles.footerText}>
 					Already have an account?{" "}
