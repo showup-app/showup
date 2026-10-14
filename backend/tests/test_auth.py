@@ -49,3 +49,13 @@ def test_signup_invalid_email(client):
 def test_signup_missing_name(client):
     body = {"email": "noname@test.com", "password": "longenough1"}
     assert client.post("/auth/signup", json=body).status_code == 422
+
+
+def test_signup_blank_name(client):
+    body = {"email": "blank@test.com", "password": "longenough1", "name": "   "}
+    assert client.post("/auth/signup", json=body).status_code == 422
+
+
+def test_signup_trims_name(client):
+    body = {"email": "trim@test.com", "password": "longenough1", "name": "  Trim Me  "}
+    assert client.post("/auth/signup", json=body).json()["name"] == "Trim Me"

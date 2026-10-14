@@ -20,9 +20,7 @@ from app.security import hash_password
 
 SEED_DOMAIN = "seed.showup.local"
 
-# Replaced by a real hash once the signup card lands. Seed users cannot log in until then.
-# PLACEHOLDER_HASH = "seed-user-no-login"
-
+# Every seed user logs in with this. Fine to know: the accounts are on a fake domain.
 DEMO_PASSWORD = "showup-demo"
 
 # First names. Everyone starts at reputation 100; the attendance rows below move it.
