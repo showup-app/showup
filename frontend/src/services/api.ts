@@ -1,3 +1,4 @@
+import { LoginForm, LoginReponse, RegisterBody, User } from "../types/auth";
 import { Game, GameDetail, GameFilters } from "../types/game";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
@@ -12,10 +13,11 @@ export class ApiError extends Error {
 	}
 }
 
-
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 	if (!API_URL) {
-		throw new Error("EXPO_PUBLIC_API_URL is not set. Copy .env.example to .env.");
+		throw new Error(
+			"EXPO_PUBLIC_API_URL is not set. Copy .env.example to .env.",
+		);
 	}
 
 	const response = await fetch(`${API_URL}${path}`, {
@@ -28,7 +30,10 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 	if (!response.ok) {
 		const body = await response.json().catch(() => null);
-		const detail = typeof body?.detail === "string" ? body.detail : response.statusText;
+		const detail =
+			typeof body?.detail === "string"
+				? body.detail
+				: response.statusText;
 		throw new ApiError(response.status, detail || "Something went wrong");
 	}
 
@@ -36,20 +41,42 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 
 /** Turns { sport: "soccer", location: "" } into "?sport=soccer", skipping empty values. */
-function toQueryString(params: Record<string, string | boolean | undefined>): string {
+function toQueryString(
+	params: Record<string, string | boolean | undefined>,
+): string {
 	const query = new URLSearchParams();
 	for (const [key, value] of Object.entries(params)) {
-		if (value !== undefined && value !== "") query.append(key, String(value));
+		if (value !== undefined && value !== "")
+			query.append(key, String(value));
 	}
 	const text = query.toString();
 	return text ? `?${text}` : "";
 }
 
-export const api = {
-  // TODO: login
-	// TODO: register
+function getRequestBody(method: "POST" | "PUT", body: any): RequestInit {
+	return {
+		method: method,
+		headers: { "Content-Type": "application/JSON" },
+		body: JSON.stringify(body),
+	};
+}
 
-	getGames: (filters: GameFilters = {}) => request<Game[]>(`/games${toQueryString(filters)}`),
+export const api = {
+	login: (loginBody: LoginForm) =>
+		request<LoginReponse>(`/auth/login`, {
+			...getRequestBody("POST", loginBody),
+		}),
+	register: (registerBody: RegisterBody) =>
+		request<User>(`/auth/signup`, {
+			...getRequestBody("POST", registerBody),
+		}),
+	me: (token: string) =>
+		request<User>(`/auth/me`, {
+			method: "GET",
+			headers: { Authorization: `Bearer ${token}` },
+		}),
+	getGames: (filters: GameFilters = {}) =>
+		request<Game[]>(`/games${toQueryString(filters)}`),
 	getGame: (id: number) => request<GameDetail>(`/games/${id}`),
 
 	// TODO: createGame

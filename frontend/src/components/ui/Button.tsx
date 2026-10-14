@@ -27,7 +27,12 @@ const Button: React.FC<ButtonProps> = ({
 
 	return (
 		<Pressable
-			style={[buttonStyle, styles.baseButton, styles[`${variant}Button`]]}
+			style={[
+				buttonStyle,
+				styles.baseButton,
+				styles[`${variant}Button`],
+				buttonProps.disabled && styles.baseButtonDisabled,
+			]}
 			{...buttonProps}
 		>
 			<Text
@@ -48,6 +53,9 @@ const getStyles = (theme: CustomTheme) =>
 			borderRadius: 16,
 			padding: 18,
 			alignItems: "center",
+		},
+		baseButtonDisabled: {
+			backgroundColor: "#E9ECEF",
 		},
 		outlineButton: {
 			borderColor: "#8E8E8E",
