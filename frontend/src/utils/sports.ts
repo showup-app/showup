@@ -14,6 +14,17 @@ const SPORT_ICONS: Record<string, IconName> = {
 	hockey: "hockey-sticks",
 };
 
+export const SPORTS = [
+	"basketball",
+	"soccer",
+	"volleyball",
+	"badminton",
+	"tennis",
+	"pickleball",
+	"ultimate",
+	"hockey",
+];
+
 export function sportIcon(sport: string): IconName {
 	return SPORT_ICONS[sport.toLowerCase()] ?? "run";
 }

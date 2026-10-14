@@ -1,6 +1,7 @@
 import type { NavigatorScreenParams, CompositeScreenProps } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { GameCreate } from '../types/game';
 
 /** Bottom tabs shown when logged in. */
 export type MainTabParamList = {
@@ -18,7 +19,7 @@ export type AppStackParamList = {
   Tabs: NavigatorScreenParams<MainTabParamList>;
   Search: undefined;
   CreatePost: undefined;
-  ConfirmPost: { draftId: string };
+  ConfirmPost: { draft: GameCreate };
   GameDetails: { gameId: number };
 };
 
