@@ -4,7 +4,7 @@ import { AppScreenProps } from '../navigation/types';
 
 export function ConfirmPostScreen({ navigation, route }: AppScreenProps<'ConfirmPost'>) {
   return (
-    <PlaceholderScreen title={`Confirm post (${route.params.draftId})`}>
+    <PlaceholderScreen title={`Confirm post (${route.params.draft.sport} at ${route.params.draft.venue})`}>
       <NavButton label="Post game" onPress={() => navigation.popTo('Tabs', { screen: 'Home' })} />
     </PlaceholderScreen>
   );

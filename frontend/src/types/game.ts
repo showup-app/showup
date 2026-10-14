@@ -41,3 +41,15 @@ export type GameFilters = {
 	location?: string;
 	include_past?: boolean;
 };
+
+/** Body of POST /games. */
+export type GameCreate = {
+	sport: string;
+	venue: string;
+	address: string;
+	starts_at: string;
+	duration_minutes: number;
+	spots: number; // players needed, not counting the host
+	cost: number;
+	min_reputation: number;
+};
