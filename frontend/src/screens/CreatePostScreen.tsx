@@ -67,21 +67,23 @@ function withDay(time: Date, day: Date): Date {
 	return result;
 }
 
-export function CreatePostScreen({ navigation }: AppScreenProps<"CreatePost">) {
+export function CreatePostScreen({ navigation, route }: AppScreenProps<"CreatePost">) {
 	const theme = useTheme();
 	const styles = getStyles(theme);
 
+	const draft = route.params?.draft;
+
 	const { control, handleSubmit, watch } = useForm<CreateGameForm>({
 		defaultValues: {
-			sport: "",
-			venue: "",
-			address: "",
-			startsAt: defaultStart(),
-			durationMinutes: 90,
-			spots: 10,
-			minReputation: 0,
-			isFree: true,
-			cost: "",
+			sport: draft?.sport || "",
+			venue: draft?.venue || "",
+			address: draft?.address || "",
+			startsAt: draft?.starts_at !== undefined ? new Date(draft.starts_at) : defaultStart(),
+			durationMinutes: draft?.duration_minutes || 90,
+			spots: draft?.spots || 10,
+			minReputation: draft?.min_reputation || 0,
+			isFree: (draft?.cost === 0) || true,
+			cost: draft?.cost !== undefined ? String(draft.cost) : "",
 		},
 	});
 
