@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, HTTPException, Query, status
-from sqlalchemy import func, or_, select
+from sqlalchemy import Select, func, or_, select
 from sqlalchemy.orm import selectinload
 
 from app.deps import CurrentUser, DbDep
@@ -57,6 +57,23 @@ def _summary(game: Game, joined: int) -> GameSummaryOut:
     )
 
 
+def summaries(db: DbDep, stmt: Select[tuple[Game]]) -> list[GameSummaryOut]:
+    """Run a select(Game) and build list rows. One grouped count of joined players is joined
+    in, so any list is two queries (games + hosts) however long it gets."""
+    joined = (
+        select(Signup.game_id, func.count().label("joined"))
+        .where(Signup.status == SignupStatus.JOINED)
+        .group_by(Signup.game_id)
+        .subquery()
+    )
+    stmt = (
+        stmt.add_columns(func.coalesce(joined.c.joined, 0))
+        .outerjoin(joined, joined.c.game_id == Game.id)
+        .options(selectinload(Game.host))
+    )
+    return [_summary(game, count) for game, count in db.execute(stmt)]
+
+
 def _detail(db: DbDep, game_id: int) -> GameDetailOut:
     stmt = (
         select(Game)
@@ -110,21 +127,7 @@ def list_games(
 ) -> list[GameSummaryOut]:
     """Upcoming games, soonest first, each with its host and places left. Cancelled games are
     never listed."""
-    # One grouped count of joined players per game, joined in, so the list is two queries
-    # (games + hosts) however long it gets.
-    joined = (
-        select(Signup.game_id, func.count().label("joined"))
-        .where(Signup.status == SignupStatus.JOINED)
-        .group_by(Signup.game_id)
-        .subquery()
-    )
-    stmt = (
-        select(Game, func.coalesce(joined.c.joined, 0))
-        .outerjoin(joined, joined.c.game_id == Game.id)
-        .options(selectinload(Game.host))
-        .where(Game.status != GameStatus.CANCELLED)
-        .order_by(Game.starts_at)
-    )
+    stmt = select(Game).where(Game.status != GameStatus.CANCELLED).order_by(Game.starts_at)
     if sport:
         stmt = stmt.where(func.lower(Game.sport) == sport.lower())
     if location:
@@ -134,7 +137,7 @@ def list_games(
         )
     if not include_past:
         stmt = stmt.where(Game.starts_at >= func.now())
-    return [_summary(game, count) for game, count in db.execute(stmt)]
+    return summaries(db, stmt)
 
 
 @router.get("/{game_id}", response_model=GameDetailOut)

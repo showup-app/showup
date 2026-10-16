@@ -83,6 +83,13 @@ class GameDetailOut(GameSummaryOut):
     )
 
 
+class MyGamesOut(BaseModel):
+    """GET /me/games. Two lists so the My Games screen maps straight to its tabs."""
+
+    hosting: list[GameSummaryOut] = Field(description="Games I host, soonest first")
+    joined: list[GameSummaryOut] = Field(description="Games I have a spot in, soonest first")
+
+
 def _check_sport(value: str) -> str:
     sport = value.strip().lower()
     if sport not in ALLOWED_SPORTS:
