@@ -6,17 +6,22 @@ import { CustomTheme, useTheme } from "@react-navigation/native";
 import Button from "../components/ui/Button";
 import TitleAndSubtitle from "../components/ui/TitleAndSubtitle";
 import { SubmitHandler, useForm } from "react-hook-form";
-
-type LoginForm = {
-	email: string;
-	password: string;
-};
+import { LoginForm } from "../types/auth";
+import { api } from "../services/api";
+import FormErrorMessage from "../components/ui/FormErrorMessage";
+import { useUser } from "../context/UserContext";
 
 const LoginScreen = ({ navigation }: AppScreenProps<"Login">) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
+	const { login } = useUser();
 
-	const { control, handleSubmit } = useForm<LoginForm>({
+	const {
+		control,
+		handleSubmit,
+		formState: { isSubmitting, errors },
+		setError,
+	} = useForm<LoginForm>({
 		mode: "onSubmit",
 		reValidateMode: "onSubmit",
 		defaultValues: {
@@ -25,9 +30,24 @@ const LoginScreen = ({ navigation }: AppScreenProps<"Login">) => {
 		},
 	});
 
-	const onSubmit: SubmitHandler<LoginForm> = (formData: LoginForm) => {
-		console.log("Submit: ", formData);
-		navigation.replace("Tabs", { screen: "Home" });
+	const onSubmit: SubmitHandler<LoginForm> = async (formData: LoginForm) => {
+		const loginRes = await api.login(formData);
+		if (loginRes.ok) {
+			const token = loginRes.data;
+			const meRes = await api.me(token.access_token);
+			if (meRes.ok) {
+				login(meRes.data, token.access_token);
+				navigation.replace("Tabs", { screen: "Home" });
+			} else {
+				setError("root.server", {
+					message: meRes.error,
+				});
+			}
+		} else {
+			setError("root.server", {
+				message: loginRes.error,
+			});
+		}
 	};
 
 	return (
@@ -65,9 +85,18 @@ const LoginScreen = ({ navigation }: AppScreenProps<"Login">) => {
 							rules: { required: "Password is required." },
 						}}
 					/>
+					{errors.root?.server?.message && (
+						<FormErrorMessage
+							message={errors.root.server.message}
+						/>
+					)}
 				</View>
-				<Button variant="primary" onPress={handleSubmit(onSubmit)}>
-					Login
+				<Button
+					variant="primary"
+					onPress={handleSubmit(onSubmit)}
+					disabled={isSubmitting}
+				>
+					{isSubmitting ? "Logging in..." : "Login"}
 				</Button>
 			</View>
 		</SafeAreaView>

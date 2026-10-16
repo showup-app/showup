@@ -1,55 +1,135 @@
+import { LoginForm, LoginReponse, RegisterBody, User } from "../types/auth";
 import { Game, GameDetail, GameFilters } from "../types/game";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
-/** Backend error */
-export class ApiError extends Error {
-	constructor(
-		public status: number,
-		message: string,
-	) {
-		super(message);
-	}
-}
+type ResponseObject<T> =
+	| {
+			ok: true;
+			data: T;
+			status: number;
+	  }
+	| {
+			ok: false;
+			data: null;
+			status: number;
+			error: string;
+	  };
 
-
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+async function request<T>(
+	path: string,
+	options: RequestInit = {},
+	fallbackErrorMessage: string = "Something went wrong",
+): Promise<ResponseObject<T>> {
 	if (!API_URL) {
-		throw new Error("EXPO_PUBLIC_API_URL is not set. Copy .env.example to .env.");
+		return {
+			ok: false,
+			data: null,
+			status: 0,
+			error: "EXPO_PUBLIC_API_URL is not set. Copy .env.example to .env.",
+		};
 	}
 
-	const response = await fetch(`${API_URL}${path}`, {
-		...options,
-		headers: {
-			"Content-Type": "application/json",
-			...options.headers,
-		},
-	});
+	try {
+		const response = await fetch(`${API_URL}${path}`, {
+			...options,
+			headers: {
+				"Content-Type": "application/json",
+				...options.headers,
+			},
+		});
 
-	if (!response.ok) {
-		const body = await response.json().catch(() => null);
-		const detail = typeof body?.detail === "string" ? body.detail : response.statusText;
-		throw new ApiError(response.status, detail || "Something went wrong");
+		if (!response.ok) {
+			const body = await response.json().catch(() => null);
+			const detail =
+				typeof body?.detail === "string"
+					? body.detail
+					: response.statusText;
+
+			return {
+				ok: false,
+				data: null,
+				status: response.status,
+				error: detail || fallbackErrorMessage,
+			};
+		}
+
+		let data;
+		// 204 (No content) returns no JSON response
+		if (response.status == 204) {
+			data = null;
+		} else {
+			data = await response.json();
+		}
+
+		return {
+			data: data,
+			status: response.status,
+			ok: response.ok,
+		};
+	} catch (e) {
+		return {
+			ok: false,
+			data: null,
+			status: 0,
+			error: e instanceof Error ? e.message : fallbackErrorMessage,
+		};
 	}
-
-	return response.json() as Promise<T>;
 }
 
 /** Turns { sport: "soccer", location: "" } into "?sport=soccer", skipping empty values. */
-function toQueryString(params: Record<string, string | boolean | undefined>): string {
+function toQueryString(
+	params: Record<string, string | boolean | undefined>,
+): string {
 	const query = new URLSearchParams();
 	for (const [key, value] of Object.entries(params)) {
-		if (value !== undefined && value !== "") query.append(key, String(value));
+		if (value !== undefined && value !== "")
+			query.append(key, String(value));
 	}
 	const text = query.toString();
 	return text ? `?${text}` : "";
 }
 
-export const api = {
-  // TODO: login
-	// TODO: register
+function getRequestBody(method: "POST" | "PUT", body: any): RequestInit {
+	return {
+		method: method,
+		headers: { "Content-Type": "application/JSON" },
+		body: JSON.stringify(body),
+	};
+}
 
-	getGames: (filters: GameFilters = {}) => request<Game[]>(`/games${toQueryString(filters)}`),
+export const api = {
+	login: (loginBody: LoginForm) =>
+		request<LoginReponse>(
+			`/auth/login`,
+			{
+				...getRequestBody("POST", loginBody),
+			},
+			"Failed to login, please try again later",
+		),
+	register: (registerBody: RegisterBody) =>
+		request<User>(
+			`/auth/signup`,
+			{
+				...getRequestBody("POST", registerBody),
+			},
+			"Failed to register, please try again later",
+		),
+	me: (token: string) =>
+		request<User>(
+			`/auth/me`,
+			{
+				method: "GET",
+				headers: { Authorization: `Bearer ${token}` },
+			},
+			"Failed to authenticate, please try again later",
+		),
+	getGames: (filters: GameFilters = {}) =>
+		request<Game[]>(
+			`/games${toQueryString(filters)}`,
+			{},
+			"Couldn't load games",
+		),
 	getGame: (id: number) => request<GameDetail>(`/games/${id}`),
 
 	// TODO: createGame

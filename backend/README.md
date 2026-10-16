@@ -50,6 +50,7 @@ tests/           pytest, TestClient fixture in conftest.py
 
 ## Auth contract
 
+- `POST /auth/signup` creates a user, `POST /auth/login` returns the token, `GET /auth/me` returns the signed-in user, `POST /auth/logout` is a stateless 204 (the app drops the token; it stays valid until it expires).
 - Protected endpoints read `Authorization: Bearer <token>` through `CurrentUser` in `app/deps.py`.
 - A token is a JWT signed with `JWT_SECRET` (HS256) whose `sub` is the user id as a string. `app/security.py` has `create_access_token(user_id)` and `decode_access_token(token)`; the login endpoint should call the first, nothing else needs to touch JWTs.
 - Missing or bad token: 401 with `WWW-Authenticate: Bearer`. Wrong user for the action (not the host): 403.

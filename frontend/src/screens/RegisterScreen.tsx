@@ -6,6 +6,9 @@ import Button from "../components/ui/Button";
 import FormInput from "../components/ui/FormInput";
 import TitleAndSubtitle from "../components/ui/TitleAndSubtitle";
 import { SubmitHandler, useForm } from "react-hook-form";
+import { api } from "../services/api";
+import { RegisterBody } from "../types/auth";
+import FormErrorMessage from "../components/ui/FormErrorMessage";
 
 type RegisterForm = {
 	email: string;
@@ -18,7 +21,13 @@ const RegisterScreen = ({ navigation }: AppScreenProps<"Register">) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
 
-	const { control, handleSubmit, getValues } = useForm<RegisterForm>({
+	const {
+		control,
+		handleSubmit,
+		getValues,
+		setError,
+		formState: { errors, isSubmitting },
+	} = useForm<RegisterForm>({
 		mode: "onSubmit",
 		reValidateMode: "onSubmit",
 		defaultValues: {
@@ -29,9 +38,35 @@ const RegisterScreen = ({ navigation }: AppScreenProps<"Register">) => {
 		},
 	});
 
-	const onSubmit: SubmitHandler<RegisterForm> = (formData: RegisterForm) => {
-		console.log("Submit: ", formData);
-		navigation.replace("Tabs", { screen: "Home" });
+	const onSubmit: SubmitHandler<RegisterForm> = async (
+		formData: RegisterForm,
+	) => {
+		const registerBody: RegisterBody = {
+			email: formData.email,
+			name: formData.name,
+			password: formData.password,
+		};
+
+		const res = await api.register(registerBody);
+		if (res.ok) {
+			// TODO: Once register API returns token, treat register the same as a successful login
+			navigation.replace("Login");
+		} else {
+			if (res.status === 409) {
+				setError(
+					"email",
+					{
+						message:
+							"This email is already in use by a registered user",
+					},
+					{ shouldFocus: true },
+				);
+			} else {
+				setError("root.server", {
+					message: res.error,
+				});
+			}
+		}
 	};
 
 	return (
@@ -113,9 +148,18 @@ const RegisterScreen = ({ navigation }: AppScreenProps<"Register">) => {
 							},
 						}}
 					/>
+					{errors.root?.server?.message && (
+						<FormErrorMessage
+							message={errors.root.server.message}
+						/>
+					)}
 				</View>
-				<Button variant="primary" onPress={handleSubmit(onSubmit)}>
-					Register
+				<Button
+					variant="primary"
+					onPress={handleSubmit(onSubmit)}
+					disabled={isSubmitting}
+				>
+					{isSubmitting ? "Registering..." : "Register"}
 				</Button>
 				<Text style={styles.footerText}>
 					Already have an account?{" "}
