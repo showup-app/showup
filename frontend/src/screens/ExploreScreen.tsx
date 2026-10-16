@@ -34,11 +34,8 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 
 	const loadGames = async () => {
 		setError(null);
-		try {
-			setGames(await api.getGames({ location }));
-		} catch (err) {
-			setError(err instanceof Error ? err.message : "Couldn't load games");
-		}
+		const res = await api.getGames({ location });
+		res.ok ? setGames(res.data) : setError(res.error);
 	};
 
 	useEffect(() => {
@@ -46,13 +43,10 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 		const timer = setTimeout(async () => {
 			setLoading(true);
 			setError(null);
-			try {
+			if (!cancelled) {
 				const result = await api.getGames({ location });
-				if (!cancelled) setGames(result);
-			} catch (err) {
-				if (!cancelled) setError(err instanceof Error ? err.message : "Couldn't load games");
-			} finally {
-				if (!cancelled) setLoading(false);
+				result.ok ? setGames(result.data) : setError(result.error);
+				setLoading(false);
 			}
 		}, SEARCH_DELAY_MS);
 

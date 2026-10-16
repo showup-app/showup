@@ -9,10 +9,12 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { LoginForm } from "../types/auth";
 import { api } from "../services/api";
 import FormErrorMessage from "../components/ui/FormErrorMessage";
+import { useUser } from "../context/UserContext";
 
 const LoginScreen = ({ navigation }: AppScreenProps<"Login">) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
+	const { login } = useUser();
 
 	const {
 		control,
@@ -29,14 +31,21 @@ const LoginScreen = ({ navigation }: AppScreenProps<"Login">) => {
 	});
 
 	const onSubmit: SubmitHandler<LoginForm> = async (formData: LoginForm) => {
-		try {
-			const token = await api.login(formData);
-			const user = await api.me(token.access_token);
-			console.log(user); // TODO: add user to global state
-			navigation.replace("Tabs", { screen: "Home" });
-		} catch (error) {
+		const loginRes = await api.login(formData);
+		if (loginRes.ok) {
+			const token = loginRes.data;
+			const meRes = await api.me(token.access_token);
+			if (meRes.ok) {
+				login(meRes.data, token.access_token);
+				navigation.replace("Tabs", { screen: "Home" });
+			} else {
+				setError("root.server", {
+					message: meRes.error,
+				});
+			}
+		} else {
 			setError("root.server", {
-				message: "Failed to login, please try again later",
+				message: loginRes.error,
 			});
 		}
 	};

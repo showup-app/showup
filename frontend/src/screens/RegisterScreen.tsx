@@ -47,14 +47,25 @@ const RegisterScreen = ({ navigation }: AppScreenProps<"Register">) => {
 			password: formData.password,
 		};
 
-		try {
-			const user = await api.register(registerBody);
-			console.log(user);
-			navigation.replace('Login'); // TODO: add flash message on login screen with success message?
-		} catch (error) {
-			setError("root.server", {
-				message: "Failed to register, please try again later",
-			});
+		const res = await api.register(registerBody);
+		if (res.ok) {
+			// TODO: Once register API returns token, treat register the same as a successful login
+			navigation.replace("Login");
+		} else {
+			if (res.status === 409) {
+				setError(
+					"email",
+					{
+						message:
+							"This email is already in use by a registered user",
+					},
+					{ shouldFocus: true },
+				);
+			} else {
+				setError("root.server", {
+					message: res.error,
+				});
+			}
 		}
 	};
 
