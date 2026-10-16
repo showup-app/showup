@@ -121,7 +121,14 @@ def test_roster_shows_games_played_and_new(client: TestClient, db: Session) -> N
 
     body = client.get(f"/games/{_game_id(db, 0)}").json()
 
-    assert set(body["players"][0]) == {"id", "name", "reputation", "games_played", "is_new"}
+    assert set(body["players"][0]) == {
+        "id",
+        "name",
+        "reputation",
+        "games_played",
+        "is_new",
+        "showed_up",
+    }
     jordan = next(p for p in body["players"] if p["name"] == "Jordan")
     assert jordan == {**jordan, "reputation": 100, "games_played": 1, "is_new": True}
     assert body["host_reputation"] == 100
