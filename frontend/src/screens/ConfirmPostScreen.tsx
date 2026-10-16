@@ -2,10 +2,12 @@ import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../components/ui/Button";
 import { AppScreenProps } from "../navigation/types";
-import { CustomTheme, useTheme } from "@react-navigation/native";
+import { CommonActions, CustomTheme, useTheme } from "@react-navigation/native";
 import GameCard from "../components/game/GameCard";
 import { useState } from "react";
 import FormErrorMessage from "../components/ui/FormErrorMessage";
+import { api } from "../services/api";
+import { useUser } from "../context/UserContext";
 
 const ConfirmPostScreen = ({
 	navigation,
@@ -13,44 +15,64 @@ const ConfirmPostScreen = ({
 }: AppScreenProps<"ConfirmPost">) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
+	const { draft } = route.params;
+	const { token } = useUser();
 
-	const [error, setError] = useState("");
+	const [error, setError] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
-	const handlePost = () => {
+	const handlePost = async () => {
 		setIsSubmitting(true);
-		navigation.popTo("Tabs", { screen: "Home" });
+		const res = await api.createGame(draft, token!);
 		setIsSubmitting(false);
+		if (res.ok) {
+			navigation.dispatch(
+				CommonActions.reset({
+					index: 1,
+					routes: [
+						{ name: "Tabs", params: { screen: "Home" } },
+						{
+							name: "GameDetails",
+							params: { gameId: res.data.id },
+						},
+					],
+				}),
+			);
+		} else {
+			setError(res.error);
+		}
 	};
 
 	return (
 		<SafeAreaView style={styles.screen} edges={["left", "right", "bottom"]}>
-			<GameCard game={route.params.draft} />
-			<View style={styles.buttonsContainer}>
-				<Button
-					buttonStyle={{
-						flexBasis: "30%",
-					}}
-					variant="outline"
-					onPress={() =>
-						navigation.navigate("CreatePost", {
-							draft: route.params.draft,
-						})
-					}
-				>
-					Edit
-				</Button>
-				<Button
-					buttonStyle={{
-						flexBasis: "60%",
-					}}
-					variant="primary"
-					onPress={() => handlePost()}
-					disabled={isSubmitting}
-				>
-					Post game
-				</Button>
-				{error !== "" && <FormErrorMessage message={error} />}
+			<GameCard game={draft} />
+			<View style={{ display: "flex", gap: 10 }}>
+				{error && <FormErrorMessage message={error} />}
+				<View style={styles.buttonsContainer}>
+					<Button
+						buttonStyle={{
+							flex: 1,
+						}}
+						variant="outline"
+						onPress={() =>
+							navigation.navigate("CreatePost", {
+								draft: draft,
+							})
+						}
+					>
+						Edit
+					</Button>
+					<Button
+						buttonStyle={{
+							flex: 2,
+						}}
+						variant="primary"
+						onPress={() => handlePost()}
+						disabled={isSubmitting}
+					>
+						Post game
+					</Button>
+				</View>
 			</View>
 		</SafeAreaView>
 	);
@@ -75,6 +97,6 @@ const getStyles = (theme: CustomTheme) =>
 			gap: 20,
 			alignSelf: "center",
 			alignItems: "center",
-			justifyContent: "center",
+			justifyContent: "space-between",
 		},
 	});
