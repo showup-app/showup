@@ -119,6 +119,9 @@ def test_me_returns_the_signed_in_user(client, db):
         "email": "login@test.com",
         "name": "Login Test",
         "reputation": 100,
+        "games_played": 0,
+        "games_hosted": 0,
+        "is_new": True,
     }
 
 
@@ -141,3 +144,22 @@ def test_logout_with_valid_token(client, db):
 def test_logout_without_token(client):
     r = client.post("/auth/logout")
     assert r.status_code == 401
+
+
+def test_me_counts_played_and_hosted_games(client, db):
+    from app.seed import DEMO_PASSWORD, seed
+
+    seed(db)
+
+    # Seed facts: Alex hosted the played game; Jordan showed up to it; Sam did not.
+    def profile(name):
+        token = client.post(
+            "/auth/login", json={"email": f"{name}@seed.showup.local", "password": DEMO_PASSWORD}
+        ).json()["access_token"]
+        return client.get("/auth/me", headers={"Authorization": f"Bearer {token}"}).json()
+
+    alex, jordan, sam = profile("alex"), profile("jordan"), profile("sam")
+
+    assert (alex["games_played"], alex["games_hosted"], alex["is_new"]) == (0, 1, True)
+    assert (jordan["games_played"], jordan["reputation"], jordan["is_new"]) == (1, 100, True)
+    assert (sam["games_played"], sam["reputation"], sam["is_new"]) == (0, 75, True)
