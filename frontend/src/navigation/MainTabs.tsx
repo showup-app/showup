@@ -7,7 +7,7 @@ import { theme } from '../theme';
 import AppHeader from '../components/layout/AppHeader';
 import { HomeScreen } from '../screens/HomeScreen';
 import { ExploreScreen } from '../screens/ExploreScreen';
-import { ProfileScreen } from '../screens/ProfileScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
