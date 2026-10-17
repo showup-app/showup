@@ -1,13 +1,19 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import Select, func, or_, select
 from sqlalchemy.orm import selectinload
 
 from app.deps import CurrentUser, DbDep
-from app.models import Game, GameStatus, Signup, SignupStatus, User
-from app.reputation import effective_min_reputation, player_stats
+from app.models import Attendance, Game, GameStatus, Signup, SignupStatus, User
+from app.reputation import (
+    MARK_WINDOW_DAYS,
+    effective_min_reputation,
+    player_stats,
+    recompute,
+)
 from app.schemas.game import (
+    AttendanceIn,
     GameCreate,
     GameDetailOut,
     GameOut,
@@ -78,7 +84,11 @@ def _detail(db: DbDep, game_id: int) -> GameDetailOut:
     stmt = (
         select(Game)
         .where(Game.id == game_id)
-        .options(selectinload(Game.host), selectinload(Game.signups).selectinload(Signup.user))
+        .options(
+            selectinload(Game.host),
+            selectinload(Game.signups).selectinload(Signup.user),
+            selectinload(Game.attendance),
+        )
     )
     game = db.scalar(stmt)
     if game is None:
@@ -88,6 +98,7 @@ def _detail(db: DbDep, game_id: int) -> GameDetailOut:
         key=lambda s: (s.created_at, s.id),
     )
     stats = player_stats(db, [s.user_id for s in joined])
+    marks = {a.user_id: a.showed_up for a in game.attendance}
     players = [
         PlayerOut(
             id=s.user.id,
@@ -95,6 +106,7 @@ def _detail(db: DbDep, game_id: int) -> GameDetailOut:
             reputation=s.user.reputation,
             games_played=stats[s.user_id]["games_played"],
             is_new=stats[s.user_id]["is_new"],
+            showed_up=marks.get(s.user_id),
         )
         for s in joined
     ]
@@ -255,5 +267,70 @@ def leave_game(game_id: int, db: DbDep, user: CurrentUser) -> GameDetailOut:
     db.delete(signup)
     if game.status == GameStatus.FULL:
         game.status = GameStatus.OPEN
+    db.commit()
+    return _detail(db, game.id)
+
+
+# ---------- after the game ----------
+
+
+@router.post("/{game_id}/attendance", response_model=GameDetailOut)
+def mark_attendance(
+    game_id: int, body: AttendanceIn, db: DbDep, user: CurrentUser
+) -> GameDetailOut:
+    """Host records who showed up. Only after kickoff and within the marking window; marks can
+    be changed inside the window. The first mark sets the game to played, and every marked
+    player's reputation is recomputed."""
+    game = _get_game_or_404(db, game_id, lock=True)
+    _require_host(game, user)
+    if game.status == GameStatus.CANCELLED:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Game is cancelled")
+    now = datetime.now(UTC)
+    if now < game.starts_at:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Game has not started yet")
+    if now > game.starts_at + timedelta(days=MARK_WINDOW_DAYS):
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            f"Attendance can only be marked within {MARK_WINDOW_DAYS} days of kickoff",
+        )
+
+    roster = set(
+        db.scalars(
+            select(Signup.user_id).where(
+                Signup.game_id == game.id, Signup.status == SignupStatus.JOINED
+            )
+        )
+    )
+    strangers = sorted(m.user_id for m in body.marks if m.user_id not in roster)
+    if strangers:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+            "Not on the roster: " + ", ".join(map(str, strangers)),
+        )
+
+    existing = {
+        a.user_id: a for a in db.scalars(select(Attendance).where(Attendance.game_id == game.id))
+    }
+    for mark in body.marks:
+        row = existing.get(mark.user_id)
+        if row is None:
+            db.add(
+                Attendance(
+                    game_id=game.id,
+                    user_id=mark.user_id,
+                    showed_up=mark.showed_up,
+                    marked_by=user.id,
+                    marked_at=now,
+                )
+            )
+        else:
+            row.showed_up = mark.showed_up
+            row.marked_by = user.id
+            row.marked_at = now
+    game.status = GameStatus.PLAYED
+    db.flush()
+    marked_ids = [m.user_id for m in body.marks]
+    for player in db.scalars(select(User).where(User.id.in_(marked_ids))):
+        recompute(db, player)
     db.commit()
     return _detail(db, game.id)

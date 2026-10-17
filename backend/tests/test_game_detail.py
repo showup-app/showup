@@ -22,7 +22,14 @@ def test_detail_has_host_players_and_spots_left(client: TestClient, db: Session)
     assert body["host_name"] == USERS[GAMES[0][0]]
     assert [p["name"] for p in body["players"]] == [USERS[u] for u in joined]
     assert body["spots_left"] == GAMES[0][6] - len(joined)
-    assert set(body["players"][0]) == {"id", "name", "reputation", "games_played", "is_new"}
+    assert set(body["players"][0]) == {
+        "id",
+        "name",
+        "reputation",
+        "games_played",
+        "is_new",
+        "showed_up",
+    }
 
 
 def test_detail_excludes_removed_players(client: TestClient, db: Session) -> None:

@@ -60,7 +60,8 @@ tests/           pytest, TestClient fixture in conftest.py
 All rules and constants are in `app/reputation.py`; the reasoning is in
 `docs/decisions/0002-reputation.md`. Short version: everyone starts at 100 and shows as "New"
 until three games; the score is a show-up rate with a three-game cushion, recomputed from
-`attendance` when a host marks; hosts set any minimum up to 100 and may set a one-step fallback
+`attendance` when a host marks (`POST /games/{id}/attendance`, host only, after kickoff, within 7
+days); hosts set any minimum up to 100 and may set a one-step fallback
 that applies N hours before kickoff.
 
 ## Conventions

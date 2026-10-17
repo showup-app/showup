@@ -59,6 +59,10 @@ class PlayerOut(BaseModel):
     is_new: bool = Field(
         description="True until 3 marked or hosted games; the app shows 'New' instead of the score"
     )
+    showed_up: bool | None = Field(
+        default=None,
+        description="The host's mark: true showed up, false no-show, null not marked yet",
+    )
 
 
 class GameSummaryOut(GameOut):
@@ -88,6 +92,34 @@ class MyGamesOut(BaseModel):
 
     hosting: list[GameSummaryOut] = Field(description="Games I host, soonest first")
     joined: list[GameSummaryOut] = Field(description="Games I have a spot in, soonest first")
+
+
+class AttendanceMark(BaseModel):
+    user_id: int
+    showed_up: bool
+
+
+class AttendanceIn(BaseModel):
+    """Body of POST /games/{id}/attendance. Players left out keep whatever mark they had."""
+
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "examples": [
+                {"marks": [{"user_id": 2, "showed_up": True}, {"user_id": 3, "showed_up": False}]}
+            ]
+        },
+    )
+
+    marks: list[AttendanceMark] = Field(min_length=1)
+
+    @field_validator("marks")
+    @classmethod
+    def _no_duplicates(cls, marks: list[AttendanceMark]) -> list[AttendanceMark]:
+        ids = [m.user_id for m in marks]
+        if len(ids) != len(set(ids)):
+            raise ValueError("each user_id may appear once")
+        return marks
 
 
 def _check_sport(value: str) -> str:
