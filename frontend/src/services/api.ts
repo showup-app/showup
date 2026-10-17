@@ -1,5 +1,5 @@
 import { LoginForm, LoginReponse, RegisterBody, User } from "../types/auth";
-import { Game, GameDetail, GameFilters } from "../types/game";
+import { Game, GameCreate, GameDetail, GameFilters } from "../types/game";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -93,7 +93,6 @@ function toQueryString(
 function getRequestBody(method: "POST" | "PUT", body: any): RequestInit {
 	return {
 		method: method,
-		headers: { "Content-Type": "application/JSON" },
 		body: JSON.stringify(body),
 	};
 }
@@ -102,17 +101,13 @@ export const api = {
 	login: (loginBody: LoginForm) =>
 		request<LoginReponse>(
 			`/auth/login`,
-			{
-				...getRequestBody("POST", loginBody),
-			},
+			getRequestBody("POST", loginBody),
 			"Failed to login, please try again later",
 		),
 	register: (registerBody: RegisterBody) =>
 		request<User>(
 			`/auth/signup`,
-			{
-				...getRequestBody("POST", registerBody),
-			},
+			getRequestBody("POST", registerBody),
 			"Failed to register, please try again later",
 		),
 	me: (token: string) =>
@@ -131,8 +126,15 @@ export const api = {
 			"Couldn't load games",
 		),
 	getGame: (id: number) => request<GameDetail>(`/games/${id}`),
-
-	// TODO: createGame
+	createGame: (gameBody: GameCreate, token: string) =>
+		request<Game>(
+			`/games`,
+			{
+				...getRequestBody("POST", gameBody),
+				headers: { Authorization: `Bearer ${token}` },
+			},
+			"Failed to create game",
+		),
 	// TODO: updateGame
 	// TODO: cancelGame
 	// TODO: joinGame

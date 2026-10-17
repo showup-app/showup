@@ -2,7 +2,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { CustomTheme, useTheme } from "@react-navigation/native";
 import { ComponentProps } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Game, GameDetail } from "../../types/game";
+import { Game, GameCreate, GameDetail } from "../../types/game";
 import {
 	capitalize,
 	cityFromAddress,
@@ -19,7 +19,7 @@ const LOW_SPOTS = 3;
 type IconName = ComponentProps<typeof MaterialCommunityIcons>["name"];
 
 type GameCardProps = {
-	game: Game | GameDetail;
+	game: Game | GameDetail | GameCreate;
 	onJoin?: () => void;
 	onSeePlayers?: () => void;
 };
