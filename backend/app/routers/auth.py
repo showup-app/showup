@@ -4,7 +4,8 @@ from sqlalchemy.exc import IntegrityError
 
 from app.deps import CurrentUser, DbDep
 from app.models import User
-from app.schemas.auth import LoginRequest, SignupRequest, TokenResponse, UserOut
+from app.reputation import player_stats
+from app.schemas.auth import LoginRequest, ProfileOut, SignupRequest, TokenResponse, UserOut
 from app.security import DUMMY_HASH, create_access_token, hash_password, verify_password
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -41,10 +42,12 @@ def login(body: LoginRequest, db: DbDep):
     return TokenResponse(access_token=create_access_token(user.id))
 
 
-@router.get("/me", response_model=UserOut)
-def me(user: CurrentUser):
-    """The signed-in user. What the app calls after login to fill the profile."""
-    return user
+@router.get("/me", response_model=ProfileOut)
+def me(user: CurrentUser, db: DbDep):
+    """The signed-in user with games played, games hosted and the New flag. What the app
+    calls after login to fill the profile."""
+    stats = player_stats(db, [user.id])[user.id]
+    return ProfileOut(**UserOut.model_validate(user).model_dump(), **stats)
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
