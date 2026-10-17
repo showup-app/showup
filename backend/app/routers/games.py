@@ -235,8 +235,11 @@ def join_game(game_id: int, db: DbDep, user: CurrentUser) -> GameDetailOut:
 
 @router.delete("/{game_id}/join", response_model=GameDetailOut)
 def leave_game(game_id: int, db: DbDep, user: CurrentUser) -> GameDetailOut:
-    """Give up your spot. Frees the game if it was full."""
+    """Give up your spot. Frees the game if it was full. Not after kickoff: the roster freezes
+    so the host can mark who showed up."""
     game = _get_game_or_404(db, game_id, lock=True)
+    if game.starts_at <= datetime.now(UTC):
+        raise HTTPException(status.HTTP_409_CONFLICT, "Game has already started")
     signup = db.scalar(
         select(Signup).where(
             Signup.game_id == game.id,
