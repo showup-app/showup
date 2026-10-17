@@ -21,7 +21,7 @@ export type AppStackParamList = {
 	Register: undefined;
 	Tabs: NavigatorScreenParams<MainTabParamList>;
 	Search: undefined;
-	CreatePost: { draft?: GameCreate } | undefined;
+	CreatePost: undefined;
 	ConfirmPost: { draft: GameCreate };
 	GameDetails: { gameId: number };
 };

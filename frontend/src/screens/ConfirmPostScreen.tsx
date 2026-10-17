@@ -54,11 +54,7 @@ const ConfirmPostScreen = ({
 							flex: 1,
 						}}
 						variant="outline"
-						onPress={() =>
-							navigation.navigate("CreatePost", {
-								draft: draft,
-							})
-						}
+						onPress={() => navigation.goBack()}
 					>
 						Edit
 					</Button>
