@@ -21,6 +21,7 @@ export type AppStackParamList = {
 	CreatePost: undefined;
 	ConfirmPost: { draft: GameCreate };
 	GameDetails: { gameId: number };
+	Attendance: { gameId: number };
 };
 
 export type AppScreenProps<T extends keyof AppStackParamList> = NativeStackScreenProps<AppStackParamList, T>;

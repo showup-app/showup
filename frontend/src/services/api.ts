@@ -1,5 +1,5 @@
 import { LoginForm, LoginReponse, RegisterBody, User } from "../types/auth";
-import { Game, GameCreate, GameDetail, GameFilters, MyGames } from "../types/game";
+import { Game, GameCreate, GameDetail, GameFilters, MyGames, AttendanceMark } from "../types/game";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -126,20 +126,29 @@ export const api = {
 			"Failed to create game",
 		),
 
-	getMyGames: (token: string) =>
+	getMyGames: (token: string, includePast = false) =>
 		request<MyGames>(
-			`/me/games`,
+			`/me/games${toQueryString({ include_past: includePast })}`,
 			{
 				method: "GET",
 				headers: { Authorization: `Bearer ${token}` },
 			},
 			"Couldn't load your games",
 		),
+	
+	markAttendance: (gameId: number, marks: AttendanceMark[], token: string) =>
+  request<GameDetail>(
+  	`/games/${gameId}/attendance`,
+  	{
+  		...getRequestBody("POST", { marks }),
+  		headers: { Authorization: `Bearer ${token}` },
+  	},
+  	"Couldn't save attendance",
+  ),
 
 	// TODO: updateGame
 	// TODO: cancelGame
 	// TODO: joinGame
 	// TODO: leaveGame
 	// TODO: getMe
-	// TODO: markAttendance
 };
