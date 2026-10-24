@@ -1,12 +1,5 @@
 import { CustomTheme, useTheme } from "@react-navigation/native";
-import {
-	Pressable,
-	PressableProps,
-	StyleProp,
-	StyleSheet,
-	Text,
-	TextStyle,
-} from "react-native";
+import { Pressable, PressableProps, StyleProp, StyleSheet, Text, TextStyle } from "react-native";
 
 interface ButtonProps extends PressableProps {
 	buttonStyle?: StyleProp<TextStyle>;
@@ -15,13 +8,7 @@ interface ButtonProps extends PressableProps {
 	variant: "primary" | "outline";
 }
 
-const Button: React.FC<ButtonProps> = ({
-	buttonStyle,
-	textStyle,
-	children,
-	variant,
-	...buttonProps
-}) => {
+const Button: React.FC<ButtonProps> = ({ buttonStyle, textStyle, children, variant, ...buttonProps }) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
 
@@ -35,11 +22,7 @@ const Button: React.FC<ButtonProps> = ({
 			]}
 			{...buttonProps}
 		>
-			<Text
-				style={[textStyle, styles.baseText, styles[`${variant}Text`]]}
-			>
-				{children}
-			</Text>
+			<Text style={[textStyle, styles.baseText, styles[`${variant}Text`]]}>{children}</Text>
 		</Pressable>
 	);
 };

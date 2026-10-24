@@ -41,10 +41,7 @@ async function request<T>(
 
 		if (!response.ok) {
 			const body = await response.json().catch(() => null);
-			const detail =
-				typeof body?.detail === "string"
-					? body.detail
-					: response.statusText;
+			const detail = typeof body?.detail === "string" ? body.detail : response.statusText;
 
 			return {
 				ok: false,
@@ -56,7 +53,7 @@ async function request<T>(
 
 		let data;
 		// 204 (No content) returns no JSON response
-		if (response.status == 204) {
+		if (response.status === 204) {
 			data = null;
 		} else {
 			data = await response.json();
@@ -78,19 +75,16 @@ async function request<T>(
 }
 
 /** Turns { sport: "soccer", location: "" } into "?sport=soccer", skipping empty values. */
-function toQueryString(
-	params: Record<string, string | boolean | undefined>,
-): string {
+function toQueryString(params: Record<string, string | boolean | undefined>): string {
 	const query = new URLSearchParams();
 	for (const [key, value] of Object.entries(params)) {
-		if (value !== undefined && value !== "")
-			query.append(key, String(value));
+		if (value !== undefined && value !== "") query.append(key, String(value));
 	}
 	const text = query.toString();
 	return text ? `?${text}` : "";
 }
 
-function getRequestBody(method: "POST" | "PUT", body: any): RequestInit {
+function getRequestBody<T>(method: "POST" | "PUT", body: T): RequestInit {
 	return {
 		method: method,
 		body: JSON.stringify(body),
@@ -120,11 +114,7 @@ export const api = {
 			"Failed to authenticate, please try again later",
 		),
 	getGames: (filters: GameFilters = {}) =>
-		request<Game[]>(
-			`/games${toQueryString(filters)}`,
-			{},
-			"Couldn't load games",
-		),
+		request<Game[]>(`/games${toQueryString(filters)}`, {}, "Couldn't load games"),
 	getGame: (id: number) => request<GameDetail>(`/games/${id}`),
 	createGame: (gameBody: GameCreate, token: string) =>
 		request<Game>(
@@ -135,7 +125,7 @@ export const api = {
 			},
 			"Failed to create game",
 		),
-	
+
 	getMyGames: (token: string) =>
 		request<MyGames>(
 			`/me/games`,

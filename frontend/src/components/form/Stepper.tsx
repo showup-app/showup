@@ -18,12 +18,7 @@ const Stepper = ({ value, min, max, onChange }: StepperProps) => {
 
 	return (
 		<View style={styles.row}>
-			<Pressable
-				style={styles.button}
-				onPress={() => onChange(value - 1)}
-				disabled={!canDecrease}
-				hitSlop={6}
-			>
+			<Pressable style={styles.button} onPress={() => onChange(value - 1)} disabled={!canDecrease} hitSlop={6}>
 				<MaterialCommunityIcons
 					name="minus"
 					size={16}
@@ -31,12 +26,7 @@ const Stepper = ({ value, min, max, onChange }: StepperProps) => {
 				/>
 			</Pressable>
 			<Text style={styles.value}>{value}</Text>
-			<Pressable
-				style={styles.button}
-				onPress={() => onChange(value + 1)}
-				disabled={!canIncrease}
-				hitSlop={6}
-			>
+			<Pressable style={styles.button} onPress={() => onChange(value + 1)} disabled={!canIncrease} hitSlop={6}>
 				<MaterialCommunityIcons
 					name="plus"
 					size={16}

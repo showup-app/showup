@@ -1,14 +1,6 @@
 import { CustomTheme, useTheme } from "@react-navigation/native";
 import { Controller, FieldValues, UseControllerProps } from "react-hook-form";
-import {
-	StyleProp,
-	StyleSheet,
-	Text,
-	TextInput,
-	TextStyle,
-	TextInputProps,
-	View,
-} from "react-native";
+import { StyleProp, StyleSheet, Text, TextInput, TextStyle, TextInputProps, View } from "react-native";
 import FormErrorMessage from "./FormErrorMessage";
 
 interface FormInputProps<T extends FieldValues> extends TextInputProps {
@@ -31,10 +23,7 @@ const FormInput = <T extends FieldValues>({
 	return (
 		<Controller
 			{...controllerProps}
-			render={({
-				field: { onChange, onBlur, value },
-				fieldState: { error },
-			}) => (
+			render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
 				<View style={styles.container}>
 					<Text style={[styles.label, labelStyle]}>{label}</Text>
 					<TextInput

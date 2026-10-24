@@ -33,12 +33,9 @@ export const mockNavigation = {
 	navigate: jest.fn(),
 };
 
-export const getTestScreenParams = <T extends keyof AppStackParamList>(
-	screenName: T,
-) => {
+export const getTestScreenParams = <T extends keyof AppStackParamList>(screenName: T) => {
 	return {
-		navigation:
-			mockNavigation as unknown as AppScreenProps<T>["navigation"],
+		navigation: mockNavigation as unknown as AppScreenProps<T>["navigation"],
 		route: {
 			key: `${screenName}-route`,
 			name: screenName,

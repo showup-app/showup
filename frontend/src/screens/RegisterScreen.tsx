@@ -38,9 +38,7 @@ const RegisterScreen = ({ navigation }: AppScreenProps<"Register">) => {
 		},
 	});
 
-	const onSubmit: SubmitHandler<RegisterForm> = async (
-		formData: RegisterForm,
-	) => {
+	const onSubmit: SubmitHandler<RegisterForm> = async (formData: RegisterForm) => {
 		const registerBody: RegisterBody = {
 			email: formData.email,
 			name: formData.name,
@@ -56,8 +54,7 @@ const RegisterScreen = ({ navigation }: AppScreenProps<"Register">) => {
 				setError(
 					"email",
 					{
-						message:
-							"This email is already in use by a registered user",
+						message: "This email is already in use by a registered user",
 					},
 					{ shouldFocus: true },
 				);
@@ -92,8 +89,7 @@ const RegisterScreen = ({ navigation }: AppScreenProps<"Register">) => {
 								required: "Email is required",
 								pattern: {
 									value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-									message:
-										"Email must be in the valid format",
+									message: "Email must be in the valid format",
 								},
 							},
 						}}
@@ -124,8 +120,7 @@ const RegisterScreen = ({ navigation }: AppScreenProps<"Register">) => {
 								required: "Password is required",
 								minLength: {
 									value: 8,
-									message:
-										"Password must be at least 8 characters long",
+									message: "Password must be at least 8 characters long",
 								},
 							},
 						}}
@@ -142,31 +137,18 @@ const RegisterScreen = ({ navigation }: AppScreenProps<"Register">) => {
 							name: "confirmPassword",
 							rules: {
 								required: "Confirm Password is required",
-								validate: (value) =>
-									value === getValues("password") ||
-									"Passwords must match",
+								validate: (value) => value === getValues("password") || "Passwords must match",
 							},
 						}}
 					/>
-					{errors.root?.server?.message && (
-						<FormErrorMessage
-							message={errors.root.server.message}
-						/>
-					)}
+					{errors.root?.server?.message && <FormErrorMessage message={errors.root.server.message} />}
 				</View>
-				<Button
-					variant="primary"
-					onPress={handleSubmit(onSubmit)}
-					disabled={isSubmitting}
-				>
+				<Button variant="primary" onPress={() => handleSubmit(onSubmit)()} disabled={isSubmitting}>
 					{isSubmitting ? "Registering..." : "Register"}
 				</Button>
 				<Text style={styles.footerText}>
 					Already have an account?{" "}
-					<Text
-						style={{ color: theme.colors.textSecondary }}
-						onPress={() => navigation.navigate("Login")}
-					>
+					<Text style={{ color: theme.colors.textSecondary }} onPress={() => navigation.navigate("Login")}>
 						Log In
 					</Text>
 				</Text>

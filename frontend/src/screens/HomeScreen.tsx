@@ -1,14 +1,6 @@
 import { CustomTheme, useFocusEffect, useTheme } from "@react-navigation/native";
 import { useCallback, useState } from "react";
-import {
-	ActivityIndicator,
-	Pressable,
-	RefreshControl,
-	SectionList,
-	StyleSheet,
-	Text,
-	View,
-} from "react-native";
+import { ActivityIndicator, Pressable, RefreshControl, SectionList, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import GameCard from "../components/game/GameCard";
 import { useUser } from "../context/UserContext";
@@ -50,7 +42,7 @@ export function HomeScreen({ navigation }: TabScreenProps<"Home">) {
 		setLoading(false);
 	}, [token]);
 
-  // Reloads list every time you come back to Home
+	// Reloads list every time you come back to Home
 	useFocusEffect(
 		useCallback(() => {
 			loadGames();
@@ -107,12 +99,8 @@ export function HomeScreen({ navigation }: TabScreenProps<"Home">) {
 			<SectionList
 				sections={sections}
 				keyExtractor={(game) => String(game.id)}
-				renderItem={({ item }) => (
-					<GameCard game={item} onSeePlayers={() => openGame(item)} />
-				)}
-				renderSectionHeader={({ section }) => (
-					<Text style={styles.sectionTitle}>{section.title}</Text>
-				)}
+				renderItem={({ item }) => <GameCard game={item} onSeePlayers={() => openGame(item)} />}
+				renderSectionHeader={({ section }) => <Text style={styles.sectionTitle}>{section.title}</Text>}
 				renderSectionFooter={({ section }) =>
 					section.data.length === 0 ? (
 						<View style={styles.empty}>

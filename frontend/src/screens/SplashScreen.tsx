@@ -13,21 +13,13 @@ const SplashScreen = ({ navigation }: AppScreenProps<"Splash">) => {
 		<SafeAreaView style={styles.screen}>
 			<View style={{ alignSelf: "center" }}>
 				<Logo />
-				<Text style={styles.subtitle}>
-					Sports events you can count on
-				</Text>
+				<Text style={styles.subtitle}>Sports events you can count on</Text>
 			</View>
 			<View style={{ gap: 15 }}>
-				<Button
-					onPress={() => navigation.navigate("Register")}
-					variant="primary"
-				>
+				<Button onPress={() => navigation.navigate("Register")} variant="primary">
 					Register
 				</Button>
-				<Button
-					variant="outline"
-					onPress={() => navigation.navigate("Login")}
-				>
+				<Button variant="outline" onPress={() => navigation.navigate("Login")}>
 					Login
 				</Button>
 			</View>

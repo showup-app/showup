@@ -52,8 +52,7 @@ export type GameCreate = {
 	spots: number; // players needed, not counting the host
 	cost: number;
 	min_reputation: number;
-
-}
+};
 
 /** GET /me/games returns one of these. */
 export type MyGames = {
