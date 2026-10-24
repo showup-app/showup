@@ -1,13 +1,7 @@
 import { CustomTheme, useTheme } from "@react-navigation/native";
 import { StyleSheet, Text } from "react-native";
 
-const TitleAndSubtitle = ({
-	titleText,
-	subtitleText,
-}: {
-	titleText: string;
-	subtitleText?: string;
-}) => {
+const TitleAndSubtitle = ({ titleText, subtitleText }: { titleText: string; subtitleText?: string }) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
 
@@ -15,12 +9,7 @@ const TitleAndSubtitle = ({
 		<>
 			<Text style={styles.titleText}>{titleText}</Text>
 			{subtitleText && (
-				<Text
-					style={styles.subtitleText}
-					numberOfLines={1}
-					adjustsFontSizeToFit
-					minimumFontScale={0.5}
-				>
+				<Text style={styles.subtitleText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5}>
 					{subtitleText}
 				</Text>
 			)}

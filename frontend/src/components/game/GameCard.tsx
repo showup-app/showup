@@ -40,11 +40,7 @@ const GameCard = ({ game, onJoin, onSeePlayers }: GameCardProps) => {
 		<View style={styles.card}>
 			{/* Title row */}
 			<View style={styles.header}>
-				<MaterialCommunityIcons
-					name={sportIcon(game.sport)}
-					size={28}
-					color={theme.colors.textSecondary}
-				/>
+				<MaterialCommunityIcons name={sportIcon(game.sport)} size={28} color={theme.colors.textSecondary} />
 				<View style={styles.headerText}>
 					<Text style={styles.title}>{capitalize(game.sport)} game</Text>
 					<Text style={styles.subtitle} numberOfLines={1}>
@@ -68,22 +64,14 @@ const GameCard = ({ game, onJoin, onSeePlayers }: GameCardProps) => {
 			{/* Detail chips */}
 			<View style={styles.chips}>
 				<Chip icon="calendar-blank-outline" label={formatShortDate(game.starts_at)} />
-				<Chip
-					icon="clock-outline"
-					label={formatTimeRange(game.starts_at, game.duration_minutes)}
-				/>
+				<Chip icon="clock-outline" label={formatTimeRange(game.starts_at, game.duration_minutes)} />
 				<Chip
 					icon={isAlmostFull ? "fire" : "account-multiple-outline"}
 					label={formatSpotsLeft(spotsLeft)}
 					color={isAlmostFull ? theme.colors.warning : undefined}
 				/>
-				<Chip
-					label={formatCost(game.cost)}
-					color={game.cost === 0 ? theme.colors.success : undefined}
-				/>
-				{game.min_reputation > 0 && (
-					<Chip icon="star-outline" label={`${game.min_reputation}+ only`} />
-				)}
+				<Chip label={formatCost(game.cost)} color={game.cost === 0 ? theme.colors.success : undefined} />
+				{game.min_reputation > 0 && <Chip icon="star-outline" label={`${game.min_reputation}+ only`} />}
 			</View>
 
 			{/* Footer*/}
@@ -91,15 +79,9 @@ const GameCard = ({ game, onJoin, onSeePlayers }: GameCardProps) => {
 				<View style={styles.footer}>
 					{hostName && (
 						<>
-							<MaterialCommunityIcons
-								name="account-circle"
-								size={24}
-								color={theme.colors.textMuted}
-							/>
+							<MaterialCommunityIcons name="account-circle" size={24} color={theme.colors.textMuted} />
 							<Text style={styles.hostName}>{hostName}</Text>
-							{hostReputation !== null && (
-								<Text style={styles.reputation}>★ {hostReputation}</Text>
-							)}
+							{hostReputation !== null && <Text style={styles.reputation}>★ {hostReputation}</Text>}
 						</>
 					)}
 					{onSeePlayers && (

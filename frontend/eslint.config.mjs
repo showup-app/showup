@@ -44,6 +44,13 @@ export default [
 			"react-native/no-color-literals": "off",
 			"react-native/no-raw-text": "error",
 			"react/react-in-jsx-scope": "off",
+			"react/prop-types": "off",
+			"react-native/no-raw-text": [
+				"error",
+				{
+					skip: ["Button"],
+				},
+			],
 			"@typescript-eslint/no-unused-vars": [
 				"warn",
 				{ argsIgnorePattern: "^_" },

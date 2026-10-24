@@ -1,5 +1,5 @@
 import { CustomTheme, useTheme } from "@react-navigation/native";
-import { Controller, SubmitHandler, useForm } from "react-hook-form";
+import { Controller, SubmitHandler, useForm, useWatch } from "react-hook-form";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Chip from "../components/form/Chip";
@@ -71,7 +71,7 @@ export function CreatePostScreen({ navigation }: AppScreenProps<"CreatePost">) {
 	const theme = useTheme();
 	const styles = getStyles(theme);
 
-	const { control, handleSubmit, watch } = useForm<CreateGameForm>({
+	const { control, handleSubmit } = useForm<CreateGameForm>({
 		defaultValues: {
 			sport: "",
 			venue: "",
@@ -85,7 +85,10 @@ export function CreatePostScreen({ navigation }: AppScreenProps<"CreatePost">) {
 		},
 	});
 
-	const isFree = watch("isFree");
+	const isFree = useWatch({
+		control,
+		name: "isFree",
+	});
 
 	const onSubmit: SubmitHandler<CreateGameForm> = (form) => {
 		const draft: GameCreate = {
@@ -307,7 +310,9 @@ export function CreatePostScreen({ navigation }: AppScreenProps<"CreatePost">) {
 													maxLength={7}
 												/>
 											</View>
-											{fieldState.error && <FormErrorMessage message={fieldState.error.message!} />}
+											{fieldState.error && (
+												<FormErrorMessage message={fieldState.error.message!} />
+											)}
 										</>
 									)}
 								/>
@@ -317,7 +322,7 @@ export function CreatePostScreen({ navigation }: AppScreenProps<"CreatePost">) {
 				</ScrollView>
 
 				<View style={styles.footer}>
-					<Button variant="primary" onPress={handleSubmit(onSubmit)}>
+					<Button variant="primary" onPress={() => handleSubmit(onSubmit)()}>
 						Next
 					</Button>
 				</View>

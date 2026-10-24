@@ -1,32 +1,21 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import LoginScreen from "../screens/LoginScreen";
-import {
-	getTestScreenParams,
-	mockApi,
-	mockContextLogin,
-	mockNavigation,
-} from "./utils/mocks";
+import { getTestScreenParams, mockApi, mockContextLogin, mockNavigation } from "./utils/mocks";
 
 describe("LoginScreen", () => {
 	const params = getTestScreenParams("Login");
 
 	it("renders the login form", async () => {
-		const { getByText, getByPlaceholderText, getAllByText } = await render(
-			<LoginScreen {...params} />,
-		);
+		const { getByText, getByPlaceholderText, getAllByText } = await render(<LoginScreen {...params} />);
 
-		expect(
-			getByText("Enter your email and password to log in"),
-		).toBeTruthy();
+		expect(getByText("Enter your email and password to log in")).toBeTruthy();
 		expect(getByPlaceholderText("Email")).toBeTruthy();
 		expect(getByPlaceholderText("Password")).toBeTruthy();
 		expect(getAllByText("Login")).toHaveLength(2);
 	});
 
 	it("shows required-field errors without calling the API", async () => {
-		const { findByText, getAllByText } = await render(
-			<LoginScreen {...params} />,
-		);
+		const { findByText, getAllByText } = await render(<LoginScreen {...params} />);
 
 		await fireEvent.press(getAllByText("Login")[1]);
 
@@ -52,18 +41,10 @@ describe("LoginScreen", () => {
 			data: user,
 			status: 200,
 		});
-		const { getByPlaceholderText, getAllByText } = await render(
-			<LoginScreen {...params} />,
-		);
+		const { getByPlaceholderText, getAllByText } = await render(<LoginScreen {...params} />);
 
-		await fireEvent.changeText(
-			getByPlaceholderText("Email"),
-			"person@example.com",
-		);
-		await fireEvent.changeText(
-			getByPlaceholderText("Password"),
-			"secret123",
-		);
+		await fireEvent.changeText(getByPlaceholderText("Email"), "person@example.com");
+		await fireEvent.changeText(getByPlaceholderText("Password"), "secret123");
 		await fireEvent.press(getAllByText("Login")[1]);
 
 		await waitFor(() => {
@@ -86,14 +67,9 @@ describe("LoginScreen", () => {
 			status: 401,
 			error: "Invalid email or password",
 		});
-		const { getByPlaceholderText, getAllByText, findByText } = await render(
-			<LoginScreen {...params} />,
-		);
+		const { getByPlaceholderText, getAllByText, findByText } = await render(<LoginScreen {...params} />);
 
-		await fireEvent.changeText(
-			getByPlaceholderText("Email"),
-			"person@example.com",
-		);
+		await fireEvent.changeText(getByPlaceholderText("Email"), "person@example.com");
 		await fireEvent.changeText(getByPlaceholderText("Password"), "wrong");
 		await fireEvent.press(getAllByText("Login")[1]);
 
@@ -115,18 +91,10 @@ describe("LoginScreen", () => {
 			status: 500,
 			error: "Unable to load account",
 		});
-		const { getByPlaceholderText, getAllByText, findByText } = await render(
-			<LoginScreen {...params} />,
-		);
+		const { getByPlaceholderText, getAllByText, findByText } = await render(<LoginScreen {...params} />);
 
-		await fireEvent.changeText(
-			getByPlaceholderText("Email"),
-			"person@example.com",
-		);
-		await fireEvent.changeText(
-			getByPlaceholderText("Password"),
-			"secret123",
-		);
+		await fireEvent.changeText(getByPlaceholderText("Email"), "person@example.com");
+		await fireEvent.changeText(getByPlaceholderText("Password"), "secret123");
 		await fireEvent.press(getAllByText("Login")[1]);
 
 		expect(await findByText("Unable to load account")).toBeTruthy();

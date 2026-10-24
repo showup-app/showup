@@ -18,14 +18,8 @@ const AppHeader = ({ reputation, onAvatarPress }: AppHeaderProps) => {
 			<View style={styles.bar}>
 				<Logo textStyle={styles.logo} />
 				<Pressable onPress={onAvatarPress} hitSlop={8} style={styles.avatarWrap}>
-					<MaterialCommunityIcons
-						name="account-circle"
-						size={36}
-						color={theme.colors.textMuted}
-					/>
-					{reputation !== undefined && (
-						<Text style={styles.reputation}>★ {reputation}</Text>
-					)}
+					<MaterialCommunityIcons name="account-circle" size={36} color={theme.colors.textMuted} />
+					{reputation !== undefined && <Text style={styles.reputation}>★ {reputation}</Text>}
 				</Pressable>
 			</View>
 		</SafeAreaView>

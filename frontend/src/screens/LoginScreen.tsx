@@ -2,7 +2,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet, View } from "react-native";
 import { AppScreenProps } from "../navigation/types";
 import FormInput from "../components/ui/FormInput";
-import { CustomTheme, useTheme } from "@react-navigation/native";
 import Button from "../components/ui/Button";
 import TitleAndSubtitle from "../components/ui/TitleAndSubtitle";
 import { SubmitHandler, useForm } from "react-hook-form";
@@ -12,8 +11,7 @@ import FormErrorMessage from "../components/ui/FormErrorMessage";
 import { useUser } from "../context/UserContext";
 
 const LoginScreen = ({ navigation }: AppScreenProps<"Login">) => {
-	const theme = useTheme();
-	const styles = getStyles(theme);
+	const styles = getStyles();
 	const { login } = useUser();
 
 	const {
@@ -53,10 +51,7 @@ const LoginScreen = ({ navigation }: AppScreenProps<"Login">) => {
 	return (
 		<SafeAreaView style={styles.screen}>
 			<View style={{ alignSelf: "center" }}>
-				<TitleAndSubtitle
-					titleText="Login"
-					subtitleText="Enter your email and password to log in"
-				/>
+				<TitleAndSubtitle titleText="Login" subtitleText="Enter your email and password to log in" />
 			</View>
 			<View style={{ display: "flex", gap: 25 }}>
 				<View style={{ display: "flex", gap: 10 }}>
@@ -85,17 +80,9 @@ const LoginScreen = ({ navigation }: AppScreenProps<"Login">) => {
 							rules: { required: "Password is required." },
 						}}
 					/>
-					{errors.root?.server?.message && (
-						<FormErrorMessage
-							message={errors.root.server.message}
-						/>
-					)}
+					{errors.root?.server?.message && <FormErrorMessage message={errors.root.server.message} />}
 				</View>
-				<Button
-					variant="primary"
-					onPress={handleSubmit(onSubmit)}
-					disabled={isSubmitting}
-				>
+				<Button variant="primary" onPress={() => handleSubmit(onSubmit)()} disabled={isSubmitting}>
 					{isSubmitting ? "Logging in..." : "Login"}
 				</Button>
 			</View>
@@ -105,7 +92,7 @@ const LoginScreen = ({ navigation }: AppScreenProps<"Login">) => {
 
 export default LoginScreen;
 
-const getStyles = (theme: CustomTheme) =>
+const getStyles = () =>
 	StyleSheet.create({
 		screen: {
 			display: "flex",

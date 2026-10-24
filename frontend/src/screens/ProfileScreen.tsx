@@ -1,8 +1,8 @@
-import { CustomTheme, useTheme } from "@react-navigation/native";
+import { CommonActions, CustomTheme, useTheme } from "@react-navigation/native";
 import { useUser } from "../context/UserContext";
 import { TabScreenProps } from "../navigation/types";
 
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../components/ui/Button";
 
@@ -14,7 +14,12 @@ const ProfileScreen = ({ navigation }: TabScreenProps<"Profile">) => {
 
 	const handleLogout = () => {
 		logout();
-		navigation.replace("Login");
+		navigation.dispatch(
+			CommonActions.reset({
+				index: 1,
+				routes: [{ name: "Splash" }, { name: "Login" }],
+			}),
+		);
 	};
 
 	return (
