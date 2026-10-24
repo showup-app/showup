@@ -9,10 +9,7 @@ import FormErrorMessage from "../components/ui/FormErrorMessage";
 import { api } from "../services/api";
 import { useUser } from "../context/UserContext";
 
-const ConfirmPostScreen = ({
-	navigation,
-	route,
-}: AppScreenProps<"ConfirmPost">) => {
+const ConfirmPostScreen = ({ navigation, route }: AppScreenProps<"ConfirmPost">) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
 	const { draft } = route.params;

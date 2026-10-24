@@ -37,17 +37,12 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
 		}
 	};
 
-	return (
-		<UserContext.Provider value={{ user, token, login, logout }}>
-			{children}
-		</UserContext.Provider>
-	);
+	return <UserContext.Provider value={{ user, token, login, logout }}>{children}</UserContext.Provider>;
 };
 
 export const useUser = () => {
 	const user = useContext(UserContext);
-	if (!user)
-		throw new Error("useUser must be envoked in UserContext provider");
+	if (!user) throw new Error("useUser must be envoked in UserContext provider");
 
 	return user;
 };

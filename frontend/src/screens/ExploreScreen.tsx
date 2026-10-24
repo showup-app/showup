@@ -35,7 +35,11 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 	const loadGames = async () => {
 		setError(null);
 		const res = await api.getGames({ location });
-		res.ok ? setGames(res.data) : setError(res.error);
+		if (res.ok) {
+			setGames(res.data);
+		} else {
+			setError(res.error);
+		}
 	};
 
 	useEffect(() => {
@@ -45,7 +49,11 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 			setError(null);
 			if (!cancelled) {
 				const result = await api.getGames({ location });
-				result.ok ? setGames(result.data) : setError(result.error);
+				if (result.ok) {
+					setGames(result.data);
+				} else {
+					setError(result.error);
+				}
 				setLoading(false);
 			}
 		}, SEARCH_DELAY_MS);
@@ -95,13 +103,13 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 					data={games}
 					keyExtractor={(game) => String(game.id)}
 					renderItem={({ item }) => (
-        <GameCard
-          game={item}
-          onSeePlayers={() => navigation.navigate("GameDetails", { gameId: item.id })}
-          onJoin={() => {
-            // TODO: call api.joinGame(item.id) once login exists
-          }}
-        />
+						<GameCard
+							game={item}
+							onSeePlayers={() => navigation.navigate("GameDetails", { gameId: item.id })}
+							onJoin={() => {
+								// TODO: call api.joinGame(item.id) once login exists
+							}}
+						/>
 					)}
 					contentContainerStyle={styles.list}
 					keyboardShouldPersistTaps="handled"
