@@ -13,12 +13,11 @@ jobs:
   ci:
     name: Setup, Lint, Test
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          path: ./frontend
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
