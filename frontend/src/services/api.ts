@@ -125,9 +125,17 @@ export const api = {
 			},
 			"Failed to create game",
 		),
+	joinGame: (id: number, token: string) =>
+		request<Game>(
+			`/games/${id}/join`,
+			{
+				method: "POST",
+				headers: { Authorization: `Bearer ${token}` },
+			},
+			"Failed to join game, please try again later",
+		),
 	// TODO: updateGame
 	// TODO: cancelGame
-	// TODO: joinGame
 	// TODO: leaveGame
 	// TODO: getMe
 	// TODO: getMyGames

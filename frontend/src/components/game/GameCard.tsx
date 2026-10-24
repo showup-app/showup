@@ -22,10 +22,11 @@ type GameCardProps = {
 	game: Game | GameDetail | GameCreate;
 	onJoin?: () => void;
 	onSeePlayers?: () => void;
+	userJoinedGame?: boolean;
 };
 
 // Game card on explore/review page
-const GameCard = ({ game, onJoin, onSeePlayers }: GameCardProps) => {
+const GameCard = ({ game, onJoin, onSeePlayers, userJoinedGame }: GameCardProps) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
 	const hostName = "host_name" in game ? game.host_name : null;
@@ -49,13 +50,13 @@ const GameCard = ({ game, onJoin, onSeePlayers }: GameCardProps) => {
 				</View>
 				{onJoin && (
 					<Pressable
-						style={[styles.joinButton, isFull && styles.joinButtonDisabled]}
+						style={[styles.joinButton, (isFull || userJoinedGame) && styles.joinButtonDisabled]}
 						onPress={onJoin}
-						disabled={isFull}
+						disabled={isFull || userJoinedGame}
 						hitSlop={8}
 					>
-						<Text style={[styles.joinText, isFull && styles.joinTextDisabled]}>
-							{isFull ? "Full" : "Join"}
+						<Text style={[styles.joinText, (isFull || userJoinedGame) && styles.joinTextDisabled]}>
+							{userJoinedGame ? "Joined" : isFull ? "Full" : "Join"}
 						</Text>
 					</Pressable>
 				)}

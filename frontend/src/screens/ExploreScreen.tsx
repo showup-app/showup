@@ -16,6 +16,7 @@ import { TabScreenProps } from "../navigation/types";
 import { api } from "../services/api";
 import { Game } from "../types/game";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useUser } from "../context/UserContext";
 
 const MIN_SEARCH_LENGTH = 2;
 const SEARCH_DELAY_MS = 400;
@@ -23,9 +24,11 @@ const SEARCH_DELAY_MS = 400;
 export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 	const theme = useTheme();
 	const styles = getStyles(theme);
+	const { token } = useUser();
 
 	const [search, setSearch] = useState("");
 	const [games, setGames] = useState<Game[]>([]);
+	const [joinedGames, setJoinedGames] = useState<Game["id"][]>([]);
 	const [loading, setLoading] = useState(true);
 	const [refreshing, setRefreshing] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -106,8 +109,14 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 						<GameCard
 							game={item}
 							onSeePlayers={() => navigation.navigate("GameDetails", { gameId: item.id })}
-							onJoin={() => {
-								// TODO: call api.joinGame(item.id) once login exists
+							userJoinedGame={true}
+							onJoin={async () => {
+								const res = await api.joinGame(item.id, token!);
+								if (!res.ok) {
+									console.log(res.error, res.status);
+								} else {
+									setJoinedGames([...joinedGames, item.id]);
+								}
 							}}
 						/>
 					)}
