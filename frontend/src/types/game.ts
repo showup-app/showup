@@ -53,3 +53,9 @@ export type GameCreate = {
 	cost: number;
 	min_reputation: number;
 };
+
+/** GET /me/games returns one of these. */
+export type MyGames = {
+	hosting: Game[];
+	joined: Game[];
+};
