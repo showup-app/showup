@@ -1,5 +1,5 @@
 import { LoginForm, LoginReponse, RegisterBody, User } from "../types/auth";
-import { Game, GameCreate, GameDetail, GameFilters } from "../types/game";
+import { Game, GameCreate, GameDetail, GameFilters, MyGames } from "../types/game";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -135,11 +135,21 @@ export const api = {
 			},
 			"Failed to create game",
 		),
+	
+	getMyGames: (token: string) =>
+		request<MyGames>(
+			`/me/games`,
+			{
+				method: "GET",
+				headers: { Authorization: `Bearer ${token}` },
+			},
+			"Couldn't load your games",
+		),
+
 	// TODO: updateGame
 	// TODO: cancelGame
 	// TODO: joinGame
 	// TODO: leaveGame
 	// TODO: getMe
-	// TODO: getMyGames
 	// TODO: markAttendance
 };
