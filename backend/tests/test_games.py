@@ -89,8 +89,35 @@ def test_game_shape(client: TestClient, db: Session) -> None:
         "host_name",
         "host_reputation",
         "spots_left",
+        "effective_min_reputation",
+        "joined",
     }
     assert isinstance(game["cost"], int | float)
+
+
+def test_list_games_joined_is_false_without_a_token(client: TestClient, db: Session) -> None:
+    seed(db)
+
+    rows = client.get("/games").json()
+
+    assert rows and all(g["joined"] is False for g in rows)
+
+
+def test_list_games_joined_follows_the_token(client: TestClient, db: Session, auth_headers) -> None:
+    seed(db)
+    # Seed facts: Maya joined Bonsor (game 1) and hosts BCIT Gym (game 0).
+
+    rows = {g["venue"]: g for g in client.get("/games", headers=auth_headers("Maya")).json()}
+
+    assert rows[GAMES[1][2]]["joined"] is True
+    assert rows[GAMES[0][2]]["joined"] is False  # hosting is not joining
+    assert rows[GAMES[0][2]]["effective_min_reputation"] == GAMES[0][8]
+
+
+def test_list_games_bad_token_is_401(client: TestClient, db: Session) -> None:
+    seed(db)
+
+    assert client.get("/games", headers={"Authorization": "Bearer nope"}).status_code == 401
 
 
 def test_list_games_host_and_spots_left_match_detail(client: TestClient, db: Session) -> None:
