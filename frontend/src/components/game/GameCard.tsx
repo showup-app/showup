@@ -10,6 +10,7 @@ import {
 	formatShortDate,
 	formatSpotsLeft,
 	formatTimeRange,
+	getJoinButtonText,
 } from "../../utils/format";
 import { sportIcon } from "../../utils/sports";
 import { useUser } from "../../context/UserContext";
@@ -60,7 +61,7 @@ const GameCard = ({ game, onJoin, onSeePlayers }: GameCardProps) => {
 						hitSlop={8}
 					>
 						<Text style={[styles.joinText, joinButtonDisabled && styles.joinTextDisabled]}>
-							{userJoinedGame ? "Joined" : isFull ? "Full" : userHostingGame ? "Hosting" : "Join"}
+							{getJoinButtonText(userJoinedGame, isFull, userHostingGame)}
 						</Text>
 					</Pressable>
 				)}

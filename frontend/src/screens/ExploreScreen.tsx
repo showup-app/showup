@@ -28,7 +28,6 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 
 	const [search, setSearch] = useState("");
 	const [games, setGames] = useState<Game[]>([]);
-	const [joinedGames, setJoinedGames] = useState<Game["id"][]>([]);
 	const [loading, setLoading] = useState(true);
 	const [refreshing, setRefreshing] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -37,7 +36,7 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 
 	const loadGames = async () => {
 		setError(null);
-		const res = await api.getGames({ location });
+		const res = await api.getGames({ location }, token!);
 		if (res.ok) {
 			setGames(res.data);
 		} else {
@@ -51,7 +50,7 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 			setLoading(true);
 			setError(null);
 			if (!cancelled) {
-				const result = await api.getGames({ location });
+				const result = await api.getGames({ location }, token!);
 				if (result.ok) {
 					setGames(result.data);
 				} else {
@@ -65,7 +64,7 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 			cancelled = true;
 			clearTimeout(timer);
 		};
-	}, [location]);
+	}, [location, token]);
 
 	const onRefresh = async () => {
 		setRefreshing(true);
@@ -112,10 +111,14 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 							onJoin={async () => {
 								const res = await api.joinGame(item.id, token!);
 								if (!res.ok) {
+									// TODO: Unify error message display across the entire app (i.e.: modal popup? toast message?)
 									console.log(res.error, res.status);
-								} else {
-									setJoinedGames([...joinedGames, item.id]);
+									return;
 								}
+								// Set current game status to joined
+								setGames((prevGames) =>
+									prevGames.map((game) => (game.id === item.id ? { ...item, joined: true } : game)),
+								);
 							}}
 						/>
 					)}

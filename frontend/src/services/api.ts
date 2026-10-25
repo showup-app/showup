@@ -113,8 +113,15 @@ export const api = {
 			},
 			"Failed to authenticate, please try again later",
 		),
-	getGames: (filters: GameFilters = {}) =>
-		request<Game[]>(`/games${toQueryString(filters)}`, {}, "Couldn't load games"),
+	getGames: (filters: GameFilters = {}, token: string) =>
+		request<Game[]>(
+			`/games${toQueryString(filters)}`,
+			{
+				method: "GET",
+				headers: { Authorization: `Bearer ${token}` },
+			},
+			"Couldn't load games",
+		),
 	getGame: (id: number) => request<GameDetail>(`/games/${id}`),
 	createGame: (gameBody: GameCreate, token: string) =>
 		request<Game>(
