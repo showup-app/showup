@@ -12,6 +12,7 @@ import {
 	formatTimeRange,
 } from "../../utils/format";
 import { sportIcon } from "../../utils/sports";
+import { useUser } from "../../context/UserContext";
 
 // Change chip colour to orange below 3
 const LOW_SPOTS = 3;
@@ -22,13 +23,13 @@ type GameCardProps = {
 	game: Game | GameDetail | GameCreate;
 	onJoin?: () => void;
 	onSeePlayers?: () => void;
-	userJoinedGame?: boolean;
 };
 
 // Game card on explore/review page
-const GameCard = ({ game, onJoin, onSeePlayers, userJoinedGame }: GameCardProps) => {
+const GameCard = ({ game, onJoin, onSeePlayers }: GameCardProps) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
+	const { user } = useUser();
 	const hostName = "host_name" in game ? game.host_name : null;
 	const hostReputation = "host_reputation" in game ? game.host_reputation : null;
 	const spotsLeft = "spots_left" in game ? game.spots_left : game.spots;
@@ -36,6 +37,9 @@ const GameCard = ({ game, onJoin, onSeePlayers, userJoinedGame }: GameCardProps)
 	const isFull = spotsLeft <= 0;
 	const isAlmostFull = !isFull && spotsLeft <= LOW_SPOTS;
 	const showFooter = hostName !== null || onSeePlayers !== undefined;
+	const userJoinedGame = "joined" in game && game.joined;
+	const userHostingGame = "host_id" in game && game.host_id === user?.id;
+	const joinButtonDisabled = isFull || userJoinedGame || userHostingGame;
 
 	return (
 		<View style={styles.card}>
@@ -50,13 +54,13 @@ const GameCard = ({ game, onJoin, onSeePlayers, userJoinedGame }: GameCardProps)
 				</View>
 				{onJoin && (
 					<Pressable
-						style={[styles.joinButton, (isFull || userJoinedGame) && styles.joinButtonDisabled]}
+						style={[styles.joinButton, joinButtonDisabled && styles.joinButtonDisabled]}
 						onPress={onJoin}
-						disabled={isFull || userJoinedGame}
+						disabled={joinButtonDisabled}
 						hitSlop={8}
 					>
-						<Text style={[styles.joinText, (isFull || userJoinedGame) && styles.joinTextDisabled]}>
-							{userJoinedGame ? "Joined" : isFull ? "Full" : "Join"}
+						<Text style={[styles.joinText, joinButtonDisabled && styles.joinTextDisabled]}>
+							{userJoinedGame ? "Joined" : isFull ? "Full" : userHostingGame ? "Hosting" : "Join"}
 						</Text>
 					</Pressable>
 				)}

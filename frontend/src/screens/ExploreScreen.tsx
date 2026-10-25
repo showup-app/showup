@@ -109,7 +109,6 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 						<GameCard
 							game={item}
 							onSeePlayers={() => navigation.navigate("GameDetails", { gameId: item.id })}
-							userJoinedGame={true}
 							onJoin={async () => {
 								const res = await api.joinGame(item.id, token!);
 								if (!res.ok) {
