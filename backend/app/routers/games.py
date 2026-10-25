@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import Select, func, or_, select
 from sqlalchemy.orm import selectinload
 
-from app.deps import CurrentUser, DbDep
+from app.deps import CurrentUser, DbDep, OptionalUser
 from app.models import Attendance, Game, GameStatus, Signup, SignupStatus, User
 from app.reputation import (
     MARK_WINDOW_DAYS,
@@ -53,34 +53,45 @@ def _joined_count(db: DbDep, game_id: int) -> int:
     return db.scalar(stmt) or 0
 
 
-def _summary(game: Game, joined: int) -> GameSummaryOut:
+def _summary(game: Game, joined_count: int, joined: bool) -> GameSummaryOut:
     """The list row for a game whose host is already loaded."""
     return GameSummaryOut(
         **GameOut.model_validate(game).model_dump(),
         host_name=game.host.name,
         host_reputation=game.host.reputation,
-        spots_left=max(game.spots - joined, 0),
+        spots_left=max(game.spots - joined_count, 0),
+        effective_min_reputation=effective_min_reputation(game),
+        joined=joined,
     )
 
 
-def summaries(db: DbDep, stmt: Select[tuple[Game]]) -> list[GameSummaryOut]:
-    """Run a select(Game) and build list rows. One grouped count of joined players is joined
-    in, so any list is two queries (games + hosts) however long it gets."""
-    joined = (
+def summaries(db: DbDep, stmt: Select[tuple[Game]], user: User | None) -> list[GameSummaryOut]:
+    """Run a select(Game) and build list rows. One grouped count of joined players and, when
+    a user is known, that user's own signups are joined in, so any list is two queries
+    (games + hosts) however long it gets."""
+    counts = (
         select(Signup.game_id, func.count().label("joined"))
         .where(Signup.status == SignupStatus.JOINED)
         .group_by(Signup.game_id)
         .subquery()
     )
     stmt = (
-        stmt.add_columns(func.coalesce(joined.c.joined, 0))
-        .outerjoin(joined, joined.c.game_id == Game.id)
+        stmt.add_columns(func.coalesce(counts.c.joined, 0))
+        .outerjoin(counts, counts.c.game_id == Game.id)
         .options(selectinload(Game.host))
     )
-    return [_summary(game, count) for game, count in db.execute(stmt)]
+    if user is None:
+        return [_summary(game, count, False) for game, count in db.execute(stmt)]
+    mine = (
+        select(Signup.game_id)
+        .where(Signup.user_id == user.id, Signup.status == SignupStatus.JOINED)
+        .subquery()
+    )
+    stmt = stmt.add_columns(mine.c.game_id.is_not(None)).outerjoin(mine, mine.c.game_id == Game.id)
+    return [_summary(game, count, bool(joined)) for game, count, joined in db.execute(stmt)]
 
 
-def _detail(db: DbDep, game_id: int) -> GameDetailOut:
+def _detail(db: DbDep, game_id: int, user: User | None) -> GameDetailOut:
     stmt = (
         select(Game)
         .where(Game.id == game_id)
@@ -110,10 +121,10 @@ def _detail(db: DbDep, game_id: int) -> GameDetailOut:
         )
         for s in joined
     ]
+    joined_here = user is not None and any(s.user_id == user.id for s in joined)
     return GameDetailOut(
-        **_summary(game, len(players)).model_dump(),
+        **_summary(game, len(players), joined_here).model_dump(),
         players=players,
-        effective_min_reputation=effective_min_reputation(game),
     )
 
 
@@ -128,6 +139,7 @@ def _escape_like(text: str) -> str:
 @router.get("", response_model=list[GameSummaryOut])
 def list_games(
     db: DbDep,
+    user: OptionalUser,
     sport: str | None = Query(None, description="Only this sport, case-insensitive"),
     location: str | None = Query(
         None,
@@ -137,8 +149,9 @@ def list_games(
     ),
     include_past: bool = Query(False, description="Also return games that already started"),
 ) -> list[GameSummaryOut]:
-    """Upcoming games, soonest first, each with its host and places left. Cancelled games are
-    never listed."""
+    """Upcoming games, soonest first, each with its host, places left, the minimum that applies
+    right now and, if a token is sent, whether the caller has joined. Cancelled games are never
+    listed."""
     stmt = select(Game).where(Game.status != GameStatus.CANCELLED).order_by(Game.starts_at)
     if sport:
         stmt = stmt.where(func.lower(Game.sport) == sport.lower())
@@ -149,14 +162,14 @@ def list_games(
         )
     if not include_past:
         stmt = stmt.where(Game.starts_at >= func.now())
-    return summaries(db, stmt)
+    return summaries(db, stmt, user)
 
 
 @router.get("/{game_id}", response_model=GameDetailOut)
-def get_game(game_id: int, db: DbDep) -> GameDetailOut:
+def get_game(game_id: int, db: DbDep, user: OptionalUser) -> GameDetailOut:
     """One game with its host, the players who have joined (oldest signup first), and the
     reputation requirement that applies right now."""
-    return _detail(db, game_id)
+    return _detail(db, game_id, user)
 
 
 # ---------- hosting ----------
@@ -245,7 +258,7 @@ def join_game(game_id: int, db: DbDep, user: CurrentUser) -> GameDetailOut:
     if joined + 1 >= game.spots:
         game.status = GameStatus.FULL
     db.commit()
-    return _detail(db, game.id)
+    return _detail(db, game.id, user)
 
 
 @router.delete("/{game_id}/join", response_model=GameDetailOut)
@@ -268,7 +281,7 @@ def leave_game(game_id: int, db: DbDep, user: CurrentUser) -> GameDetailOut:
     if game.status == GameStatus.FULL:
         game.status = GameStatus.OPEN
     db.commit()
-    return _detail(db, game.id)
+    return _detail(db, game.id, user)
 
 
 # ---------- after the game ----------
@@ -333,4 +346,4 @@ def mark_attendance(
     for player in db.scalars(select(User).where(User.id.in_(marked_ids))):
         recompute(db, player)
     db.commit()
-    return _detail(db, game.id)
+    return _detail(db, game.id, user)

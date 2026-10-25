@@ -40,3 +40,17 @@ def get_current_user(
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
+
+
+def get_optional_user(
+    db: DbDep,
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)],
+) -> User | None:
+    """The user behind the Bearer token if one was sent, else None. A token that is sent but
+    bad is still a 401, so a stale token never silently turns into an anonymous request."""
+    if credentials is None:
+        return None
+    return get_current_user(db, credentials)
+
+
+OptionalUser = Annotated[User | None, Depends(get_optional_user)]

@@ -75,16 +75,20 @@ class GameSummaryOut(GameOut):
     host_name: str
     host_reputation: int
     spots_left: int = Field(description="spots minus the players who have joined")
-
-
-class GameDetailOut(GameSummaryOut):
-    """A single game with its roster and the reputation requirement that applies right now."""
-
-    players: list[PlayerOut] = Field(description="Players who have joined, oldest signup first")
     effective_min_reputation: int = Field(
         description="The requirement that applies right now: min_reputation, or the fallback "
         "once its window has started"
     )
+    joined: bool = Field(
+        description="True when the caller's Bearer token belongs to a player on this roster. "
+        "Always false without a token"
+    )
+
+
+class GameDetailOut(GameSummaryOut):
+    """A single game with its roster."""
+
+    players: list[PlayerOut] = Field(description="Players who have joined, oldest signup first")
 
 
 class MyGamesOut(BaseModel):

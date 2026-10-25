@@ -24,6 +24,20 @@ def _game_id(db: Session, index: int) -> int:
 #   reputations: everyone 100 except Sam, 75 (one no-show at the played game)
 
 
+def test_detail_joined_flag_tracks_join_and_leave(
+    client: TestClient, db: Session, auth_headers: Headers
+) -> None:
+    seed(db)
+    game_id = _game_id(db, 1)
+
+    assert client.get(f"/games/{game_id}").json()["joined"] is False
+    assert client.get(f"/games/{game_id}", headers=auth_headers("Riley")).json()["joined"] is False
+    joined = client.post(f"/games/{game_id}/join", headers=auth_headers("Riley")).json()
+    assert joined["joined"] is True
+    left = client.delete(f"/games/{game_id}/join", headers=auth_headers("Riley")).json()
+    assert left["joined"] is False
+
+
 def test_join_takes_a_spot(client: TestClient, db: Session, auth_headers: Headers) -> None:
     seed(db)
     game_id = _game_id(db, 1)

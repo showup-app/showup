@@ -31,4 +31,4 @@ def my_games(
     if not include_past:
         hosting = hosting.where(Game.starts_at >= func.now())
         joined = joined.where(Game.starts_at >= func.now())
-    return MyGamesOut(hosting=summaries(db, hosting), joined=summaries(db, joined))
+    return MyGamesOut(hosting=summaries(db, hosting, user), joined=summaries(db, joined, user))
