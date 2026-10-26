@@ -52,3 +52,11 @@ export function formatSpotsLeft(spotsLeft: number): string {
 export function capitalize(text: string): string {
 	return text.charAt(0).toUpperCase() + text.slice(1);
 }
+
+/** Gets the text of the join game button depending on the conditions of that game */
+export function getJoinButtonText(userJoinedGame: boolean, isFull: boolean, userHostingGame: boolean): string {
+	if (userJoinedGame) return "Joined";
+	if (isFull) return "Full";
+	if (userHostingGame) return "Hosting";
+	return "Join";
+}

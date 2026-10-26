@@ -16,6 +16,7 @@ import { TabScreenProps } from "../navigation/types";
 import { api } from "../services/api";
 import { Game } from "../types/game";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useUser } from "../context/UserContext";
 
 const MIN_SEARCH_LENGTH = 2;
 const SEARCH_DELAY_MS = 400;
@@ -23,6 +24,7 @@ const SEARCH_DELAY_MS = 400;
 export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 	const theme = useTheme();
 	const styles = getStyles(theme);
+	const { token } = useUser();
 
 	const [search, setSearch] = useState("");
 	const [games, setGames] = useState<Game[]>([]);
@@ -34,7 +36,7 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 
 	const loadGames = async () => {
 		setError(null);
-		const res = await api.getGames({ location });
+		const res = await api.getGames({ location }, token!);
 		if (res.ok) {
 			setGames(res.data);
 		} else {
@@ -48,7 +50,7 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 			setLoading(true);
 			setError(null);
 			if (!cancelled) {
-				const result = await api.getGames({ location });
+				const result = await api.getGames({ location }, token!);
 				if (result.ok) {
 					setGames(result.data);
 				} else {
@@ -62,7 +64,7 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 			cancelled = true;
 			clearTimeout(timer);
 		};
-	}, [location]);
+	}, [location, token]);
 
 	const onRefresh = async () => {
 		setRefreshing(true);
@@ -106,8 +108,17 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 						<GameCard
 							game={item}
 							onSeePlayers={() => navigation.navigate("GameDetails", { gameId: item.id })}
-							onJoin={() => {
-								// TODO: call api.joinGame(item.id) once login exists
+							onJoin={async () => {
+								const res = await api.joinGame(item.id, token!);
+								if (!res.ok) {
+									// TODO: Unify error message display across the entire app (i.e.: modal popup? toast message?)
+									console.log(res.error, res.status);
+									return;
+								}
+								// Set current game status to joined
+								setGames((prevGames) =>
+									prevGames.map((game) => (game.id === item.id ? { ...item, joined: true } : game)),
+								);
 							}}
 						/>
 					)}

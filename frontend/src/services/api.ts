@@ -113,8 +113,15 @@ export const api = {
 			},
 			"Failed to authenticate, please try again later",
 		),
-	getGames: (filters: GameFilters = {}) =>
-		request<Game[]>(`/games${toQueryString(filters)}`, {}, "Couldn't load games"),
+	getGames: (filters: GameFilters = {}, token: string) =>
+		request<Game[]>(
+			`/games${toQueryString(filters)}`,
+			{
+				method: "GET",
+				headers: { Authorization: `Bearer ${token}` },
+			},
+			"Couldn't load games",
+		),
 	getGame: (id: number) => request<GameDetail>(`/games/${id}`),
 	createGame: (gameBody: GameCreate, token: string) =>
 		request<Game>(
@@ -125,7 +132,15 @@ export const api = {
 			},
 			"Failed to create game",
 		),
-
+	joinGame: (id: number, token: string) =>
+		request<Game>(
+			`/games/${id}/join`,
+			{
+				method: "POST",
+				headers: { Authorization: `Bearer ${token}` },
+			},
+			"Failed to join game, please try again later",
+		),
 	getMyGames: (token: string) =>
 		request<MyGames>(
 			`/me/games`,
@@ -135,10 +150,8 @@ export const api = {
 			},
 			"Couldn't load your games",
 		),
-
 	// TODO: updateGame
 	// TODO: cancelGame
-	// TODO: joinGame
 	// TODO: leaveGame
 	// TODO: getMe
 	// TODO: markAttendance
