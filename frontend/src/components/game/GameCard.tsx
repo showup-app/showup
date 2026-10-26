@@ -247,6 +247,7 @@ const getStyles = (theme: CustomTheme) =>
 		reputation: {
 			color: theme.colors.textSecondary,
 			fontSize: 12,
+			fontWeight: 500,
 		},
 		seePlayers: {
 			marginLeft: "auto",

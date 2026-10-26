@@ -1,4 +1,4 @@
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppScreenProps } from "../navigation/types";
 import { CustomTheme, useTheme } from "@react-navigation/native";
@@ -8,26 +8,54 @@ import { useEffect, useState } from "react";
 import PlayerCard from "../components/game/PlayerCard";
 import GameCard from "../components/game/GameCard";
 import Button from "../components/ui/Button";
+import { getJoinButtonText } from "../utils/format";
+import { useUser } from "../context/UserContext";
 
 const GameDetailsScreen = ({ route }: AppScreenProps<"GameDetails">) => {
 	const theme = useTheme();
+	const { user, token } = useUser();
 	const styles = getStyles(theme);
 	const { gameId } = route.params;
 	const [game, setGame] = useState<GameDetail | null>(null);
 	const [error, setError] = useState<string | null>(null);
-	const [loading, setLoading] = useState<boolean>(true);
+	const [loading, setLoading] = useState(true);
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const fetchGame = async () => {
 		setLoading(true);
 		setError(null);
 
-		const res = await api.getGame(gameId);
+		const res = await api.getGame(gameId, token!);
 		if (res.ok) {
 			setGame(res.data);
 		} else {
 			setError(res.error);
 		}
 		setLoading(false);
+	};
+
+	const joinGame = async () => {
+		setIsSubmitting(true);
+		const res = await api.joinGame(game!.id, token!);
+		if (!res.ok) {
+			// TODO: Unify error message display across the entire app (i.e.: modal popup? toast message?)
+			console.log(res.error, res.status);
+		} else {
+			setGame(res.data);
+		}
+		setIsSubmitting(false);
+	};
+
+	const leaveGame = async () => {
+		setIsSubmitting(true);
+		const res = await api.leaveGame(game!.id, token!);
+		if (!res.ok) {
+			// TODO: Unify error message display across the entire app (i.e.: modal popup? toast message?)
+			console.log(res.error, res.status);
+		} else {
+			setGame(res.data);
+		}
+		setIsSubmitting(false);
 	};
 
 	useEffect(() => {
@@ -43,35 +71,52 @@ const GameDetailsScreen = ({ route }: AppScreenProps<"GameDetails">) => {
 		);
 	}
 
-	if (error) {
+	if (error || !game) {
 		return (
 			<SafeAreaView style={[styles.screen, styles.centered]} edges={["left", "right"]}>
 				<Text style={styles.message}>{error}</Text>
-				<View>
+				<Pressable onPress={fetchGame} hitSlop={8}>
 					<Text style={styles.link}>Try again</Text>
-				</View>
+				</Pressable>
 			</SafeAreaView>
 		);
 	}
 
+	const isFull = game.spots_left <= 0;
+	const userJoinedGame = game.joined;
+	const userHostingGame = user!.id === game.host_id;
+	const joinButtonDisabled = isFull || userHostingGame;
+
 	return (
 		<SafeAreaView style={styles.screen} edges={["left", "right", "bottom"]}>
-			<GameCard game={game!} isDetailed />
+			<GameCard game={game} isDetailed />
 			<View style={styles.playersContainer}>
 				<View style={styles.playersHeading}>
 					<Text style={styles.playersText}>PLAYERS</Text>
 					<Text style={styles.playersText}>
-						{game!.players.length}/{game!.spots} joined
+						{game.players.length}/{game.spots} joined
 					</Text>
 				</View>
 				<ScrollView contentContainerStyle={styles.playerCards}>
-					{game!.players.map((player) => (
+					{game.players.map((player) => (
 						<PlayerCard key={player.id} player={player} />
 					))}
 				</ScrollView>
 			</View>
 			<View style={styles.joinButton}>
-				<Button variant="primary">Join</Button>
+				<Button
+					disabled={joinButtonDisabled || isSubmitting}
+					variant={game.joined ? "danger" : "primary"}
+					onPress={game.joined ? leaveGame : joinGame}
+				>
+					{isSubmitting && !game.joined
+						? "Joining..."
+						: isSubmitting && game.joined
+							? "Leaving..."
+							: game.joined
+								? "Leave"
+								: getJoinButtonText(userJoinedGame, isFull, userHostingGame)}
+				</Button>
 			</View>
 		</SafeAreaView>
 	);
