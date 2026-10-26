@@ -6,7 +6,6 @@ import { GameDetail } from "../types/game";
 import { api } from "../services/api";
 import { useEffect, useState } from "react";
 import PlayerCard from "../components/game/PlayerCard";
-import GameCardDetailed from "../components/game/GameCardDetailed";
 import GameCard from "../components/game/GameCard";
 import Button from "../components/ui/Button";
 
@@ -57,7 +56,7 @@ const GameDetailsScreen = ({ route }: AppScreenProps<"GameDetails">) => {
 
 	return (
 		<SafeAreaView style={styles.screen} edges={["left", "right", "bottom"]}>
-			<GameCardDetailed game={game!} />
+			<GameCard game={game!} isDetailed />
 			<View style={styles.playersContainer}>
 				<View style={styles.playersHeading}>
 					<Text style={styles.playersText}>PLAYERS</Text>
