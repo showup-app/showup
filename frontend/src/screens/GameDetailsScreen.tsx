@@ -1,91 +1,97 @@
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppScreenProps } from "../navigation/types";
 import { CustomTheme, useTheme } from "@react-navigation/native";
 import { GameDetail } from "../types/game";
 import { api } from "../services/api";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import PlayerCard from "../components/game/PlayerCard";
 import GameCard from "../components/game/GameCard";
 import Button from "../components/ui/Button";
 import { getJoinButtonText } from "../utils/format";
 import { useUser } from "../context/UserContext";
+import LoadingView from "../components/layout/LoadingView";
+import ErrorView from "../components/layout/ErrorView";
+
+type GameState = {
+	game: GameDetail | null;
+	error: string | null;
+	loading: boolean;
+};
 
 const GameDetailsScreen = ({ route }: AppScreenProps<"GameDetails">) => {
 	const theme = useTheme();
 	const { user, token } = useUser();
 	const styles = getStyles(theme);
 	const { gameId } = route.params;
-	const [game, setGame] = useState<GameDetail | null>(null);
-	const [error, setError] = useState<string | null>(null);
-	const [loading, setLoading] = useState(true);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [gameState, setGameState] = useState<GameState>({
+		game: null,
+		error: null,
+		loading: true,
+	});
 
-	const fetchGame = async () => {
-		setLoading(true);
-		setError(null);
-
+	const fetchGame = useCallback(async () => {
 		const res = await api.getGame(gameId, token!);
 		if (res.ok) {
-			setGame(res.data);
+			setGameState({
+				game: res.data,
+				error: null,
+				loading: false,
+			});
 		} else {
-			setError(res.error);
+			setGameState({
+				game: null,
+				error: res.error,
+				loading: false,
+			});
 		}
-		setLoading(false);
-	};
-
-	const joinGame = async () => {
-		setIsSubmitting(true);
-		const res = await api.joinGame(game!.id, token!);
-		if (!res.ok) {
-			// TODO: Unify error message display across the entire app (i.e.: modal popup? toast message?)
-			console.log(res.error, res.status);
-		} else {
-			setGame(res.data);
-		}
-		setIsSubmitting(false);
-	};
-
-	const leaveGame = async () => {
-		setIsSubmitting(true);
-		const res = await api.leaveGame(game!.id, token!);
-		if (!res.ok) {
-			// TODO: Unify error message display across the entire app (i.e.: modal popup? toast message?)
-			console.log(res.error, res.status);
-		} else {
-			setGame(res.data);
-		}
-		setIsSubmitting(false);
-	};
+	}, [gameId, token]);
 
 	useEffect(() => {
+		// eslint-disable-next-line react-hooks/set-state-in-effect
 		fetchGame();
-	}, []);
+	}, [fetchGame]);
 
-	if (loading) {
+	if (gameState.loading) {
+		return <LoadingView message="Loading game…" />;
+	}
+
+	if (gameState.error || !gameState.game) {
 		return (
-			<SafeAreaView style={[styles.screen, styles.centered]} edges={["left", "right"]}>
-				<ActivityIndicator color={theme.colors.textSecondary} />
-				<Text style={styles.message}>Loading game…</Text>
-			</SafeAreaView>
+			<ErrorView
+				onRetry={fetchGame}
+				errorMsg={gameState.error !== null ? gameState.error : "Something went wrong..."}
+			/>
 		);
 	}
 
-	if (error || !game) {
-		return (
-			<SafeAreaView style={[styles.screen, styles.centered]} edges={["left", "right"]}>
-				<Text style={styles.message}>{error}</Text>
-				<Pressable onPress={fetchGame} hitSlop={8}>
-					<Text style={styles.link}>Try again</Text>
-				</Pressable>
-			</SafeAreaView>
-		);
-	}
-
+	const { game } = gameState;
 	const isFull = game.spots_left <= 0;
-	const userJoinedGame = game.joined;
 	const userHostingGame = user!.id === game.host_id;
-	const joinButtonDisabled = isFull || userHostingGame;
+	const joinButtonDisabled = (isFull && !game.joined) || userHostingGame;
+
+	const handleJoinLeaveGame = async () => {
+		setIsSubmitting(true);
+		const res = game.joined ? await api.leaveGame(game.id, token!) : await api.joinGame(game.id, token!);
+		if (!res.ok) {
+			// TODO: Unify error message display across the entire app (i.e.: modal popup? toast message?)
+			console.log(res.error, res.status);
+		} else {
+			setGameState({
+				loading: gameState.loading,
+				error: gameState.error,
+				game: res.data,
+			});
+		}
+		setIsSubmitting(false);
+	};
+
+	const joinButtonText = isSubmitting
+		? game.joined
+			? "Leaving..."
+			: "Joining..."
+		: getJoinButtonText(game, user!, true);
 
 	return (
 		<SafeAreaView style={styles.screen} edges={["left", "right", "bottom"]}>
@@ -107,15 +113,9 @@ const GameDetailsScreen = ({ route }: AppScreenProps<"GameDetails">) => {
 				<Button
 					disabled={joinButtonDisabled || isSubmitting}
 					variant={game.joined ? "danger" : "primary"}
-					onPress={game.joined ? leaveGame : joinGame}
+					onPress={handleJoinLeaveGame}
 				>
-					{isSubmitting && !game.joined
-						? "Joining..."
-						: isSubmitting && game.joined
-							? "Leaving..."
-							: game.joined
-								? "Leave"
-								: getJoinButtonText(userJoinedGame, isFull, userHostingGame)}
+					{joinButtonText}
 				</Button>
 			</View>
 		</SafeAreaView>
@@ -132,21 +132,6 @@ const getStyles = (theme: CustomTheme) =>
 			alignItems: "center",
 			paddingHorizontal: 20,
 			gap: 30,
-		},
-		centered: {
-			alignItems: "center",
-			justifyContent: "center",
-			gap: 12,
-			padding: 20,
-		},
-		message: {
-			color: theme.colors.textMuted,
-			fontSize: 14,
-		},
-		link: {
-			color: theme.colors.textSecondary,
-			fontSize: 14,
-			fontWeight: "600",
 		},
 		playerCards: {
 			gap: 10,

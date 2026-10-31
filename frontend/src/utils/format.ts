@@ -1,3 +1,6 @@
+import { User } from "../types/auth";
+import { Game, GameDetail } from "../types/game";
+
 /** "Friday, October 2, 2026" */
 export function formatLongDate(iso: string): string {
 	return new Date(iso).toLocaleDateString("en-US", {
@@ -54,9 +57,19 @@ export function capitalize(text: string): string {
 }
 
 /** Gets the text of the join game button depending on the conditions of that game */
-export function getJoinButtonText(userJoinedGame: boolean, isFull: boolean, userHostingGame: boolean): string {
-	if (userJoinedGame) return "Joined";
-	if (isFull) return "Full";
-	if (userHostingGame) return "Hosting";
+export function getJoinButtonText(game: GameDetail | Game, user: User, allowLeave = false): string {
+	if (game.joined) {
+		return allowLeave ? "Leave" : "Joined";
+	}
+
+	if (game.host_id === user.id) {
+		return "Hosting";
+	}
+
+	const spotsLeft = "spots_left" in game ? game.spots_left : game.spots;
+	if (spotsLeft <= 0) {
+		return "Full";
+	}
+
 	return "Join";
 }

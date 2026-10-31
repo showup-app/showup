@@ -1,12 +1,14 @@
 import { CustomTheme, useFocusEffect, useTheme } from "@react-navigation/native";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Pressable, RefreshControl, SectionList, StyleSheet, Text, View } from "react-native";
+import { Pressable, RefreshControl, SectionList, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import GameCard from "../components/game/GameCard";
 import { useUser } from "../context/UserContext";
 import { TabScreenProps } from "../navigation/types";
 import { api } from "../services/api";
 import { Game, MyGames } from "../types/game";
+import LoadingView from "../components/layout/LoadingView";
+import ErrorView from "../components/layout/ErrorView";
 
 type Section = {
 	title: string;
@@ -75,23 +77,11 @@ export function HomeScreen({ navigation }: TabScreenProps<"Home">) {
 	];
 
 	if (loading && !refreshing) {
-		return (
-			<SafeAreaView style={[styles.screen, styles.centered]} edges={["left", "right"]}>
-				<ActivityIndicator color={theme.colors.textSecondary} />
-				<Text style={styles.message}>Loading your games…</Text>
-			</SafeAreaView>
-		);
+		return <LoadingView message="Loading your games…" />;
 	}
 
 	if (error) {
-		return (
-			<SafeAreaView style={[styles.screen, styles.centered]} edges={["left", "right"]}>
-				<Text style={styles.message}>{error}</Text>
-				<Pressable onPress={onRefresh} hitSlop={8}>
-					<Text style={styles.link}>Try again</Text>
-				</Pressable>
-			</SafeAreaView>
-		);
+		return <ErrorView errorMsg={error} onRetry={onRefresh} />;
 	}
 
 	return (

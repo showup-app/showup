@@ -62,7 +62,7 @@ const GameCard = ({ game, onJoin, onSeePlayers, isDetailed = false }: GameCardPr
 						hitSlop={8}
 					>
 						<Text style={[styles.joinText, joinButtonDisabled && styles.joinTextDisabled]}>
-							{getJoinButtonText(userJoinedGame, isFull, userHostingGame)}
+							{getJoinButtonText(game as Game | GameDetail, user!)}
 						</Text>
 					</Pressable>
 				)}

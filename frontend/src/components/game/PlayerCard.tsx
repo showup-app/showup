@@ -32,7 +32,7 @@ const getStyles = (theme: CustomTheme) =>
 			width: "100%",
 			alignItems: "center",
 			backgroundColor: "#2B2B2B",
-            padding: 7,
+			padding: 7,
 		},
 		reputation: {
 			color: theme.colors.textSecondary,
@@ -43,10 +43,10 @@ const getStyles = (theme: CustomTheme) =>
 			display: "flex",
 			flexDirection: "row",
 			gap: 5,
-            alignItems: "center",
+			alignItems: "center",
 		},
 		playerName: {
 			color: theme.colors.text,
 			fontWeight: 400,
-		}
+		},
 	});
