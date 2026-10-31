@@ -122,7 +122,8 @@ export const api = {
 			},
 			"Couldn't load games",
 		),
-	getGame: (id: number) => request<GameDetail>(`/games/${id}`),
+	getGame: (id: number, token?: string) =>
+		request<GameDetail>(`/games/${id}`, token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
 	createGame: (gameBody: GameCreate, token: string) =>
 		request<Game>(
 			`/games`,
@@ -133,13 +134,22 @@ export const api = {
 			"Failed to create game",
 		),
 	joinGame: (id: number, token: string) =>
-		request<Game>(
+		request<GameDetail>(
 			`/games/${id}/join`,
 			{
 				method: "POST",
 				headers: { Authorization: `Bearer ${token}` },
 			},
 			"Failed to join game, please try again later",
+		),
+	leaveGame: (id: number, token: string) =>
+		request<GameDetail>(
+			`/games/${id}/join`,
+			{
+				method: "DELETE",
+				headers: { Authorization: `Bearer ${token}` },
+			},
+			"Failed to leave game, please try again later",
 		),
 	getMyGames: (token: string) =>
 		request<MyGames>(

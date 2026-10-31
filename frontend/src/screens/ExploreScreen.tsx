@@ -1,22 +1,14 @@
 import { CustomTheme, useTheme } from "@react-navigation/native";
 import { useEffect, useState } from "react";
-import {
-	ActivityIndicator,
-	FlatList,
-	Platform,
-	Pressable,
-	RefreshControl,
-	StyleSheet,
-	Text,
-	TextInput,
-	View,
-} from "react-native";
+import { FlatList, Platform, RefreshControl, StyleSheet, Text, TextInput, View } from "react-native";
 import GameCard from "../components/game/GameCard";
 import { TabScreenProps } from "../navigation/types";
 import { api } from "../services/api";
 import { Game } from "../types/game";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUser } from "../context/UserContext";
+import LoadingView from "../components/layout/LoadingView";
+import ErrorView from "../components/layout/ErrorView";
 
 const MIN_SEARCH_LENGTH = 2;
 const SEARCH_DELAY_MS = 400;
@@ -89,17 +81,9 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 			</View>
 
 			{loading && !refreshing ? (
-				<View style={styles.centered}>
-					<ActivityIndicator color={theme.colors.textSecondary} />
-					<Text style={styles.message}>Finding games…</Text>
-				</View>
+				<LoadingView message="Finding games…" screen={false} />
 			) : error ? (
-				<View style={styles.centered}>
-					<Text style={styles.message}>{error}</Text>
-					<Pressable onPress={onRefresh} hitSlop={8}>
-						<Text style={styles.retry}>Try again</Text>
-					</Pressable>
-				</View>
+				<ErrorView errorMsg={error} onRetry={onRefresh} screen={false} />
 			) : (
 				<FlatList
 					data={games}
@@ -174,21 +158,9 @@ const getStyles = (theme: CustomTheme) =>
 			paddingBottom: 20,
 			gap: 28,
 		},
-		centered: {
-			flex: 1,
-			alignItems: "center",
-			justifyContent: "center",
-			gap: 12,
-			padding: 20,
-		},
 		message: {
 			color: theme.colors.textMuted,
 			fontSize: 14,
 			textAlign: "center",
-		},
-		retry: {
-			color: theme.colors.textSecondary,
-			fontSize: 14,
-			fontWeight: "600",
 		},
 	});
