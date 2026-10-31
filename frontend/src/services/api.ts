@@ -113,9 +113,17 @@ export const api = {
 			},
 			"Failed to authenticate, please try again later",
 		),
-	getGames: (filters: GameFilters = {}) =>
-		request<Game[]>(`/games${toQueryString(filters)}`, {}, "Couldn't load games"),
-	getGame: (id: number) => request<GameDetail>(`/games/${id}`),
+	getGames: (filters: GameFilters = {}, token: string) =>
+		request<Game[]>(
+			`/games${toQueryString(filters)}`,
+			{
+				method: "GET",
+				headers: { Authorization: `Bearer ${token}` },
+			},
+			"Couldn't load games",
+		),
+	getGame: (id: number, token?: string) =>
+		request<GameDetail>(`/games/${id}`, token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
 	createGame: (gameBody: GameCreate, token: string) =>
 		request<Game>(
 			`/games`,
@@ -126,6 +134,24 @@ export const api = {
 			"Failed to create game",
 		),
 
+	joinGame: (id: number, token: string) =>
+		request<GameDetail>(
+			`/games/${id}/join`,
+			{
+				method: "POST",
+				headers: { Authorization: `Bearer ${token}` },
+			},
+			"Failed to join game, please try again later",
+		),
+	leaveGame: (id: number, token: string) =>
+		request<GameDetail>(
+			`/games/${id}/join`,
+			{
+				method: "DELETE",
+				headers: { Authorization: `Bearer ${token}` },
+			},
+			"Failed to leave game, please try again later",
+		),
 	getMyGames: (token: string, includePast = false) =>
 		request<MyGames>(
 			`/me/games${toQueryString({ include_past: includePast })}`,
@@ -148,7 +174,6 @@ export const api = {
 
 	// TODO: updateGame
 	// TODO: cancelGame
-	// TODO: joinGame
 	// TODO: leaveGame
 	// TODO: getMe
 };

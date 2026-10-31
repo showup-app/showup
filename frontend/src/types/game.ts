@@ -16,6 +16,8 @@ export type Game = {
 	fallback_hours_before_start: number | null;
 	status: GameStatus;
 	updated_at: string;
+	joined: boolean;
+	effective_min_reputation: number;
 };
 
 export type Player = {
@@ -33,7 +35,6 @@ export type GameDetail = Game & {
 	host_reputation: number;
 	players: Player[];
 	spots_left: number;
-	effective_min_reputation: number;
 };
 
 /** Query params for GET /games. */

@@ -10,8 +10,10 @@ import {
 	formatShortDate,
 	formatSpotsLeft,
 	formatTimeRange,
+	getJoinButtonText,
 } from "../../utils/format";
 import { sportIcon } from "../../utils/sports";
+import { useUser } from "../../context/UserContext";
 
 // Change chip colour to orange below 3
 const LOW_SPOTS = 3;
@@ -23,12 +25,14 @@ type GameCardProps = {
 	onJoin?: () => void;
 	onSeePlayers?: () => void;
 	linkLabel?: string;
+	isDetailed?: boolean;
 };
 
 // Game card on explore/review page
-const GameCard = ({ game, onJoin, onSeePlayers, linkLabel = "See players" }: GameCardProps) => {
+const GameCard = ({ game, onJoin, onSeePlayers, linkLabel = "See players", isDetailed = false }: GameCardProps) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
+	const { user } = useUser();
 	const hostName = "host_name" in game ? game.host_name : null;
 	const hostReputation = "host_reputation" in game ? game.host_reputation : null;
 	const spotsLeft = "spots_left" in game ? game.spots_left : game.spots;
@@ -36,11 +40,14 @@ const GameCard = ({ game, onJoin, onSeePlayers, linkLabel = "See players" }: Gam
 	const isFull = spotsLeft <= 0;
 	const isAlmostFull = !isFull && spotsLeft <= LOW_SPOTS;
 	const showFooter = hostName !== null || onSeePlayers !== undefined;
+	const userJoinedGame = "joined" in game && game.joined;
+	const userHostingGame = "host_id" in game && game.host_id === user?.id;
+	const joinButtonDisabled = isFull || userJoinedGame || userHostingGame;
 
 	return (
 		<View style={styles.card}>
 			{/* Title row */}
-			<View style={styles.header}>
+			<View style={[styles.header, isDetailed && styles.bottomBorder]}>
 				<MaterialCommunityIcons name={sportIcon(game.sport)} size={28} color={theme.colors.textSecondary} />
 				<View style={styles.headerText}>
 					<Text style={styles.title}>{capitalize(game.sport)} game</Text>
@@ -50,33 +57,61 @@ const GameCard = ({ game, onJoin, onSeePlayers, linkLabel = "See players" }: Gam
 				</View>
 				{onJoin && (
 					<Pressable
-						style={[styles.joinButton, isFull && styles.joinButtonDisabled]}
+						style={[styles.joinButton, joinButtonDisabled && styles.joinButtonDisabled]}
 						onPress={onJoin}
-						disabled={isFull}
+						disabled={joinButtonDisabled}
 						hitSlop={8}
 					>
-						<Text style={[styles.joinText, isFull && styles.joinTextDisabled]}>
-							{isFull ? "Full" : "Join"}
+						<Text style={[styles.joinText, joinButtonDisabled && styles.joinTextDisabled]}>
+							{getJoinButtonText(game as Game | GameDetail, user!)}
 						</Text>
 					</Pressable>
 				)}
 			</View>
 
-			{/* Detail chips */}
-			<View style={styles.chips}>
-				<Chip icon="calendar-blank-outline" label={formatShortDate(game.starts_at)} />
-				<Chip icon="clock-outline" label={formatTimeRange(game.starts_at, game.duration_minutes)} />
-				<Chip
-					icon={isAlmostFull ? "fire" : "account-multiple-outline"}
-					label={formatSpotsLeft(spotsLeft)}
-					color={isAlmostFull ? theme.colors.warning : undefined}
-				/>
-				<Chip label={formatCost(game.cost)} color={game.cost === 0 ? theme.colors.success : undefined} />
-				{game.min_reputation > 0 && <Chip icon="star-outline" label={`${game.min_reputation}+ only`} />}
-			</View>
+			{isDetailed ? (
+				<View style={styles.details}>
+					<View style={styles.detailRow}>
+						<View style={styles.detail}>
+							<Text style={styles.detailName}>WHEN</Text>
+							<Text style={styles.detailValue}>
+								{formatShortDate(game.starts_at)}{" "}
+								{formatTimeRange(game.starts_at, game.duration_minutes)}
+							</Text>
+						</View>
+						<View style={styles.detail}>
+							<Text style={styles.detailName}>WHERE</Text>
+							<Text style={styles.detailValue}>{game.address}</Text>
+						</View>
+					</View>
+					<View style={styles.detailRow}>
+						<View style={styles.detail}>
+							<Text style={styles.detailName}>COST</Text>
+							<Text style={styles.detailValue}>{formatCost(game.cost)} per player</Text>
+						</View>
+						<View style={styles.detail}>
+							<Text style={styles.detailName}>REPUTATION REQUIRED</Text>
+							<Text style={styles.reputation}>★ {game.min_reputation}+</Text>
+						</View>
+					</View>
+				</View>
+			) : (
+				/* Detail chips */
+				<View style={styles.chips}>
+					<Chip icon="calendar-blank-outline" label={formatShortDate(game.starts_at)} />
+					<Chip icon="clock-outline" label={formatTimeRange(game.starts_at, game.duration_minutes)} />
+					<Chip
+						icon={isAlmostFull ? "fire" : "account-multiple-outline"}
+						label={formatSpotsLeft(spotsLeft)}
+						color={isAlmostFull ? theme.colors.warning : undefined}
+					/>
+					<Chip label={formatCost(game.cost)} color={game.cost === 0 ? theme.colors.success : undefined} />
+					{game.min_reputation > 0 && <Chip icon="star-outline" label={`${game.min_reputation}+ only`} />}
+				</View>
+			)}
 
 			{/* Footer*/}
-			{showFooter && (
+			{showFooter && !isDetailed && (
 				<View style={styles.footer}>
 					{hostName && (
 						<>
@@ -89,6 +124,20 @@ const GameCard = ({ game, onJoin, onSeePlayers, linkLabel = "See players" }: Gam
 						<Pressable onPress={onSeePlayers} hitSlop={8} style={styles.seePlayers}>
 							<Text style={styles.link}>{linkLabel}</Text>
 						</Pressable>
+					)}
+				</View>
+			)}
+
+			{showFooter && isDetailed && (
+				<View style={styles.footer}>
+					{hostName && (
+						<View style={styles.hostContainer}>
+							<MaterialCommunityIcons name="account-circle" size={30} color={theme.colors.textMuted} />
+							<View>
+								<Text style={styles.hostName}>Hosted by {hostName}</Text>
+								{hostReputation !== null && <Text style={styles.reputation}>★ {hostReputation}</Text>}
+							</View>
+						</View>
 					)}
 				</View>
 			)}
@@ -199,6 +248,7 @@ const getStyles = (theme: CustomTheme) =>
 		reputation: {
 			color: theme.colors.textSecondary,
 			fontSize: 12,
+			fontWeight: 500,
 		},
 		seePlayers: {
 			marginLeft: "auto",
@@ -207,5 +257,38 @@ const getStyles = (theme: CustomTheme) =>
 			color: theme.colors.textSecondary,
 			fontSize: 13,
 			fontWeight: "500",
+		},
+		details: {
+			paddingVertical: 7,
+		},
+		detailRow: {
+			display: "flex",
+			flexDirection: "row",
+			width: "100%",
+			paddingVertical: 5,
+			paddingLeft: 10,
+		},
+		detail: {
+			width: "50%",
+		},
+		detailName: {
+			color: "#ADADAD",
+			fontSize: 14,
+			fontWeight: 400,
+		},
+		detailValue: {
+			color: theme.colors.text,
+			fontSize: 14,
+			fontWeight: 400,
+		},
+		hostContainer: {
+			display: "flex",
+			flexDirection: "row",
+			gap: 10,
+		},
+		bottomBorder: {
+			paddingBottom: 12,
+			borderBottomWidth: 1,
+			borderBottomColor: theme.colors.border,
 		},
 	});

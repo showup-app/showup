@@ -1,21 +1,14 @@
 import { CustomTheme, useTheme } from "@react-navigation/native";
 import { useEffect, useState } from "react";
-import {
-	ActivityIndicator,
-	FlatList,
-	Platform,
-	Pressable,
-	RefreshControl,
-	StyleSheet,
-	Text,
-	TextInput,
-	View,
-} from "react-native";
+import { FlatList, Platform, RefreshControl, StyleSheet, Text, TextInput, View } from "react-native";
 import GameCard from "../components/game/GameCard";
 import { TabScreenProps } from "../navigation/types";
 import { api } from "../services/api";
 import { Game } from "../types/game";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useUser } from "../context/UserContext";
+import LoadingView from "../components/layout/LoadingView";
+import ErrorView from "../components/layout/ErrorView";
 
 const MIN_SEARCH_LENGTH = 2;
 const SEARCH_DELAY_MS = 400;
@@ -23,6 +16,7 @@ const SEARCH_DELAY_MS = 400;
 export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 	const theme = useTheme();
 	const styles = getStyles(theme);
+	const { token } = useUser();
 
 	const [search, setSearch] = useState("");
 	const [games, setGames] = useState<Game[]>([]);
@@ -34,7 +28,7 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 
 	const loadGames = async () => {
 		setError(null);
-		const res = await api.getGames({ location });
+		const res = await api.getGames({ location }, token!);
 		if (res.ok) {
 			setGames(res.data);
 		} else {
@@ -48,7 +42,7 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 			setLoading(true);
 			setError(null);
 			if (!cancelled) {
-				const result = await api.getGames({ location });
+				const result = await api.getGames({ location }, token!);
 				if (result.ok) {
 					setGames(result.data);
 				} else {
@@ -62,7 +56,7 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 			cancelled = true;
 			clearTimeout(timer);
 		};
-	}, [location]);
+	}, [location, token]);
 
 	const onRefresh = async () => {
 		setRefreshing(true);
@@ -87,17 +81,9 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 			</View>
 
 			{loading && !refreshing ? (
-				<View style={styles.centered}>
-					<ActivityIndicator color={theme.colors.textSecondary} />
-					<Text style={styles.message}>Finding games…</Text>
-				</View>
+				<LoadingView message="Finding games…" screen={false} />
 			) : error ? (
-				<View style={styles.centered}>
-					<Text style={styles.message}>{error}</Text>
-					<Pressable onPress={onRefresh} hitSlop={8}>
-						<Text style={styles.retry}>Try again</Text>
-					</Pressable>
-				</View>
+				<ErrorView errorMsg={error} onRetry={onRefresh} screen={false} />
 			) : (
 				<FlatList
 					data={games}
@@ -106,8 +92,17 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 						<GameCard
 							game={item}
 							onSeePlayers={() => navigation.navigate("GameDetails", { gameId: item.id })}
-							onJoin={() => {
-								// TODO: call api.joinGame(item.id) once login exists
+							onJoin={async () => {
+								const res = await api.joinGame(item.id, token!);
+								if (!res.ok) {
+									// TODO: Unify error message display across the entire app (i.e.: modal popup? toast message?)
+									console.log(res.error, res.status);
+									return;
+								}
+								// Set current game status to joined
+								setGames((prevGames) =>
+									prevGames.map((game) => (game.id === item.id ? { ...item, joined: true } : game)),
+								);
 							}}
 						/>
 					)}
@@ -163,21 +158,9 @@ const getStyles = (theme: CustomTheme) =>
 			paddingBottom: 20,
 			gap: 28,
 		},
-		centered: {
-			flex: 1,
-			alignItems: "center",
-			justifyContent: "center",
-			gap: 12,
-			padding: 20,
-		},
 		message: {
 			color: theme.colors.textMuted,
 			fontSize: 14,
 			textAlign: "center",
-		},
-		retry: {
-			color: theme.colors.textSecondary,
-			fontSize: 14,
-			fontWeight: "600",
 		},
 	});

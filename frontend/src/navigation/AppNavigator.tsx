@@ -5,7 +5,7 @@ import { MainTabs } from "./MainTabs";
 import { SearchScreen } from "../screens/SearchScreen";
 import { CreatePostScreen } from "../screens/CreatePostScreen";
 import ConfirmPostScreen from "../screens/ConfirmPostScreen";
-import { GameDetailsScreen } from "../screens/GameDetailsScreen";
+import GameDetailsScreen from "../screens/GameDetailsScreen";
 import RegisterScreen from "../screens/RegisterScreen";
 import SplashScreen from "../screens/SplashScreen";
 import LoginScreen from "../screens/LoginScreen";
