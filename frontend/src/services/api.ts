@@ -135,16 +135,16 @@ export const api = {
 			},
 			"Couldn't load your games",
 		),
-	
+
 	markAttendance: (gameId: number, marks: AttendanceMark[], token: string) =>
-  request<GameDetail>(
-  	`/games/${gameId}/attendance`,
-  	{
-  		...getRequestBody("POST", { marks }),
-  		headers: { Authorization: `Bearer ${token}` },
-  	},
-  	"Couldn't save attendance",
-  ),
+		request<GameDetail>(
+			`/games/${gameId}/attendance`,
+			{
+				...getRequestBody("POST", { marks }),
+				headers: { Authorization: `Bearer ${token}` },
+			},
+			"Couldn't save attendance",
+		),
 
 	// TODO: updateGame
 	// TODO: cancelGame

@@ -8,13 +8,27 @@ import { TabScreenProps } from "../navigation/types";
 import { api } from "../services/api";
 import { Game, MyGames } from "../types/game";
 
+// Hosts can mark attendance for this many days after kickoff
+const MARK_WINDOW_DAYS = 7;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
 type Section = {
 	title: string;
 	data: Game[];
-	emptyText: string;
-	emptyAction: string;
-	onEmptyAction: () => void;
+	emptyText?: string;
+	emptyAction?: string;
+	onEmptyAction?: () => void;
+	linkLabel: string;
+	onOpen: (game: Game) => void;
 };
+
+const hasStarted = (game: Game, now: number) => new Date(game.starts_at).getTime() <= now;
+
+const needsAttendance = (game: Game, now: number) =>
+	hasStarted(game, now) &&
+	game.status !== "cancelled" &&
+	game.status !== "played" &&
+	now - new Date(game.starts_at).getTime() <= MARK_WINDOW_DAYS * DAY_MS;
 
 export function HomeScreen({ navigation }: TabScreenProps<"Home">) {
 	const theme = useTheme();
@@ -25,6 +39,7 @@ export function HomeScreen({ navigation }: TabScreenProps<"Home">) {
 	const [loading, setLoading] = useState(true);
 	const [refreshing, setRefreshing] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [loadedAt, setLoadedAt] = useState(0);
 
 	const loadGames = useCallback(async () => {
 		if (!token) {
@@ -33,9 +48,10 @@ export function HomeScreen({ navigation }: TabScreenProps<"Home">) {
 			return;
 		}
 		setError(null);
-		const res = await api.getMyGames(token);
+		const res = await api.getMyGames(token, true);
 		if (res.ok) {
 			setMyGames(res.data);
+			setLoadedAt(Date.now());
 		} else {
 			setError(res.error);
 		}
@@ -56,18 +72,41 @@ export function HomeScreen({ navigation }: TabScreenProps<"Home">) {
 	};
 
 	const openGame = (game: Game) => navigation.navigate("GameDetails", { gameId: game.id });
+	const openAttendance = (game: Game) => navigation.navigate("Attendance", { gameId: game.id });
+
+	// The API returns past games too (include_past), so split them here
+	const now = loadedAt;
+	const hosting = myGames?.hosting ?? [];
+	const toMark = hosting.filter((game) => needsAttendance(game, now));
+	const upcomingHosting = hosting.filter((game) => !hasStarted(game, now));
+	const upcomingJoined = (myGames?.joined ?? []).filter((game) => !hasStarted(game, now));
 
 	const sections: Section[] = [
+		// Only shown when there is something to mark
+		...(toMark.length > 0
+			? [
+					{
+						title: "Needs attendance",
+						data: toMark,
+						linkLabel: "Mark attendance",
+						onOpen: openAttendance,
+					},
+				]
+			: []),
 		{
 			title: "Hosting",
-			data: myGames?.hosting ?? [],
+			data: upcomingHosting,
+			linkLabel: "See players",
+			onOpen: openGame,
 			emptyText: "You're not hosting any upcoming games.",
 			emptyAction: "Post a game",
 			onEmptyAction: () => navigation.navigate("CreatePost"),
 		},
 		{
 			title: "Joined",
-			data: myGames?.joined ?? [],
+			data: upcomingJoined,
+			linkLabel: "See players",
+			onOpen: openGame,
 			emptyText: "You haven't joined any upcoming games.",
 			emptyAction: "Find a game",
 			onEmptyAction: () => navigation.navigate("Explore"),
@@ -99,10 +138,12 @@ export function HomeScreen({ navigation }: TabScreenProps<"Home">) {
 			<SectionList
 				sections={sections}
 				keyExtractor={(game) => String(game.id)}
-				renderItem={({ item }) => <GameCard game={item} onSeePlayers={() => openGame(item)} />}
+				renderItem={({ item, section }) => (
+					<GameCard game={item} linkLabel={section.linkLabel} onSeePlayers={() => section.onOpen(item)} />
+				)}
 				renderSectionHeader={({ section }) => <Text style={styles.sectionTitle}>{section.title}</Text>}
 				renderSectionFooter={({ section }) =>
-					section.data.length === 0 ? (
+					section.data.length === 0 && section.emptyText ? (
 						<View style={styles.empty}>
 							<Text style={styles.message}>{section.emptyText}</Text>
 							<Pressable onPress={section.onEmptyAction} hitSlop={8}>

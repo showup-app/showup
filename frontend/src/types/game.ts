@@ -63,6 +63,6 @@ export type MyGames = {
 
 /** POST /games/{id}/attendance */
 export type AttendanceMark = {
-  	user_id: number;
-  	showed_up: boolean;
+	user_id: number;
+	showed_up: boolean;
 };
