@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { CustomTheme, useFocusEffect, useTheme } from "@react-navigation/native";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, FlatList, Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { FlatList, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../components/ui/Button";
 import FormErrorMessage from "../components/ui/FormErrorMessage";
@@ -10,6 +10,8 @@ import { AppScreenProps } from "../navigation/types";
 import { api } from "../services/api";
 import { AttendanceMark, GameDetail } from "../types/game";
 import { capitalize, formatShortDate } from "../utils/format";
+import LoadingView from "../components/layout/LoadingView";
+import ErrorView from "../components/layout/ErrorView";
 
 /** Each player's mark */
 type Marks = Record<number, boolean | undefined>;
@@ -88,23 +90,14 @@ const AttendanceScreen = ({ navigation, route }: AppScreenProps<"Attendance">) =
 	};
 
 	if (loading) {
-		return (
-			<SafeAreaView style={[styles.screen, styles.centered]} edges={["left", "right"]}>
-				<ActivityIndicator color={theme.colors.textSecondary} />
-			</SafeAreaView>
-		);
+		return <LoadingView message="Loading players…" />;
 	}
 
 	if (loadError || !game) {
-		return (
-			<SafeAreaView style={[styles.screen, styles.centered]} edges={["left", "right"]}>
-				<Text style={styles.message}>{loadError ?? "Couldn't load this game"}</Text>
-				<Pressable onPress={loadGame} hitSlop={8}>
-					<Text style={styles.link}>Try again</Text>
-				</Pressable>
-			</SafeAreaView>
-		);
+		return <ErrorView errorMsg={loadError ?? "Couldn't load this game"} onRetry={loadGame} />;
 	}
+
+	const allMarked = game.players.length > 0 && markedCount === game.players.length;
 
 	return (
 		<SafeAreaView style={styles.screen} edges={["left", "right", "bottom"]}>
@@ -172,9 +165,19 @@ const AttendanceScreen = ({ navigation, route }: AppScreenProps<"Attendance">) =
 							<Text style={styles.link}>Everyone showed up</Text>
 						</Pressable>
 					</View>
-					<Button variant="primary" onPress={handleSave} disabled={markedCount === 0 || isSaving}>
+					<Button variant="primary" onPress={handleSave} disabled={!allMarked || isSaving}>
 						{isSaving ? "Saving..." : "Save attendance"}
 					</Button>
+					{!allMarked && (
+						<View style={styles.hintRow}>
+							<MaterialCommunityIcons
+								name="alert-circle-outline"
+								size={16}
+								color={theme.colors.warning}
+							/>
+							<Text style={styles.hint}>Mark every player to save</Text>
+						</View>
+					)}
 				</View>
 			)}
 		</SafeAreaView>
@@ -263,5 +266,16 @@ const getStyles = (theme: CustomTheme) =>
 			color: theme.colors.textSecondary,
 			fontSize: 14,
 			fontWeight: "600",
+		},
+		hintRow: {
+			flexDirection: "row",
+			alignItems: "center",
+			justifyContent: "center",
+			gap: 6,
+		},
+		hint: {
+			color: theme.colors.warning,
+			fontSize: 13,
+			fontWeight: "500",
 		},
 	});
