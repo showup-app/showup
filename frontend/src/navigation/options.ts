@@ -5,5 +5,6 @@ export const stackScreenOptions: NativeStackNavigationOptions = {
 	headerStyle: { backgroundColor: theme.colors.background },
 	headerTintColor: theme.colors.text,
 	headerShadowVisible: false,
+	headerBackButtonDisplayMode: "minimal",
 	contentStyle: { backgroundColor: theme.colors.background },
 };

@@ -26,6 +26,7 @@ export type Player = {
 	reputation: number;
 	games_played: number;
 	is_new: boolean;
+	showed_up?: boolean | null;
 };
 
 /** GET /games/{id} returns one of these. */
@@ -59,4 +60,10 @@ export type GameCreate = {
 export type MyGames = {
 	hosting: Game[];
 	joined: Game[];
+};
+
+/** POST /games/{id}/attendance */
+export type AttendanceMark = {
+	user_id: number;
+	showed_up: boolean;
 };
