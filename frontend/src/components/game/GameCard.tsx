@@ -22,10 +22,11 @@ type GameCardProps = {
 	game: Game | GameDetail | GameCreate;
 	onJoin?: () => void;
 	onSeePlayers?: () => void;
+	linkLabel?: string;
 };
 
 // Game card on explore/review page
-const GameCard = ({ game, onJoin, onSeePlayers }: GameCardProps) => {
+const GameCard = ({ game, onJoin, onSeePlayers, linkLabel = "See players" }: GameCardProps) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
 	const hostName = "host_name" in game ? game.host_name : null;
@@ -86,7 +87,7 @@ const GameCard = ({ game, onJoin, onSeePlayers }: GameCardProps) => {
 					)}
 					{onSeePlayers && (
 						<Pressable onPress={onSeePlayers} hitSlop={8} style={styles.seePlayers}>
-							<Text style={styles.link}>See players</Text>
+							<Text style={styles.link}>{linkLabel}</Text>
 						</Pressable>
 					)}
 				</View>
