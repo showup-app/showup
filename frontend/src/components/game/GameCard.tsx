@@ -26,10 +26,18 @@ type GameCardProps = {
 	onSeePlayers?: () => void;
 	linkLabel?: string;
 	isDetailed?: boolean;
+	highlighted?: boolean;
 };
 
 // Game card on explore/review page
-const GameCard = ({ game, onJoin, onSeePlayers, linkLabel = "See players", isDetailed = false }: GameCardProps) => {
+const GameCard = ({
+	game,
+	onJoin,
+	onSeePlayers,
+	linkLabel = "See players",
+	isDetailed = false,
+	highlighted = false,
+}: GameCardProps) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
 	const { user } = useUser();
@@ -45,7 +53,7 @@ const GameCard = ({ game, onJoin, onSeePlayers, linkLabel = "See players", isDet
 	const joinButtonDisabled = isFull || userJoinedGame || userHostingGame;
 
 	return (
-		<View style={styles.card}>
+		<View style={[styles.card, highlighted && styles.cardHighlighted]}>
 			{/* Title row */}
 			<View style={[styles.header, isDetailed && styles.bottomBorder]}>
 				<MaterialCommunityIcons name={sportIcon(game.sport)} size={28} color={theme.colors.textSecondary} />
@@ -290,5 +298,9 @@ const getStyles = (theme: CustomTheme) =>
 			paddingBottom: 12,
 			borderBottomWidth: 1,
 			borderBottomColor: theme.colors.border,
+		},
+		cardHighlighted: {
+			borderColor: theme.colors.textSecondary,
+			borderWidth: 1.5,
 		},
 	});

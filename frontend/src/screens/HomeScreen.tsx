@@ -1,6 +1,6 @@
 import { CustomTheme, useFocusEffect, useTheme } from "@react-navigation/native";
-import { useCallback, useState } from "react";
-import { Pressable, RefreshControl, SectionList, StyleSheet, Text, View } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import { RefreshControl, SectionList, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import GameCard from "../components/game/GameCard";
 import { useUser } from "../context/UserContext";
@@ -22,6 +22,7 @@ type Section = {
 	onEmptyAction?: () => void;
 	linkLabel: string;
 	onOpen: (game: Game) => void;
+	urgent?: boolean;
 };
 
 const hasStarted = (game: Game, now: number) => new Date(game.starts_at).getTime() <= now;
@@ -83,6 +84,13 @@ export function HomeScreen({ navigation }: TabScreenProps<"Home">) {
 	const upcomingHosting = hosting.filter((game) => !hasStarted(game, now));
 	const upcomingJoined = (myGames?.joined ?? []).filter((game) => !hasStarted(game, now));
 
+	useEffect(() => {
+		navigation.setOptions({
+			tabBarBadge: toMark.length > 0 ? toMark.length : undefined,
+			tabBarBadgeStyle: { backgroundColor: theme.colors.danger },
+		});
+	}, [navigation, toMark.length, theme.colors.danger]);
+
 	const sections: Section[] = [
 		// Only shown when there is something to mark
 		...(toMark.length > 0
@@ -92,6 +100,7 @@ export function HomeScreen({ navigation }: TabScreenProps<"Home">) {
 						data: toMark,
 						linkLabel: "Mark attendance",
 						onOpen: openAttendance,
+						urgent: true,
 					},
 				]
 			: []),
@@ -129,19 +138,24 @@ export function HomeScreen({ navigation }: TabScreenProps<"Home">) {
 				sections={sections}
 				keyExtractor={(game) => String(game.id)}
 				renderItem={({ item, section }) => (
-					<GameCard game={item} linkLabel={section.linkLabel} onSeePlayers={() => section.onOpen(item)} />
+					<GameCard
+						game={item}
+						linkLabel={section.linkLabel}
+						onSeePlayers={() => section.onOpen(item)}
+						highlighted={section.urgent}
+					/>
 				)}
-				renderSectionHeader={({ section }) => <Text style={styles.sectionTitle}>{section.title}</Text>}
-				renderSectionFooter={({ section }) =>
-					section.data.length === 0 && section.emptyText ? (
-						<View style={styles.empty}>
-							<Text style={styles.message}>{section.emptyText}</Text>
-							<Pressable onPress={section.onEmptyAction} hitSlop={8}>
-								<Text style={styles.link}>{section.emptyAction}</Text>
-							</Pressable>
-						</View>
-					) : null
-				}
+				renderSectionHeader={({ section }) => (
+					<View style={styles.sectionHeader}>
+						{section.urgent && <View style={styles.dot} />}
+						<Text style={styles.sectionTitle}>{section.title}</Text>
+						{section.urgent && (
+							<View style={styles.countBadge}>
+								<Text style={styles.countText}>{section.data.length}</Text>
+							</View>
+						)}
+					</View>
+				)}
 				stickySectionHeadersEnabled={false}
 				contentContainerStyle={styles.list}
 				ItemSeparatorComponent={() => <View style={styles.separator} />}
@@ -204,6 +218,28 @@ const getStyles = (theme: CustomTheme) =>
 		link: {
 			color: theme.colors.textSecondary,
 			fontSize: 14,
+			fontWeight: "600",
+		},
+		sectionHeader: {
+			flexDirection: "row",
+			alignItems: "center",
+			gap: 8,
+		},
+		dot: {
+			width: 8,
+			height: 8,
+			borderRadius: 4,
+			backgroundColor: theme.colors.danger,
+		},
+		countBadge: {
+			backgroundColor: theme.colors.danger,
+			borderRadius: 9,
+			paddingHorizontal: 7,
+			paddingVertical: 1,
+		},
+		countText: {
+			color: "#FFFFFF",
+			fontSize: 11,
 			fontWeight: "600",
 		},
 	});
