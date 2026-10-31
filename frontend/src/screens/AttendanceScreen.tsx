@@ -8,17 +8,8 @@ import FormErrorMessage from "../components/ui/FormErrorMessage";
 import { useUser } from "../context/UserContext";
 import { AppScreenProps } from "../navigation/types";
 import { api } from "../services/api";
-import { AttendanceMark, GameDetail, Player } from "../types/game";
+import { AttendanceMark, GameDetail } from "../types/game";
 import { capitalize, formatShortDate } from "../utils/format";
-
-// TODO: remove once join works.
-const USE_FAKE_DATA = true;
-const FAKE_PLAYERS: Player[] = [
-	{ id: 101, name: "Jane D.", reputation: 96, games_played: 12, is_new: false, showed_up: null },
-	{ id: 102, name: "Marcus L.", reputation: 81, games_played: 7, is_new: false, showed_up: null },
-	{ id: 103, name: "Priya S.", reputation: 100, games_played: 1, is_new: true, showed_up: null },
-	{ id: 104, name: "Tom W.", reputation: 75, games_played: 3, is_new: false, showed_up: null },
-];
 
 /** Each player's mark */
 type Marks = Record<number, boolean | undefined>;
@@ -39,7 +30,7 @@ const AttendanceScreen = ({ navigation, route }: AppScreenProps<"Attendance">) =
 	const loadGame = useCallback(async () => {
 		const res = await api.getGame(gameId);
 		if (res.ok) {
-			const loaded = USE_FAKE_DATA ? { ...res.data, players: FAKE_PLAYERS } : res.data;
+			const loaded = res.data;
 			setGame(loaded);
 			// Start from any marks the host already saved
 			const saved: Marks = {};
