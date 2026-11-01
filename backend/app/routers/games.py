@@ -284,6 +284,33 @@ def leave_game(game_id: int, db: DbDep, user: CurrentUser) -> GameDetailOut:
     return _detail(db, game.id, user)
 
 
+@router.delete("/{game_id}/players/{user_id}", response_model=GameDetailOut)
+def remove_player(game_id: int, user_id: int, db: DbDep, user: CurrentUser) -> GameDetailOut:
+    """Host takes a player off the roster. The signup is kept as removed, so the player cannot
+    rejoin and the history shows a removal rather than a leave. Not after kickoff: the roster
+    freezes so the host can mark who showed up."""
+    game = _get_game_or_404(db, game_id, lock=True)
+    _require_host(game, user)
+    if game.status == GameStatus.CANCELLED:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Game is cancelled")
+    if game.starts_at <= datetime.now(UTC):
+        raise HTTPException(status.HTTP_409_CONFLICT, "Game has already started")
+    signup = db.scalar(
+        select(Signup).where(
+            Signup.game_id == game.id,
+            Signup.user_id == user_id,
+            Signup.status == SignupStatus.JOINED,
+        )
+    )
+    if signup is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "That player is not in this game")
+    signup.status = SignupStatus.REMOVED
+    if game.status == GameStatus.FULL:
+        game.status = GameStatus.OPEN
+    db.commit()
+    return _detail(db, game.id, user)
+
+
 # ---------- after the game ----------
 
 
