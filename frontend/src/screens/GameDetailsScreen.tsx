@@ -1,8 +1,8 @@
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppScreenProps } from "../navigation/types";
 import { CustomTheme, useTheme } from "@react-navigation/native";
-import { GameDetail } from "../types/game";
+import { GameDetail, GameStatus } from "../types/game";
 import { api } from "../services/api";
 import { useCallback, useEffect, useState } from "react";
 import PlayerCard from "../components/game/PlayerCard";
@@ -19,7 +19,7 @@ type GameState = {
 	loading: boolean;
 };
 
-const GameDetailsScreen = ({ route }: AppScreenProps<"GameDetails">) => {
+const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">) => {
 	const theme = useTheme();
 	const { user, token } = useUser();
 	const styles = getStyles(theme);
@@ -68,8 +68,8 @@ const GameDetailsScreen = ({ route }: AppScreenProps<"GameDetails">) => {
 
 	const { game } = gameState;
 	const isFull = game.spots_left <= 0;
-	const userHostingGame = user!.id === game.host_id;
-	const joinButtonDisabled = (isFull && !game.joined) || userHostingGame;
+	const isHost = user!.id === game.host_id;
+	const canJoin = (isFull && !game.joined) || isHost;
 
 	const handleJoinLeaveGame = async () => {
 		setIsSubmitting(true);
@@ -85,6 +85,39 @@ const GameDetailsScreen = ({ route }: AppScreenProps<"GameDetails">) => {
 			});
 		}
 		setIsSubmitting(false);
+	};
+
+	const handleRemovePlayer = () => console.log("test");
+
+	const handleCancelGame = async () => {
+		const res = await api.cancelGame(game.id, token!);
+		if (res.ok) {
+			setGameState({
+				...gameState,
+				game: { ...game, status: GameStatus.Cancelled },
+			});
+		} else {
+			console.log(res.error);
+		}
+	};
+
+	const showConfirmCancelGameAlert = () => {
+		Alert.alert(
+			"Cancel Game?",
+			"Are you sure you want to cancel this game? This action cannot be undone.",
+			[
+				{
+					text: "Cancel",
+					style: "cancel",
+				},
+				{
+					text: "Confirm",
+					style: "destructive",
+					onPress: () => handleCancelGame(),
+				},
+			],
+			{ cancelable: true },
+		);
 	};
 
 	const joinButtonText = isSubmitting
@@ -105,19 +138,42 @@ const GameDetailsScreen = ({ route }: AppScreenProps<"GameDetails">) => {
 				</View>
 				<ScrollView contentContainerStyle={styles.playerCards}>
 					{game.players.map((player) => (
-						<PlayerCard key={player.id} player={player} />
+						<PlayerCard key={player.id} player={player} {...(isHost && { onRemove: handleRemovePlayer })} />
 					))}
 				</ScrollView>
 			</View>
-			<View style={styles.joinButton}>
-				<Button
-					disabled={joinButtonDisabled || isSubmitting}
-					variant={game.joined ? "danger" : "primary"}
-					onPress={handleJoinLeaveGame}
-				>
-					{joinButtonText}
-				</Button>
-			</View>
+			{isHost ? (
+				<View style={styles.buttonsContainer}>
+					<Button
+						buttonStyle={{
+							flex: 1,
+						}}
+						variant="primary"
+						onPress={() => console.log("button 1")}
+					>
+						Edit Game Details
+					</Button>
+					<Button
+						buttonStyle={{
+							flex: 1,
+						}}
+						variant="danger"
+						onPress={showConfirmCancelGameAlert}
+					>
+						Cancel Game
+					</Button>
+				</View>
+			) : (
+				<View style={styles.joinButton}>
+					<Button
+						disabled={canJoin || isSubmitting}
+						variant={game.joined ? "danger" : "primary"}
+						onPress={handleJoinLeaveGame}
+					>
+						{joinButtonText}
+					</Button>
+				</View>
+			)}
 		</SafeAreaView>
 	);
 };
@@ -153,5 +209,14 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		joinButton: {
 			width: "100%",
+		},
+		buttonsContainer: {
+			display: "flex",
+			flexDirection: "row",
+			width: "100%",
+			gap: 20,
+			alignSelf: "center",
+			alignItems: "center",
+			justifyContent: "space-between",
 		},
 	});

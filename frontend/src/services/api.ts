@@ -84,7 +84,7 @@ function toQueryString(params: Record<string, string | boolean | undefined>): st
 	return text ? `?${text}` : "";
 }
 
-function getRequestBody<T>(method: "POST" | "PUT", body: T): RequestInit {
+function getRequestBody<T>(method: "POST" | "PUT" | "PATCH", body: T): RequestInit {
 	return {
 		method: method,
 		body: JSON.stringify(body),
@@ -133,7 +133,24 @@ export const api = {
 			},
 			"Failed to create game",
 		),
-
+	updateGame: (id: number, gameBody: GameCreate, token: string) =>
+		request<Game>(
+			`/games/${id}`,
+			{
+				...getRequestBody("PATCH", gameBody),
+				headers: { Authorization: `Bearer ${token}` },
+			},
+			"Failed to update game",
+		),
+	cancelGame: (id: number, token: string) =>
+		request<Game>(
+			`/games/${id}/cancel`,
+			{
+				method: "POST",
+				headers: { Authorization: `Bearer ${token}` },
+			},
+			"Failed to cancel game",
+		),
 	joinGame: (id: number, token: string) =>
 		request<GameDetail>(
 			`/games/${id}/join`,
@@ -171,9 +188,4 @@ export const api = {
 			},
 			"Couldn't save attendance",
 		),
-
-	// TODO: updateGame
-	// TODO: cancelGame
-	// TODO: leaveGame
-	// TODO: getMe
 };
