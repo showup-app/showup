@@ -34,7 +34,7 @@ GAMES: list[tuple[int, str, str, str, int, int, int, str, int, GameStatus]] = [
     (2, "soccer",     "Central Park Turf",      "3883 Imperial St, Burnaby",            2, 17, 14, "3.00",  0, GameStatus.OPEN),
     (4, "soccer",     "Trillium Park",          "1 Trillium Ln, Vancouver",             5, 10, 12, "0",    50, GameStatus.OPEN),
     (3, "volleyball", "Kitsilano Beach Courts", "1499 Arbutus St, Vancouver",           4, 20, 12, "4.00",  0, GameStatus.OPEN),
-    (0, "badminton",  "ClearOne Badminton",     "2368 No 5 Rd, Richmond",               6,  9,  4, "8.00", 70, GameStatus.OPEN),
+    (0, "badminton",  "ClearOne Badminton",     "2368 No 5 Rd, Richmond",               6,  9,  4, "8.00", 70, GameStatus.FULL),
     (4, "basketball", "Hillcrest Centre",       "4575 Clancy Loranger Way, Vancouver", -2, 18, 10, "0",     0, GameStatus.PLAYED),
     (1, "soccer",     "Burnaby Lake Fields",    "3677 Kensington Ave, Burnaby",         7, 11, 10, "0",     0, GameStatus.CANCELLED),
 ]
