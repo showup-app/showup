@@ -6,7 +6,7 @@ import GameCard from "../components/game/GameCard";
 import { useUser } from "../context/UserContext";
 import { TabScreenProps } from "../navigation/types";
 import { api } from "../services/api";
-import { Game, MyGames } from "../types/game";
+import { Game, GameStatus, MyGames } from "../types/game";
 import LoadingView from "../components/layout/LoadingView";
 import ErrorView from "../components/layout/ErrorView";
 
@@ -29,8 +29,8 @@ const hasStarted = (game: Game, now: number) => new Date(game.starts_at).getTime
 
 const needsAttendance = (game: Game, now: number) =>
 	hasStarted(game, now) &&
-	game.status !== "cancelled" &&
-	game.status !== "played" &&
+	game.status !== GameStatus.Cancelled &&
+	game.status !== GameStatus.Played &&
 	now - new Date(game.starts_at).getTime() <= MARK_WINDOW_DAYS * DAY_MS;
 
 export function HomeScreen({ navigation }: TabScreenProps<"Home">) {

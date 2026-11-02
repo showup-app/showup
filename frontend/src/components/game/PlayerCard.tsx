@@ -3,7 +3,7 @@ import { Player } from "../../types/game";
 import { CustomTheme, useTheme } from "@react-navigation/native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-const PlayerCard = ({ player, onRemove }: { player: Player; onRemove?: () => void }) => {
+const PlayerCard = ({ player, onRemove }: { player: Player; onRemove?: (playerId: number) => void }) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
 
@@ -15,7 +15,14 @@ const PlayerCard = ({ player, onRemove }: { player: Player; onRemove?: () => voi
 			</View>
 			<View style={styles.rightSection}>
 				<Text style={styles.reputation}>★ {player.reputation}</Text>
-				<MaterialCommunityIcons name="close" onPress={onRemove} size={36} color={theme.colors.danger} />
+				{onRemove && (
+					<MaterialCommunityIcons
+						name="close"
+						onPress={() => onRemove(player.id)}
+						size={36}
+						color={theme.colors.danger}
+					/>
+				)}
 			</View>
 		</View>
 	);
@@ -56,5 +63,5 @@ const getStyles = (theme: CustomTheme) =>
 			flexDirection: "row",
 			gap: 10,
 			alignItems: "center",
-		}
+		},
 	});

@@ -178,7 +178,6 @@ export const api = {
 			},
 			"Couldn't load your games",
 		),
-
 	markAttendance: (gameId: number, marks: AttendanceMark[], token: string) =>
 		request<GameDetail>(
 			`/games/${gameId}/attendance`,
@@ -187,5 +186,14 @@ export const api = {
 				headers: { Authorization: `Bearer ${token}` },
 			},
 			"Couldn't save attendance",
+		),
+	removePlayer: (gameId: number, playerId: number, token: string) =>
+		request<GameDetail>(
+			`/games/${gameId}/players/${playerId}`,
+			{
+				method: "DELETE",
+				headers: { Authorization: `Bearer ${token}` },
+			},
+			"Couldn't remove player from game",
 		),
 };

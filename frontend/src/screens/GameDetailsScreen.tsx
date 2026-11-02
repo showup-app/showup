@@ -12,12 +12,9 @@ import { getJoinButtonText } from "../utils/format";
 import { useUser } from "../context/UserContext";
 import LoadingView from "../components/layout/LoadingView";
 import ErrorView from "../components/layout/ErrorView";
+import FormErrorMessage from "../components/ui/FormErrorMessage";
 
-type GameState = {
-	game: GameDetail | null;
-	error: string | null;
-	loading: boolean;
-};
+type GameState = { status: "loading" } | { status: "error"; error: string } | { status: "success"; game: GameDetail };
 
 const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">) => {
 	const theme = useTheme();
@@ -26,24 +23,20 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 	const { gameId } = route.params;
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [gameState, setGameState] = useState<GameState>({
-		game: null,
-		error: null,
-		loading: true,
+		status: "loading",
 	});
 
 	const fetchGame = useCallback(async () => {
 		const res = await api.getGame(gameId, token!);
 		if (res.ok) {
 			setGameState({
+				status: "success",
 				game: res.data,
-				error: null,
-				loading: false,
 			});
 		} else {
 			setGameState({
-				game: null,
+				status: "error",
 				error: res.error,
-				loading: false,
 			});
 		}
 	}, [gameId, token]);
@@ -53,11 +46,11 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 		fetchGame();
 	}, [fetchGame]);
 
-	if (gameState.loading) {
+	if (gameState.status === "loading") {
 		return <LoadingView message="Loading game…" />;
 	}
 
-	if (gameState.error || !gameState.game) {
+	if (gameState.status === "error") {
 		return (
 			<ErrorView
 				onRetry={fetchGame}
@@ -69,7 +62,8 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 	const { game } = gameState;
 	const isFull = game.spots_left <= 0;
 	const isHost = user!.id === game.host_id;
-	const canJoin = (isFull && !game.joined) || isHost;
+	const isCancelled = game.status === GameStatus.Cancelled;
+	const isJoinDisabled = (isFull && !game.joined) || isCancelled;
 
 	const handleJoinLeaveGame = async () => {
 		setIsSubmitting(true);
@@ -79,22 +73,41 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 			console.log(res.error, res.status);
 		} else {
 			setGameState({
-				loading: gameState.loading,
-				error: gameState.error,
+				status: "success",
 				game: res.data,
 			});
 		}
 		setIsSubmitting(false);
 	};
 
-	const handleRemovePlayer = () => console.log("test");
+	const handleRemovePlayer = async (playerId: number) => {
+		const res = await api.removePlayer(game.id, playerId, token!);
+		if (res.ok) {
+			setGameState((prev) => {
+				if (prev.status !== "success") return prev;
+
+				return {
+					...prev,
+					game: { ...prev.game, players: prev.game.players.filter((player) => player.id !== playerId) },
+				};
+			});
+		} else {
+			console.log(res.error);
+		}
+	};
+
+	const handleEditGame = () => console.log("Edit game");
 
 	const handleCancelGame = async () => {
 		const res = await api.cancelGame(game.id, token!);
 		if (res.ok) {
-			setGameState({
-				...gameState,
-				game: { ...game, status: GameStatus.Cancelled },
+			setGameState((prev) => {
+				if (prev.status !== "success") return prev;
+
+				return {
+					...prev,
+					game: { ...prev.game, status: GameStatus.Cancelled },
+				};
 			});
 		} else {
 			console.log(res.error);
@@ -129,6 +142,12 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 	return (
 		<SafeAreaView style={styles.screen} edges={["left", "right", "bottom"]}>
 			<GameCard game={game} isDetailed />
+			{/* TODO: "Handle Cancelled Game" Task */}
+			{isCancelled && (
+				<View style={{ width: "100%" }}>
+					<FormErrorMessage message="This game has been cancelled by the host." />
+				</View>
+			)}
 			<View style={styles.playersContainer}>
 				<View style={styles.playersHeading}>
 					<Text style={styles.playersText}>PLAYERS</Text>
@@ -149,7 +168,8 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 							flex: 1,
 						}}
 						variant="primary"
-						onPress={() => console.log("button 1")}
+						disabled={isCancelled}
+						onPress={handleEditGame}
 					>
 						Edit Game Details
 					</Button>
@@ -158,6 +178,7 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 							flex: 1,
 						}}
 						variant="danger"
+						disabled={isCancelled}
 						onPress={showConfirmCancelGameAlert}
 					>
 						Cancel Game
@@ -166,7 +187,7 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 			) : (
 				<View style={styles.joinButton}>
 					<Button
-						disabled={canJoin || isSubmitting}
+						disabled={isJoinDisabled || isSubmitting}
 						variant={game.joined ? "danger" : "primary"}
 						onPress={handleJoinLeaveGame}
 					>
@@ -193,7 +214,6 @@ const getStyles = (theme: CustomTheme) =>
 			gap: 10,
 		},
 		playersHeading: {
-			display: "flex",
 			flexDirection: "row",
 			justifyContent: "space-between",
 			width: "100%",
@@ -203,7 +223,6 @@ const getStyles = (theme: CustomTheme) =>
 			color: "#ADADAD",
 		},
 		playersContainer: {
-			display: "flex",
 			gap: 10,
 			flex: 1,
 		},
@@ -211,7 +230,6 @@ const getStyles = (theme: CustomTheme) =>
 			width: "100%",
 		},
 		buttonsContainer: {
-			display: "flex",
 			flexDirection: "row",
 			width: "100%",
 			gap: 20,
