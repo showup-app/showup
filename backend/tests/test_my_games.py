@@ -72,3 +72,45 @@ def test_my_games_keeps_cancelled_games_with_their_status(
 
     assert {g["venue"]: g["status"] for g in hosting}[cancelled] == "cancelled"
     assert {g["venue"]: g["status"] for g in joined}[cancelled] == "cancelled"
+
+
+def _row(rows: list[dict], venue: str) -> dict:
+    return next(g for g in rows if g["venue"] == venue)
+
+
+def test_my_games_rows_carry_attendance(
+    client: TestClient, db: Session, auth_headers: Headers
+) -> None:
+    """Seed: the played game (index 6) is Alex's; Jordan was marked present, Sam a no-show."""
+    seed(db)
+    played, upcoming = GAMES[6][2], GAMES[0][2]
+
+    hosting = client.get("/me/games?include_past=true", headers=auth_headers("Alex")).json()[
+        "hosting"
+    ]
+    jordan = client.get("/me/games?include_past=true", headers=auth_headers("Jordan")).json()[
+        "joined"
+    ]
+    sam = client.get("/me/games?include_past=true", headers=auth_headers("Sam")).json()["joined"]
+
+    host_row = _row(hosting, played)
+    assert (host_row["marked_count"], host_row["showed_up_count"]) == (2, 1)
+    assert host_row["my_showed_up"] is None  # the host is not marked
+    assert _row(jordan, played)["my_showed_up"] is True
+    assert _row(sam, played)["my_showed_up"] is False
+    future = _row(jordan, upcoming)
+    assert (future["marked_count"], future["showed_up_count"], future["my_showed_up"]) == (
+        0,
+        0,
+        None,
+    )
+
+
+def test_explore_rows_have_no_mark_without_a_token(client: TestClient, db: Session) -> None:
+    seed(db)
+
+    rows = client.get("/games?include_past=true").json()
+
+    played = _row(rows, GAMES[6][2])
+    assert (played["marked_count"], played["showed_up_count"]) == (2, 1)
+    assert all(g["my_showed_up"] is None for g in rows)

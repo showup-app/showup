@@ -53,7 +53,14 @@ def _joined_count(db: DbDep, game_id: int) -> int:
     return db.scalar(stmt) or 0
 
 
-def _summary(game: Game, joined_count: int, joined: bool) -> GameSummaryOut:
+def _summary(
+    game: Game,
+    joined_count: int,
+    joined: bool,
+    marked: int = 0,
+    showed_up: int = 0,
+    my_showed_up: bool | None = None,
+) -> GameSummaryOut:
     """The list row for a game whose host is already loaded."""
     return GameSummaryOut(
         **GameOut.model_validate(game).model_dump(),
@@ -62,33 +69,63 @@ def _summary(game: Game, joined_count: int, joined: bool) -> GameSummaryOut:
         spots_left=max(game.spots - joined_count, 0),
         effective_min_reputation=effective_min_reputation(game),
         joined=joined,
+        marked_count=marked,
+        showed_up_count=showed_up,
+        my_showed_up=my_showed_up,
     )
 
 
 def summaries(db: DbDep, stmt: Select[tuple[Game]], user: User | None) -> list[GameSummaryOut]:
-    """Run a select(Game) and build list rows. One grouped count of joined players and, when
-    a user is known, that user's own signups are joined in, so any list is two queries
-    (games + hosts) however long it gets."""
+    """Run a select(Game) and build list rows. Grouped counts of joined players and of
+    attendance marks are joined in and, when a user is known, that user's own signup and mark,
+    so any list is two queries (games + hosts) however long it gets."""
     counts = (
         select(Signup.game_id, func.count().label("joined"))
         .where(Signup.status == SignupStatus.JOINED)
         .group_by(Signup.game_id)
         .subquery()
     )
+    marks = (
+        select(
+            Attendance.game_id,
+            func.count().label("marked"),
+            func.count().filter(Attendance.showed_up.is_(True)).label("showed_up"),
+        )
+        .group_by(Attendance.game_id)
+        .subquery()
+    )
     stmt = (
-        stmt.add_columns(func.coalesce(counts.c.joined, 0))
+        stmt.add_columns(
+            func.coalesce(counts.c.joined, 0),
+            func.coalesce(marks.c.marked, 0),
+            func.coalesce(marks.c.showed_up, 0),
+        )
         .outerjoin(counts, counts.c.game_id == Game.id)
+        .outerjoin(marks, marks.c.game_id == Game.id)
         .options(selectinload(Game.host))
     )
     if user is None:
-        return [_summary(game, count, False) for game, count in db.execute(stmt)]
+        return [
+            _summary(game, count, False, marked, showed)
+            for game, count, marked, showed in db.execute(stmt)
+        ]
     mine = (
         select(Signup.game_id)
         .where(Signup.user_id == user.id, Signup.status == SignupStatus.JOINED)
         .subquery()
     )
-    stmt = stmt.add_columns(mine.c.game_id.is_not(None)).outerjoin(mine, mine.c.game_id == Game.id)
-    return [_summary(game, count, bool(joined)) for game, count, joined in db.execute(stmt)]
+    my_mark = (
+        select(Attendance.game_id, Attendance.showed_up).where(Attendance.user_id == user.id)
+    ).subquery()
+    stmt = (
+        stmt.add_columns(mine.c.game_id.is_not(None), my_mark.c.showed_up)
+        .outerjoin(mine, mine.c.game_id == Game.id)
+        .outerjoin(my_mark, my_mark.c.game_id == Game.id)
+    )
+    return [
+        _summary(game, count, bool(joined), marked, showed, my_showed_up)
+        for game, count, marked, showed, joined, my_showed_up in db.execute(stmt)
+    ]
 
 
 def _detail(db: DbDep, game_id: int, user: User | None) -> GameDetailOut:
