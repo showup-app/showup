@@ -29,6 +29,7 @@ def test_detail_has_host_players_and_spots_left(client: TestClient, db: Session)
         "games_played",
         "is_new",
         "showed_up",
+        "reputation_change",
     }
 
 
