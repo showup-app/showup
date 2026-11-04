@@ -128,6 +128,7 @@ def test_roster_shows_games_played_and_new(client: TestClient, db: Session) -> N
         "games_played",
         "is_new",
         "showed_up",
+        "reputation_change",
     }
     jordan = next(p for p in body["players"] if p["name"] == "Jordan")
     assert jordan == {**jordan, "reputation": 100, "games_played": 1, "is_new": True}
