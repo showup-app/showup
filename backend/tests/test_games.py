@@ -91,6 +91,9 @@ def test_game_shape(client: TestClient, db: Session) -> None:
         "spots_left",
         "effective_min_reputation",
         "joined",
+        "marked_count",
+        "showed_up_count",
+        "my_showed_up",
     }
     assert isinstance(game["cost"], int | float)
 
