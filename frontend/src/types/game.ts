@@ -1,4 +1,9 @@
-export type GameStatus = "open" | "full" | "cancelled" | "played";
+export enum GameStatus {
+	Open = "open",
+	Full = "full",
+	Cancelled = "cancelled",
+	Played = "played",
+}
 
 /** GET /games returns a list of these. */
 export type Game = {
