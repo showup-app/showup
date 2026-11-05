@@ -13,8 +13,15 @@ import ErrorView from "../components/layout/ErrorView";
 import ProfileGameCard from "../components/game/ProfileGameCard";
 import { getGlobalStyles } from "../theme/styles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import ProgressBar from "../components/ui/ProgressBar";
 
 type ProfileState = { status: "loading" } | { status: "error"; error: string } | { status: "success"; data: MyGames };
+
+type ProfileSection = {
+	title: string;
+	data: Game[];
+	type: "played" | "hosted";
+};
 
 const ProfileScreen = ({ navigation }: TabScreenProps<"Profile">) => {
 	const theme = useTheme();
@@ -40,7 +47,7 @@ const ProfileScreen = ({ navigation }: TabScreenProps<"Profile">) => {
 				error: res.error,
 			});
 		}
-	}, []);
+	}, [token]);
 
 	useFocusEffect(
 		useCallback(() => {
@@ -68,27 +75,45 @@ const ProfileScreen = ({ navigation }: TabScreenProps<"Profile">) => {
 
 	const filterPastGames = (games: Game[]): Game[] => games.filter((game) => new Date(game.starts_at) <= new Date());
 
-	const profileData = [
+	const filterShowUpStatus = (games: Game[], showedUp: boolean = true): Game[] => {
+		return games.filter((game) => game.my_showed_up === showedUp);
+	};
+
+	const profileData: ProfileSection[] = [
 		{
-			title: "Played Games",
+			title: "PLAYED GAMES",
 			data: filterPastGames(profileState.data.joined),
+			type: "played",
 		},
 		{
-			title: "Hosted Games",
+			title: "HOSTED GAMES",
 			data: filterPastGames(profileState.data.hosting),
+			type: "hosted",
 		},
 	];
 
+	const getPlayersText = ({ data, type }: ProfileSection) => {
+		if (type === "hosted") return `${data.length} hosted`;
+		const showedUpCount = filterShowUpStatus(data).length;
+		const noShowCount = filterShowUpStatus(data, false).length;
+
+		const showedUpText = showedUpCount > 0 ? showedUpCount.toString() : "0";
+		const noShowText = noShowCount > 0 ? noShowCount.toString() : "0";
+
+		return `${showedUpText} played • ${noShowText} no-show`;
+	};
+
 	return (
-		<SafeAreaView edges={["left", "right", "bottom"]} style={styles.screen}>
+		<SafeAreaView edges={["left", "right"]} style={styles.screen}>
 			<View style={styles.playerInfo}>
 				<MaterialCommunityIcons name="account-circle" size={46} color={theme.colors.textMuted} />
 				<Text style={[styles.name]}>{user!.name}</Text>
 			</View>
 			<View style={[globalStyles.container, styles.reputationContainer]}>
 				<Text style={styles.info}>REPUTATION</Text>
-				<View>
+				<View style={styles.progressContainer}>
 					<Text style={styles.reputation}>{user!.reputation} ★</Text>
+					<ProgressBar value={user!.reputation} />
 				</View>
 			</View>
 			<SectionList
@@ -106,7 +131,7 @@ const ProfileScreen = ({ navigation }: TabScreenProps<"Profile">) => {
 				renderSectionHeader={({ section }) => (
 					<View style={styles.playersHeading}>
 						<Text style={styles.playersText}>{section.title}</Text>
-						<Text style={styles.playersText}>Total: {section.data.length}</Text>
+						<Text style={styles.playersText}>{getPlayersText(section)}</Text>
 					</View>
 				)}
 				ItemSeparatorComponent={() => <View style={styles.separator} />}
@@ -127,7 +152,7 @@ const getStyles = (theme: CustomTheme) =>
 			flex: 1,
 			backgroundColor: theme.colors.background,
 			padding: 20,
-			gap: 15,
+			gap: 20,
 		},
 		playersHeading: {
 			display: "flex",
@@ -153,6 +178,10 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		reputationContainer: {
 			padding: 10,
+			gap: 10,
+		},
+		progressContainer: {
+			gap: 5,
 		},
 		name: {
 			fontSize: 26,
