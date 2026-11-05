@@ -127,3 +127,25 @@ def test_duplicate_user_in_body_is_422(
     response = client.post(f"/games/{game_id}/attendance", json=body, headers=auth_headers("Alex"))
 
     assert response.status_code == 422
+
+
+def test_marking_records_what_the_game_did_to_reputation(
+    client: TestClient, db: Session, auth_headers: Headers
+) -> None:
+    """Seed: Sam's only mark is the no-show at the played game, so that game took Sam from 100
+    to 75; Jordan showed up and stayed at 100. Both are visible on the roster and on Sam's own
+    rows. Re-marking Sam as present brings the change back to 0."""
+    seed(db)
+    game_id, sam, jordan = _game_id(db, 6), _user_id(db, "Sam"), _user_id(db, "Jordan")
+
+    roster = {p["id"]: p for p in client.get(f"/games/{game_id}").json()["players"]}
+    assert roster[sam]["reputation_change"] == 75 - 100
+    assert roster[jordan]["reputation_change"] == 0
+    mine = client.get("/me/games?include_past=true", headers=auth_headers("Sam")).json()["joined"]
+    assert next(g for g in mine if g["id"] == game_id)["my_reputation_change"] == -25
+    upcoming = client.get("/me/games", headers=auth_headers("Jordan")).json()["joined"]
+    assert all(g["my_reputation_change"] is None for g in upcoming)
+
+    flipped = _mark(client, auth_headers("Alex"), game_id, **{str(sam): True}).json()
+    assert {p["id"]: p["reputation_change"] for p in flipped["players"]}[sam] == 0
+    assert _reputation(db, "Sam") == 100
