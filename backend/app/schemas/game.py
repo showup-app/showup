@@ -63,6 +63,10 @@ class PlayerOut(BaseModel):
         default=None,
         description="The host's mark: true showed up, false no-show, null not marked yet",
     )
+    reputation_change: int | None = Field(
+        default=None,
+        description="What this game did to the player's reputation, e.g. -25. Null until marked",
+    )
 
 
 class GameSummaryOut(GameOut):
@@ -82,6 +86,19 @@ class GameSummaryOut(GameOut):
     joined: bool = Field(
         description="True when the caller's Bearer token belongs to a player on this roster. "
         "Always false without a token"
+    )
+    marked_count: int = Field(
+        default=0, description="Players the host has marked, present or not. 0 until marking"
+    )
+    showed_up_count: int = Field(default=0, description="Players the host marked as present")
+    my_showed_up: bool | None = Field(
+        default=None,
+        description="The host's mark for the caller: true showed up, false no-show, null not "
+        "marked or no token",
+    )
+    my_reputation_change: int | None = Field(
+        default=None,
+        description="What this game did to the caller's reputation. Null until marked or no token",
     )
 
 

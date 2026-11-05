@@ -53,7 +53,22 @@ def _joined_count(db: DbDep, game_id: int) -> int:
     return db.scalar(stmt) or 0
 
 
-def _summary(game: Game, joined_count: int, joined: bool) -> GameSummaryOut:
+def _change(mark: Attendance | None) -> int | None:
+    """What a game did to a player's reputation, from the before/after stored at mark time."""
+    if mark is None or mark.reputation_before is None or mark.reputation_after is None:
+        return None
+    return mark.reputation_after - mark.reputation_before
+
+
+def _summary(
+    game: Game,
+    joined_count: int,
+    joined: bool,
+    marked: int = 0,
+    showed_up: int = 0,
+    my_showed_up: bool | None = None,
+    my_reputation_change: int | None = None,
+) -> GameSummaryOut:
     """The list row for a game whose host is already loaded."""
     return GameSummaryOut(
         **GameOut.model_validate(game).model_dump(),
@@ -62,33 +77,68 @@ def _summary(game: Game, joined_count: int, joined: bool) -> GameSummaryOut:
         spots_left=max(game.spots - joined_count, 0),
         effective_min_reputation=effective_min_reputation(game),
         joined=joined,
+        marked_count=marked,
+        showed_up_count=showed_up,
+        my_showed_up=my_showed_up,
+        my_reputation_change=my_reputation_change,
     )
 
 
 def summaries(db: DbDep, stmt: Select[tuple[Game]], user: User | None) -> list[GameSummaryOut]:
-    """Run a select(Game) and build list rows. One grouped count of joined players and, when
-    a user is known, that user's own signups are joined in, so any list is two queries
-    (games + hosts) however long it gets."""
+    """Run a select(Game) and build list rows. Grouped counts of joined players and of
+    attendance marks are joined in and, when a user is known, that user's own signup and mark,
+    so any list is two queries (games + hosts) however long it gets."""
     counts = (
         select(Signup.game_id, func.count().label("joined"))
         .where(Signup.status == SignupStatus.JOINED)
         .group_by(Signup.game_id)
         .subquery()
     )
+    marks = (
+        select(
+            Attendance.game_id,
+            func.count().label("marked"),
+            func.count().filter(Attendance.showed_up.is_(True)).label("showed_up"),
+        )
+        .group_by(Attendance.game_id)
+        .subquery()
+    )
     stmt = (
-        stmt.add_columns(func.coalesce(counts.c.joined, 0))
+        stmt.add_columns(
+            func.coalesce(counts.c.joined, 0),
+            func.coalesce(marks.c.marked, 0),
+            func.coalesce(marks.c.showed_up, 0),
+        )
         .outerjoin(counts, counts.c.game_id == Game.id)
+        .outerjoin(marks, marks.c.game_id == Game.id)
         .options(selectinload(Game.host))
     )
     if user is None:
-        return [_summary(game, count, False) for game, count in db.execute(stmt)]
+        return [
+            _summary(game, count, False, marked, showed)
+            for game, count, marked, showed in db.execute(stmt)
+        ]
     mine = (
         select(Signup.game_id)
         .where(Signup.user_id == user.id, Signup.status == SignupStatus.JOINED)
         .subquery()
     )
-    stmt = stmt.add_columns(mine.c.game_id.is_not(None)).outerjoin(mine, mine.c.game_id == Game.id)
-    return [_summary(game, count, bool(joined)) for game, count, joined in db.execute(stmt)]
+    my_mark = (
+        select(
+            Attendance.game_id,
+            Attendance.showed_up,
+            (Attendance.reputation_after - Attendance.reputation_before).label("change"),
+        ).where(Attendance.user_id == user.id)
+    ).subquery()
+    stmt = (
+        stmt.add_columns(mine.c.game_id.is_not(None), my_mark.c.showed_up, my_mark.c.change)
+        .outerjoin(mine, mine.c.game_id == Game.id)
+        .outerjoin(my_mark, my_mark.c.game_id == Game.id)
+    )
+    return [
+        _summary(game, count, bool(joined), marked, showed, my_showed_up, change)
+        for game, count, marked, showed, joined, my_showed_up, change in db.execute(stmt)
+    ]
 
 
 def _detail(db: DbDep, game_id: int, user: User | None) -> GameDetailOut:
@@ -109,7 +159,7 @@ def _detail(db: DbDep, game_id: int, user: User | None) -> GameDetailOut:
         key=lambda s: (s.created_at, s.id),
     )
     stats = player_stats(db, [s.user_id for s in joined])
-    marks = {a.user_id: a.showed_up for a in game.attendance}
+    marks = {a.user_id: a for a in game.attendance}
     players = [
         PlayerOut(
             id=s.user.id,
@@ -117,7 +167,8 @@ def _detail(db: DbDep, game_id: int, user: User | None) -> GameDetailOut:
             reputation=s.user.reputation,
             games_played=stats[s.user_id]["games_played"],
             is_new=stats[s.user_id]["is_new"],
-            showed_up=marks.get(s.user_id),
+            showed_up=marks[s.user_id].showed_up if s.user_id in marks else None,
+            reputation_change=_change(marks.get(s.user_id)),
         )
         for s in joined
     ]
@@ -351,26 +402,29 @@ def mark_attendance(
     existing = {
         a.user_id: a for a in db.scalars(select(Attendance).where(Attendance.game_id == game.id))
     }
+    marked_ids = [m.user_id for m in body.marks]
+    players = {p.id: p for p in db.scalars(select(User).where(User.id.in_(marked_ids)))}
+    rows: dict[int, Attendance] = {}
     for mark in body.marks:
         row = existing.get(mark.user_id)
         if row is None:
-            db.add(
-                Attendance(
-                    game_id=game.id,
-                    user_id=mark.user_id,
-                    showed_up=mark.showed_up,
-                    marked_by=user.id,
-                    marked_at=now,
-                )
+            row = Attendance(
+                game_id=game.id,
+                user_id=mark.user_id,
+                showed_up=mark.showed_up,
+                marked_by=user.id,
+                marked_at=now,
+                reputation_before=players[mark.user_id].reputation,
             )
+            db.add(row)
         else:
             row.showed_up = mark.showed_up
             row.marked_by = user.id
             row.marked_at = now
+        rows[mark.user_id] = row
     game.status = GameStatus.PLAYED
     db.flush()
-    marked_ids = [m.user_id for m in body.marks]
-    for player in db.scalars(select(User).where(User.id.in_(marked_ids))):
-        recompute(db, player)
+    for user_id, row in rows.items():
+        row.reputation_after = recompute(db, players[user_id])
     db.commit()
     return _detail(db, game.id, user)

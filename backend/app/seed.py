@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 
 from app.db import SessionLocal
 from app.models import Attendance, Game, GameStatus, Signup, SignupStatus, User
-from app.reputation import recompute
+from app.reputation import START, recompute
 from app.security import hash_password
 
 SEED_DOMAIN = "seed.showup.local"
@@ -112,6 +112,7 @@ def seed(db: Session) -> dict[str, int]:
             user_id=users[user].id,
             showed_up=showed_up,
             marked_by=games[game].host_id,
+            reputation_before=START,
         )
         for game, user, showed_up in ATTENDANCE
     ]
@@ -120,6 +121,9 @@ def seed(db: Session) -> dict[str, int]:
 
     for user in users:
         recompute(db, user)
+    by_id = {u.id: u for u in users}
+    for row in attendance:
+        row.reputation_after = by_id[row.user_id].reputation
     db.commit()
     return {
         "users": len(users),
