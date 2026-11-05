@@ -3,7 +3,7 @@ import { Player } from "../../types/game";
 import { CustomTheme, useTheme } from "@react-navigation/native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-const PlayerCard = ({ player }: { player: Player }) => {
+const PlayerCard = ({ player, onRemove }: { player: Player; onRemove?: (playerId: number) => void }) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
 
@@ -13,7 +13,17 @@ const PlayerCard = ({ player }: { player: Player }) => {
 				<MaterialCommunityIcons name="account-circle" size={36} color={theme.colors.textMuted} />
 				<Text style={styles.playerName}>{player.name}</Text>
 			</View>
-			<Text style={styles.reputation}>★ {player.reputation}</Text>
+			<View style={styles.rightSection}>
+				<Text style={styles.reputation}>★ {player.reputation}</Text>
+				{onRemove && (
+					<MaterialCommunityIcons
+						name="close"
+						onPress={() => onRemove(player.id)}
+						size={36}
+						color={theme.colors.danger}
+					/>
+				)}
+			</View>
 		</View>
 	);
 };
@@ -36,7 +46,7 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		reputation: {
 			color: theme.colors.textSecondary,
-			fontSize: 12,
+			fontSize: 14,
 			fontWeight: 600,
 		},
 		userProfile: {
@@ -48,5 +58,10 @@ const getStyles = (theme: CustomTheme) =>
 		playerName: {
 			color: theme.colors.text,
 			fontWeight: 400,
+		},
+		rightSection: {
+			flexDirection: "row",
+			gap: 10,
+			alignItems: "center",
 		},
 	});
