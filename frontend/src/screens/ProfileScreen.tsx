@@ -6,7 +6,7 @@ import { SectionList, StyleSheet, View, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../components/ui/Button";
 import { useCallback, useState } from "react";
-import { MyGames } from "../types/game";
+import { Game, MyGames } from "../types/game";
 import { api } from "../services/api";
 import LoadingView from "../components/layout/LoadingView";
 import ErrorView from "../components/layout/ErrorView";
@@ -14,26 +14,32 @@ import ProfileGameCard from "../components/game/ProfileGameCard";
 import { getGlobalStyles } from "../theme/styles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
+type ProfileState = { status: "loading" } | { status: "error"; error: string } | { status: "success"; data: MyGames };
+
 const ProfileScreen = ({ navigation }: TabScreenProps<"Profile">) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
 	const globalStyles = getGlobalStyles(theme);
 
-	const [myGames, setMyGames] = useState<MyGames | null>(null);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState<string | null>(null);
+	const [profileState, setProfileState] = useState<ProfileState>({
+		status: "loading",
+	});
 
 	const { user, token, logout } = useUser();
 
 	const loadProfileData = useCallback(async () => {
-		setError(null);
 		const res = await api.getMyGames(token!, true);
 		if (res.ok) {
-			setMyGames(res.data);
+			setProfileState({
+				status: "success",
+				data: res.data,
+			});
 		} else {
-			setError(res.error);
+			setProfileState({
+				status: "error",
+				error: res.error,
+			});
 		}
-		setLoading(false);
 	}, []);
 
 	useFocusEffect(
@@ -42,12 +48,12 @@ const ProfileScreen = ({ navigation }: TabScreenProps<"Profile">) => {
 		}, [loadProfileData]),
 	);
 
-	if (loading) {
+	if (profileState.status === "loading") {
 		return <LoadingView message="Loading your games…" />;
 	}
 
-	if (error || !myGames) {
-		return <ErrorView errorMsg={error || "An error occured"} onRetry={loadProfileData} />;
+	if (profileState.status === "error") {
+		return <ErrorView errorMsg={profileState.error} onRetry={loadProfileData} />;
 	}
 
 	const handleLogout = () => {
@@ -60,38 +66,34 @@ const ProfileScreen = ({ navigation }: TabScreenProps<"Profile">) => {
 		);
 	};
 
-	// .filter((game) => new Date(game.starts_at) <= new Date())
+	const filterPastGames = (games: Game[]): Game[] => games.filter((game) => new Date(game.starts_at) <= new Date());
+
 	const profileData = [
 		{
 			title: "Played Games",
-			data: myGames.joined,
+			data: filterPastGames(profileState.data.joined),
 		},
 		{
 			title: "Hosted Games",
-			data: myGames.hosting,
+			data: filterPastGames(profileState.data.hosting),
 		},
 	];
 
 	return (
 		<SafeAreaView edges={["left", "right", "bottom"]} style={styles.screen}>
 			<View style={styles.playerInfo}>
-				<View>
-					<MaterialCommunityIcons name="account-circle" size={46} color={theme.colors.textMuted} />
-				</View>
-				<View>
-					<Text style={[styles.name]}>{user!.name}</Text>
-					<Text style={[styles.info]}>{user!.email}</Text>
-				</View>
+				<MaterialCommunityIcons name="account-circle" size={46} color={theme.colors.textMuted} />
+				<Text style={[styles.name]}>{user!.name}</Text>
 			</View>
 			<View style={[globalStyles.container, styles.reputationContainer]}>
 				<Text style={styles.info}>REPUTATION</Text>
 				<View>
 					<Text style={styles.reputation}>{user!.reputation} ★</Text>
-					
 				</View>
 			</View>
 			<SectionList
 				contentContainerStyle={styles.list}
+				stickySectionHeadersEnabled={false}
 				sections={profileData}
 				keyExtractor={(game) => String(game.id)}
 				renderItem={({ item }) => (
@@ -108,7 +110,7 @@ const ProfileScreen = ({ navigation }: TabScreenProps<"Profile">) => {
 					</View>
 				)}
 				ItemSeparatorComponent={() => <View style={styles.separator} />}
-				SectionSeparatorComponent={() => <View style={styles.sectionGap} />}
+				SectionSeparatorComponent={() => <View style={styles.separator} />}
 			/>
 			<Button onPress={() => handleLogout()} variant="primary">
 				Logout
@@ -138,9 +140,6 @@ const getStyles = (theme: CustomTheme) =>
 			color: "#ADADAD",
 		},
 		separator: {
-			height: 28,
-		},
-		sectionGap: {
 			height: 12,
 		},
 		list: {},
@@ -163,5 +162,5 @@ const getStyles = (theme: CustomTheme) =>
 			flexDirection: "row",
 			gap: 10,
 			alignItems: "center",
-		}
+		},
 	});

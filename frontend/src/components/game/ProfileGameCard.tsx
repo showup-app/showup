@@ -10,6 +10,27 @@ const ProfileGameCard = ({ game, user, onPress }: { game: Game; user: User; onPr
 	const styles = getStyles(theme);
 	const globalStyles = getGlobalStyles(theme);
 	const isHost = game.host_id === user.id;
+	const { my_showed_up, my_reputation_change, status, showed_up_count, marked_count } = game;
+
+	const getTopInfoText = (): string => {
+		if (isHost) return capitalize(status);
+		if (my_showed_up === null) return "Unknown";
+		return my_showed_up ? "Showed Up" : "No-show";
+	};
+
+	const getBottomInfoText = (): string => {
+		if (isHost) return `${showed_up_count}/${marked_count} showed up`;
+		if (my_showed_up === null || my_reputation_change === null) return "Unknown";
+		if (my_reputation_change === 0) return "No change";
+		return `${my_reputation_change > 0 ? "+" : ""}${my_reputation_change}`;
+	};
+
+	const getAttendanceStyle = () => {
+		if (isHost || game.my_showed_up === null) {
+			return;
+		}
+		return game.my_showed_up ? styles.showedUp : styles.noShow;
+	};
 
 	return (
 		<Pressable style={[globalStyles.container, styles.card]} onPress={onPress}>
@@ -20,8 +41,8 @@ const ProfileGameCard = ({ game, user, onPress }: { game: Game; user: User; onPr
 				</Text>
 			</View>
 			<View style={styles.right}>
-				<Text style={[styles.info, styles.rightText]}>{isHost ? capitalize(game.status) : "Showed Up"}</Text>
-				<Text style={[styles.rightText, styles.bold]}>{isHost ? `${game.spots} spots` : "+5"}</Text>
+				<Text style={[styles.info, styles.rightText, getAttendanceStyle()]}>{getTopInfoText()}</Text>
+				<Text style={[styles.rightText, styles.bold]}>{getBottomInfoText()}</Text>
 			</View>
 		</Pressable>
 	);
@@ -52,6 +73,12 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		info: {
 			color: theme.colors.textMuted,
+		},
+		showedUp: {
+			color: theme.colors.textSecondary,
+		},
+		noShow: {
+			color: theme.colors.danger,
 		},
 		bold: {
 			fontWeight: 500,
