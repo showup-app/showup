@@ -21,7 +21,11 @@ export function AppNavigator() {
 			<Stack.Screen name="Register" component={RegisterScreen} options={{ title: "Register" }} />
 			<Stack.Screen name="Tabs" component={MainTabs} options={{ headerShown: false }} />
 			<Stack.Screen name="Search" component={SearchScreen} />
-			<Stack.Screen name="CreatePost" component={CreatePostScreen} options={{ title: "Create a post" }} />
+			<Stack.Screen
+				name="CreatePost"
+				component={CreatePostScreen}
+				options={({ route }) => ({ title: route.params?.edit ? "Edit game" : "Create a post" })}
+			/>
 			<Stack.Screen name="ConfirmPost" component={ConfirmPostScreen} options={{ title: "Confirm post" }} />
 			<Stack.Screen name="GameDetails" component={GameDetailsScreen} options={{ title: "Game details" }} />
 			<Stack.Screen name="Attendance" component={AttendanceScreen} options={{ title: "Mark Attendance" }} />
