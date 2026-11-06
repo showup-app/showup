@@ -1,10 +1,10 @@
 import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppScreenProps } from "../navigation/types";
-import { CustomTheme, useTheme } from "@react-navigation/native";
+import { CustomTheme, useFocusEffect, useTheme } from "@react-navigation/native";
 import { GameDetail, GameStatus } from "../types/game";
 import { api } from "../services/api";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import PlayerCard from "../components/game/PlayerCard";
 import GameCard from "../components/game/GameCard";
 import Button from "../components/ui/Button";
@@ -25,6 +25,7 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 	const [gameState, setGameState] = useState<GameState>({
 		status: "loading",
 	});
+	const [loadedAt, setLoadedAt] = useState(0);
 
 	const fetchGame = useCallback(async () => {
 		const res = await api.getGame(gameId, token!);
@@ -41,10 +42,11 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 		}
 	}, [gameId, token]);
 
-	useEffect(() => {
-		// eslint-disable-next-line react-hooks/set-state-in-effect
-		fetchGame();
-	}, [fetchGame]);
+	useFocusEffect(
+		useCallback(() => {
+			fetchGame();
+		}, [fetchGame]),
+	);
 
 	if (gameState.status === "loading") {
 		return <LoadingView message="Loading game…" />;
@@ -68,6 +70,7 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 	const handleJoinLeaveGame = async () => {
 		setIsSubmitting(true);
 		const res = game.joined ? await api.leaveGame(game.id, token!) : await api.joinGame(game.id, token!);
+		setLoadedAt(Date.now());
 		if (!res.ok) {
 			// TODO: Unify error message display across the entire app (i.e.: modal popup? toast message?)
 			console.log(res.error, res.status);
@@ -96,7 +99,27 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 		}
 	};
 
-	const handleEditGame = () => console.log("Edit game");
+	const canEdit =
+		(game.status === GameStatus.Open || game.status === GameStatus.Full) &&
+		new Date(game.starts_at).getTime() > loadedAt;
+
+	const handleEditGame = () =>
+		navigation.navigate("CreatePost", {
+			edit: {
+				gameId: game.id,
+				minSpots: game.players.length,
+				values: {
+					sport: game.sport,
+					venue: game.venue,
+					address: game.address,
+					starts_at: game.starts_at,
+					duration_minutes: game.duration_minutes,
+					spots: game.spots,
+					cost: game.cost,
+					min_reputation: game.min_reputation,
+				},
+			},
+		});
 
 	const handleCancelGame = async () => {
 		const res = await api.cancelGame(game.id, token!);
@@ -168,7 +191,7 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 							flex: 1,
 						}}
 						variant="primary"
-						disabled={isCancelled}
+						disabled={!canEdit}
 						onPress={handleEditGame}
 					>
 						Edit Game Details
