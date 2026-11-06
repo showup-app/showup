@@ -23,6 +23,10 @@ export type Game = {
 	updated_at: string;
 	joined: boolean;
 	effective_min_reputation: number;
+	marked_count: number;
+	showed_up_count: number;
+	my_showed_up: boolean | null;
+	my_reputation_change: number | null;
 };
 
 export type Player = {
