@@ -2,7 +2,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { CustomTheme, useTheme } from "@react-navigation/native";
 import { ComponentProps } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Game, GameCreate, GameDetail } from "../../types/game";
+import { Game, GameCreate, GameDetail, GameStatus } from "../../types/game";
 import {
 	capitalize,
 	cityFromAddress,
@@ -51,6 +51,7 @@ const GameCard = ({
 	const userJoinedGame = "joined" in game && game.joined;
 	const userHostingGame = "host_id" in game && game.host_id === user?.id;
 	const joinButtonDisabled = isFull || userJoinedGame || userHostingGame;
+	const isCancelled = "status" in game && game.status === GameStatus.Cancelled;
 
 	return (
 		<View style={[styles.card, highlighted && styles.cardHighlighted]}>
@@ -115,6 +116,7 @@ const GameCard = ({
 					/>
 					<Chip label={formatCost(game.cost)} color={game.cost === 0 ? theme.colors.success : undefined} />
 					{game.min_reputation > 0 && <Chip icon="star-outline" label={`${game.min_reputation}+ only`} />}
+					{isCancelled && <Chip label="Cancelled" color={theme.colors.danger} />}
 				</View>
 			)}
 

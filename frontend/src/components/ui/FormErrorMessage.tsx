@@ -20,9 +20,13 @@ const getStyles = (theme: CustomTheme) =>
 			width: "100%",
 			backgroundColor: theme.colors.danger,
 			padding: 10,
+			borderColor: theme.colors.border,
+			borderWidth: 1,
+			borderRadius: 5,
 		},
 		text: {
 			fontSize: 14,
 			color: theme.colors.text,
+			fontWeight: "500",
 		},
 	});

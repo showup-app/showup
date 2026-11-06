@@ -3,7 +3,15 @@ import { Player } from "../../types/game";
 import { CustomTheme, useTheme } from "@react-navigation/native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-const PlayerCard = ({ player, onRemove }: { player: Player; onRemove?: (playerId: number) => void }) => {
+const PlayerCard = ({
+	player,
+	onRemove,
+	isDisabled = false,
+}: {
+	player: Player;
+	onRemove?: (playerId: number) => void;
+	isDisabled?: boolean;
+}) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
 
@@ -19,8 +27,9 @@ const PlayerCard = ({ player, onRemove }: { player: Player; onRemove?: (playerId
 					<MaterialCommunityIcons
 						name="close"
 						onPress={() => onRemove(player.id)}
+						disabled={isDisabled}
 						size={36}
-						color={theme.colors.danger}
+						color={isDisabled ? theme.colors.textMuted : theme.colors.danger}
 					/>
 				)}
 			</View>
