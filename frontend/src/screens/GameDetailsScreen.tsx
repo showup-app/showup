@@ -81,6 +81,8 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 	};
 
 	const handleRemovePlayer = async (playerId: number) => {
+		if (isCancelled) return;
+
 		const res = await api.removePlayer(game.id, playerId, token!);
 		if (res.ok) {
 			setGameState((prev) => {
@@ -142,7 +144,6 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 	return (
 		<SafeAreaView style={styles.screen} edges={["left", "right", "bottom"]}>
 			<GameCard game={game} isDetailed />
-			{/* TODO: "Handle Cancelled Game" Task */}
 			{isCancelled && (
 				<View style={{ width: "100%" }}>
 					<FormErrorMessage message="This game has been cancelled by the host." />
@@ -157,7 +158,12 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 				</View>
 				<ScrollView contentContainerStyle={styles.playerCards}>
 					{game.players.map((player) => (
-						<PlayerCard key={player.id} player={player} {...(isHost && { onRemove: handleRemovePlayer })} />
+						<PlayerCard
+							key={player.id}
+							player={player}
+							isDisabled={isCancelled}
+							{...(isHost && { onRemove: handleRemovePlayer })}
+						/>
 					))}
 				</ScrollView>
 			</View>
