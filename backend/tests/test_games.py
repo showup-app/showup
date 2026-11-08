@@ -89,6 +89,7 @@ def test_game_shape(client: TestClient, db: Session) -> None:
         "host_name",
         "host_reputation",
         "spots_left",
+        "cost_per_player",
         "effective_min_reputation",
         "joined",
         "marked_count",

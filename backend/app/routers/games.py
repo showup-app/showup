@@ -75,6 +75,7 @@ def _summary(
         host_name=game.host.name,
         host_reputation=game.host.reputation,
         spots_left=max(game.spots - joined_count, 0),
+        cost_per_player=round(float(game.cost) / (game.spots + 1), 2),
         effective_min_reputation=effective_min_reputation(game),
         joined=joined,
         marked_count=marked,

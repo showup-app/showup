@@ -34,7 +34,7 @@ class GameOut(BaseModel):
     duration_minutes: int
     spots: int
     # Sent as a number (5.0), not a string, so the app can show it without parsing.
-    cost: float
+    cost: float = Field(description="Total venue cost entered by host. 0 = free")
     min_reputation: int
     fallback_min_reputation: int | None
     fallback_hours_before_start: int | None
@@ -79,6 +79,10 @@ class GameSummaryOut(GameOut):
     host_name: str
     host_reputation: int
     spots_left: int = Field(description="spots minus the players who have joined")
+    cost_per_player: float = Field(
+        description="cost divided by spots + 1(counting host). Stays the same even if "
+        "the players join or leave. It changes only if the host edits cost or spots"
+    )
     effective_min_reputation: int = Field(
         description="The requirement that applies right now: min_reputation, or the fallback "
         "once its window has started"
@@ -172,7 +176,7 @@ class GameCreate(BaseModel):
                     "starts_at": "2026-10-20T18:00:00-07:00",
                     "duration_minutes": 90,
                     "spots": 10,
-                    "cost": "5.00",
+                    "cost": "55.00",
                     "min_reputation": 80,
                     "fallback_min_reputation": 70,
                     "fallback_hours_before_start": 10,
@@ -194,7 +198,8 @@ class GameCreate(BaseModel):
         ge=0,
         max_digits=6,
         decimal_places=2,
-        description="Venue or drop-in fee per player, for information only. 0 = free",
+        description="Total venue cost for the game. Each person's share is cost_per_player "
+        "(cost divided by spots + 1). 0 = free",
     )
     min_reputation: int = Field(
         default=0,
@@ -228,7 +233,13 @@ class GameUpdate(BaseModel):
     starts_at: datetime | None = None
     duration_minutes: int | None = Field(default=None, ge=15, le=480)
     spots: int | None = Field(default=None, ge=2, le=30)
-    cost: Decimal | None = Field(default=None, ge=0, max_digits=6, decimal_places=2)
+    cost: Decimal | None = Field(
+        default=None,
+        ge=0,
+        max_digits=6,
+        decimal_places=2,
+        description="Total venue cost for the game",
+    )
     min_reputation: int | None = Field(default=None, ge=0, le=MAX_MIN_REPUTATION)
     fallback_min_reputation: int | None = Field(default=None, ge=0, le=MAX_MIN_REPUTATION)
     fallback_hours_before_start: int | None = Field(default=None, ge=1, le=168)
