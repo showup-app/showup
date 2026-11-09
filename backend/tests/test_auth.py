@@ -62,6 +62,17 @@ def test_signup_trims_name(client):
     assert client.post("/auth/signup", json=body).json()["name"] == "Trim Me"
 
 
+def test_signup_returns_working_token(client):
+    body = {"email": "token@test.com", "password": "longenough1", "name": "Token"}
+    r = client.post("/auth/signup", json=body)
+    assert r.status_code == 201
+    data = r.json()
+    assert data["token_type"] == "bearer"
+    me = client.get("/auth/me", headers={"Authorization": f"Bearer {data['access_token']}"})
+    assert me.status_code == 200
+    assert me.json()["email"] == "token@test.com"
+
+
 def make_user(db, email="login@test.com", password="correct-horse"):
     user = User(email=email, name="Login Test", password_hash=hash_password(password))
     db.add(user)

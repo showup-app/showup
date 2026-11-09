@@ -5,13 +5,20 @@ from sqlalchemy.exc import IntegrityError
 from app.deps import CurrentUser, DbDep
 from app.models import User
 from app.reputation import player_stats
-from app.schemas.auth import LoginRequest, ProfileOut, SignupRequest, TokenResponse, UserOut
+from app.schemas.auth import (
+    LoginRequest,
+    ProfileOut,
+    SignupOut,
+    SignupRequest,
+    TokenResponse,
+    UserOut,
+)
 from app.security import DUMMY_HASH, create_access_token, hash_password, verify_password
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/signup", response_model=UserOut, status_code=status.HTTP_201_CREATED)
+@router.post("/signup", response_model=SignupOut, status_code=status.HTTP_201_CREATED)
 def signup(body: SignupRequest, db: DbDep):
     email = body.email.lower()
     if db.scalar(select(User).where(User.email == email)):
@@ -24,7 +31,10 @@ def signup(body: SignupRequest, db: DbDep):
         db.rollback()
         raise HTTPException(status.HTTP_409_CONFLICT, "Email already registered") from None
     db.refresh(user)
-    return user
+    return SignupOut(
+        **UserOut.model_validate(user).model_dump(),
+        access_token=create_access_token(user.id),
+    )
 
 
 @router.post("/login", response_model=TokenResponse)
