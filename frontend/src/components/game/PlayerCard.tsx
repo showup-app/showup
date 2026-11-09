@@ -25,6 +25,7 @@ const PlayerCard = ({
 				<Text style={styles.reputation}>★ {player.reputation}</Text>
 				{onRemove && (
 					<MaterialCommunityIcons
+						testID={`remove-player-${player.id}`}
 						name="close"
 						onPress={() => onRemove(player.id)}
 						disabled={isDisabled}
