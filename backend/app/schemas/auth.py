@@ -33,6 +33,13 @@ class ProfileOut(UserOut):
     )
 
 
+class SignupOut(UserOut):
+    """POST /auth/signup: the new user plus a token so that app is logged in straight away."""
+
+    access_token: str
+    token_type: str = "bearer"
+
+
 class LoginRequest(BaseModel):
     email: str
     password: str
