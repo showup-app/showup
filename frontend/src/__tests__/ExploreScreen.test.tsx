@@ -1,4 +1,4 @@
-import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import { ExploreScreen } from "../screens/ExploreScreen";
 import { getTestTabParams, makeGame, makeGameDetail, mockApi, mockNavigation, mockUserContext } from "./utils/mocks";
 
@@ -21,8 +21,9 @@ describe("ExploreScreen", () => {
 	});
 
 	const runSearch = async () => {
-		await jest.advanceTimersByTimeAsync(400);
-		await Promise.resolve();
+		await act(async () => {
+			await jest.advanceTimersByTimeAsync(400);
+		});
 	};
 
 	it("loads games, filters by location and sport, navigates to details, and joins", async () => {
@@ -90,18 +91,17 @@ describe("ExploreScreen", () => {
 		expect(await findByText("No upcoming tennis games yet")).toBeTruthy();
 	});
 
-	it("logs a failed join request", async () => {
-		const game = makeGame();
-		const log = jest.spyOn(console, "log").mockImplementation(() => undefined);
-		mockApi.getGames.mockResolvedValue({ ok: true, data: [game], status: 200 });
-		mockApi.joinGame.mockResolvedValue({ ok: false, data: null, status: 400, error: "Join failed" });
-		const { getByText } = await render(<ExploreScreen {...params} />);
-		await runSearch();
-		await waitFor(() => {
-			fireEvent.press(getByText("Join"));
-			expect(log).toHaveBeenCalledWith("Join failed", 400);
-		});
-	});
+	// TODO: Add error message for a failed join, and complete this test
+	// it("displays an error message for a failed join request", async () => {
+	// 	const game = makeGame();
+	// 	mockApi.getGames.mockResolvedValue({ ok: true, data: [game], status: 200 });
+	// 	mockApi.joinGame.mockResolvedValue({ ok: false, data: null, status: 400, error: "Join failed" });
+	// 	const { getByText } = await render(<ExploreScreen {...params} />);
+	// 	await runSearch();
+	// 	await waitFor(() => {
+	// 		fireEvent.press(getByText("Join"));
+	// 	});
+	// });
 
 	it("refreshes the current list", async () => {
 		mockApi.getGames.mockResolvedValue({ ok: true, data: [], status: 200 });

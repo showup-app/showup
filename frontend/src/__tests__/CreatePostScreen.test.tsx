@@ -1,15 +1,16 @@
-import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import { Platform } from "react-native";
 import { CreatePostScreen } from "../screens/CreatePostScreen";
 import { getTestScreenParams, makeGame, mockApi, mockNavigation, mockUserContext } from "./utils/mocks";
 
 describe("CreatePostScreen", () => {
 	const params = getTestScreenParams("CreatePost");
+	const submit = (press: () => Promise<void>) => act(press);
 
 	it("validates the required fields and venue/address length limits", async () => {
 		const { getByText, getByPlaceholderText, findByText } = await render(<CreatePostScreen {...params} />);
 
-		await fireEvent.press(getByText("Next"));
+		await submit(() => fireEvent.press(getByText("Next")));
 		expect(await findByText("Pick a sport")).toBeTruthy();
 		expect(await findByText("Add where you're playing")).toBeTruthy();
 		expect(await findByText("Add the address")).toBeTruthy();
@@ -18,7 +19,7 @@ describe("CreatePostScreen", () => {
 		await fireEvent.press(getByText("Free"));
 		await fireEvent.changeText(getByPlaceholderText("BCIT Building SE16"), "v".repeat(201));
 		await fireEvent.changeText(getByPlaceholderText("3700 Willingdon Ave, Burnaby"), "a".repeat(301));
-		await fireEvent.press(getByText("Next"));
+		await submit(() => fireEvent.press(getByText("Next")));
 		expect(await findByText("Keep it under 200 characters")).toBeTruthy();
 		expect(await findByText("Keep it under 300 characters")).toBeTruthy();
 		expect(mockNavigation.navigate).not.toHaveBeenCalled();
@@ -34,7 +35,7 @@ describe("CreatePostScreen", () => {
 		await fireEvent.press(getByTestId("test-time-picker"));
 		await fireEvent.press(getByText("2 hr"));
 		await fireEvent.press(getByText("80+"));
-		await fireEvent.press(getByText("Next"));
+		await submit(() => fireEvent.press(getByText("Next")));
 
 		await waitFor(() => {
 			expect(mockNavigation.navigate).toHaveBeenCalledWith(
@@ -67,19 +68,19 @@ describe("CreatePostScreen", () => {
 		const price = getByPlaceholderText("5.00");
 
 		await fireEvent.changeText(price, "free");
-		await fireEvent.press(getByText("Next"));
+		await submit(() => fireEvent.press(getByText("Next")));
 		expect(await findByText("Enter a price like 5 or 4.50")).toBeTruthy();
 
 		await fireEvent.changeText(price, "0");
-		await fireEvent.press(getByText("Next"));
+		await submit(() => fireEvent.press(getByText("Next")));
 		expect(await findByText("Enter a price above $0, or choose Free")).toBeTruthy();
 
 		await fireEvent.changeText(price, "10000");
-		await fireEvent.press(getByText("Next"));
+		await submit(() => fireEvent.press(getByText("Next")));
 		expect(await findByText("That's too high")).toBeTruthy();
 
 		await fireEvent.changeText(price, "4.50");
-		await fireEvent.press(getByText("Next"));
+		await submit(() => fireEvent.press(getByText("Next")));
 		await waitFor(() => {
 			expect(mockNavigation.navigate).toHaveBeenCalledWith(
 				"ConfirmPost",
@@ -110,7 +111,7 @@ describe("CreatePostScreen", () => {
 
 		expect(getByText("Not counting you · 4 already joined")).toBeTruthy();
 		expect(getByPlaceholderText("BCIT Building SE16").props.value).toBe("Field");
-		await fireEvent.press(getByText("Save changes"));
+		await submit(() => fireEvent.press(getByText("Save changes")));
 		expect(await findByText("Please log in again to save your changes")).toBeTruthy();
 		expect(mockApi.updateGame).not.toHaveBeenCalled();
 	});
@@ -136,7 +137,7 @@ describe("CreatePostScreen", () => {
 		);
 
 		await fireEvent.changeText(getByPlaceholderText("BCIT Building SE16"), "Updated Court");
-		await fireEvent.press(getByText("Save changes"));
+		await submit(() => fireEvent.press(getByText("Save changes")));
 		await waitFor(() => {
 			expect(mockApi.updateGame).toHaveBeenCalledWith(
 				7,
@@ -176,7 +177,7 @@ describe("CreatePostScreen", () => {
 			<CreatePostScreen {...params} route={{ ...params.route, params: { edit } }} />,
 		);
 
-		await fireEvent.press(getByText("Save changes"));
+		await submit(() => fireEvent.press(getByText("Save changes")));
 		expect(await findByText("Unable to update game")).toBeTruthy();
 		expect(mockNavigation.goBack).not.toHaveBeenCalled();
 	});
@@ -197,20 +198,31 @@ describe("CreatePostScreen", () => {
 			},
 		};
 		let resolveUpdate: ((result: Awaited<ReturnType<typeof mockApi.updateGame>>) => void) | undefined;
+		let notifyUpdateStarted: (() => void) | undefined;
+		const updateStarted = new Promise<void>((resolve) => {
+			notifyUpdateStarted = resolve;
+		});
 		mockApi.updateGame.mockImplementation(
 			() =>
 				new Promise((resolve) => {
 					resolveUpdate = resolve;
+					notifyUpdateStarted?.();
 				}),
 		);
 		const { getByText, findByText } = await render(
 			<CreatePostScreen {...params} route={{ ...params.route, params: { edit } }} />,
 		);
 
-		const savePress = fireEvent.press(getByText("Save changes"));
+		let savePress: Promise<void>;
+		await act(async () => {
+			savePress = fireEvent.press(getByText("Save changes"));
+			await updateStarted;
+		});
 		expect(await findByText("Saving...")).toBeTruthy();
-		resolveUpdate?.({ ok: true, data: makeGame({ id: 10 }), status: 200 });
-		await savePress;
+		await act(async () => {
+			resolveUpdate?.({ ok: true, data: makeGame({ id: 10 }), status: 200 });
+			await savePress;
+		});
 		await waitFor(() => expect(mockNavigation.goBack).toHaveBeenCalled());
 	});
 
@@ -233,7 +245,7 @@ describe("CreatePostScreen", () => {
 			<CreatePostScreen {...params} route={{ ...params.route, params: { edit } }} />,
 		);
 
-		await fireEvent.press(getByText("Save changes"));
+		await submit(() => fireEvent.press(getByText("Save changes")));
 		expect(await findByText("Pick a time in the future")).toBeTruthy();
 		expect(mockApi.updateGame).not.toHaveBeenCalled();
 	});

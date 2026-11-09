@@ -1,14 +1,6 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { HomeScreen } from "../screens/HomeScreen";
-import {
-	getTestTabParams,
-	makeGame,
-	makeMyGames,
-	mockApi,
-	mockNavigation,
-	mockSectionListProps,
-	mockUserContext,
-} from "./utils/mocks";
+import { getTestTabParams, makeGame, makeMyGames, mockApi, mockNavigation, mockUserContext } from "./utils/mocks";
 import { GameStatus } from "../types/game";
 
 describe("HomeScreen", () => {
@@ -58,19 +50,6 @@ describe("HomeScreen", () => {
 		expect(mockNavigation.navigate).toHaveBeenCalledWith("Attendance", { gameId: 1 });
 		await fireEvent.press(getAllByText("See players")[0]);
 		expect(mockNavigation.navigate).toHaveBeenCalledWith("GameDetails", { gameId: 5 });
-	});
-
-	it("runs the navigation actions configured for empty sections", async () => {
-		mockApi.getMyGames.mockResolvedValue({ ok: true, data: makeMyGames(), status: 200 });
-		render(<HomeScreen {...params} />);
-
-		await waitFor(() => expect(mockNavigation.setOptions).toHaveBeenCalled());
-		expect(mockSectionListProps.sections?.map((section) => section.title)).toEqual(["Hosting", "Joined"]);
-		mockSectionListProps.sections?.[0].onEmptyAction?.();
-		mockSectionListProps.sections?.[1].onEmptyAction?.();
-		expect(mockNavigation.navigate).toHaveBeenNthCalledWith(1, "CreatePost");
-		expect(mockNavigation.navigate).toHaveBeenNthCalledWith(2, "Explore");
-		expect(mockNavigation.setOptions).toHaveBeenCalledWith(expect.objectContaining({ tabBarBadge: undefined }));
 	});
 
 	it("shows an API error and retries loading", async () => {

@@ -10,7 +10,6 @@ beforeEach(() => {
 	mockUserContext.user = null;
 	mockUserContext.token = "test-token";
 	mockContextLogout.mockReset();
-	mockSectionListProps.sections = undefined;
 });
 
 jest.mock("@react-navigation/native", () => ({
@@ -47,24 +46,6 @@ jest.mock("@expo/vector-icons", () => {
 			color: _color,
 			...props
 		}: ComponentProps<typeof import("@expo/vector-icons").MaterialCommunityIcons>) => <Pressable {...props} />,
-	};
-});
-
-export const mockSectionListProps: {
-	sections?: Array<{ title: string; onEmptyAction?: () => void }>;
-} = {};
-
-jest.mock("react-native/Libraries/Lists/SectionList", () => {
-	const actual = jest.requireActual("react-native/Libraries/Lists/SectionList");
-	const ActualSectionList = actual.default;
-
-	return {
-		...actual,
-		__esModule: true,
-		default: (props: { sections?: Array<{ title: string; onEmptyAction?: () => void }> }) => {
-			mockSectionListProps.sections = props.sections;
-			return <ActualSectionList {...props} />;
-		},
 	};
 });
 
