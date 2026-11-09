@@ -1,4 +1,4 @@
-import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import ProfileScreen from "../screens/ProfileScreen";
 import {
 	getTestTabParams,
@@ -38,7 +38,9 @@ describe("ProfileScreen", () => {
 
 		expect(getByText("Loading your games…")).toBeTruthy();
 		expect(mockApi.getMyGames).toHaveBeenCalledWith("test-token", true);
-		resolveGames?.({ ok: false, data: null, status: 500, error: "Could not load profile" });
+		await act(async () => {
+			resolveGames?.({ ok: false, data: null, status: 500, error: "Could not load profile" });
+		});
 		expect(await findByText("Could not load profile")).toBeTruthy();
 
 		await fireEvent.press(getByText("Try again"));

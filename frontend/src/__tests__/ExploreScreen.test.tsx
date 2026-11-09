@@ -84,9 +84,7 @@ describe("ExploreScreen", () => {
 		mockApi.getGames.mockResolvedValue({ ok: true, data: [], status: 200 });
 		const { getByText, findByText } = await render(<ExploreScreen {...params} />);
 		await runSearch();
-		await waitFor(() => {
-			fireEvent.press(getByText("Tennis"));
-		});
+		await fireEvent.press(getByText("Tennis"));
 		await runSearch();
 		expect(await findByText("No upcoming tennis games yet")).toBeTruthy();
 	});

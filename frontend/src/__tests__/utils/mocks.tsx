@@ -4,6 +4,13 @@ import { api } from "../../services/api";
 import { User } from "../../types/auth";
 import { Game, GameDetail, GameStatus, MyGames } from "../../types/game";
 
+// Keep React's act environment enabled when the testing-library wrapper restores it.
+Object.defineProperty(globalThis, "IS_REACT_ACT_ENVIRONMENT", {
+	configurable: true,
+	get: () => true,
+	set: () => {},
+});
+
 beforeEach(() => {
 	jest.clearAllMocks();
 	process.env.EXPO_PUBLIC_API_URL = "https://example.com";
@@ -47,6 +54,53 @@ jest.mock("@expo/vector-icons", () => {
 			...props
 		}: ComponentProps<typeof import("@expo/vector-icons").MaterialCommunityIcons>) => <Pressable {...props} />,
 	};
+});
+
+jest.mock("react-native/Libraries/Lists/FlatList", () => {
+	const React = jest.requireActual<typeof import("react")>("react");
+	const { View } = jest.requireActual<typeof import("react-native")>("react-native");
+
+	type MockFlatListProps = {
+		data?: readonly unknown[] | null;
+		renderItem: (info: { item: unknown; index: number }) => React.ReactNode;
+		keyExtractor?: (item: unknown, index: number) => string;
+		ListHeaderComponent?: React.ReactNode | React.ComponentType;
+		ListFooterComponent?: React.ReactNode | React.ComponentType;
+		ListEmptyComponent?: React.ReactNode | React.ComponentType;
+		refreshControl?: React.ReactNode;
+	};
+
+	const renderListComponent = (component: MockFlatListProps["ListHeaderComponent"]) =>
+		typeof component === "function" ? React.createElement(component) : component;
+
+	const MockFlatList = ({
+		data,
+		renderItem,
+		keyExtractor,
+		ListHeaderComponent,
+		ListFooterComponent,
+		ListEmptyComponent,
+		refreshControl,
+	}: MockFlatListProps) => {
+		const items = data ?? [];
+
+		return (
+			<View>
+				{refreshControl}
+				{renderListComponent(ListHeaderComponent)}
+				{items.length === 0
+					? renderListComponent(ListEmptyComponent)
+					: items.map((item, index) => (
+							<React.Fragment key={keyExtractor?.(item, index) ?? String(index)}>
+								{renderItem({ item, index })}
+							</React.Fragment>
+						))}
+				{renderListComponent(ListFooterComponent)}
+			</View>
+		);
+	};
+
+	return { __esModule: true, default: MockFlatList };
 });
 
 jest.mock("react-native/Libraries/Components/RefreshControl/RefreshControl", () => {

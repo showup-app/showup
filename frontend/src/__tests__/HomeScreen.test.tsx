@@ -1,4 +1,4 @@
-import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import { HomeScreen } from "../screens/HomeScreen";
 import { getTestTabParams, makeGame, makeMyGames, mockApi, mockNavigation, mockUserContext } from "./utils/mocks";
 import { GameStatus } from "../types/game";
@@ -25,20 +25,22 @@ describe("HomeScreen", () => {
 		const { getByText, getAllByText, findByText } = await render(<HomeScreen {...params} />);
 
 		expect(getByText("Loading your games…")).toBeTruthy();
-		resolveGames?.({
-			ok: true,
-			data: makeMyGames({
-				hosting: [
-					relativeGame(1, -1),
-					relativeGame(2, -8),
-					relativeGame(3, -1, GameStatus.Cancelled),
-					relativeGame(4, -1, GameStatus.Played),
-					relativeGame(5, 1),
-					relativeGame(8, 3),
-				],
-				joined: [relativeGame(6, 2), relativeGame(7, -1)],
-			}),
-			status: 200,
+		await act(async () => {
+			resolveGames?.({
+				ok: true,
+				data: makeMyGames({
+					hosting: [
+						relativeGame(1, -1),
+						relativeGame(2, -8),
+						relativeGame(3, -1, GameStatus.Cancelled),
+						relativeGame(4, -1, GameStatus.Played),
+						relativeGame(5, 1),
+						relativeGame(8, 3),
+					],
+					joined: [relativeGame(6, 2), relativeGame(7, -1)],
+				}),
+				status: 200,
+			});
 		});
 		expect(await findByText("Needs attendance")).toBeTruthy();
 		expect(getByText("Hosting")).toBeTruthy();

@@ -1,4 +1,4 @@
-import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import AttendanceScreen from "../screens/AttendanceScreen";
 import { getTestScreenParams, makeGameDetail, mockApi, mockNavigation, mockUserContext } from "./utils/mocks";
 
@@ -14,19 +14,19 @@ describe("AttendanceScreen", () => {
 		});
 		mockApi.getGame.mockResolvedValue({ ok: true, data: game, status: 200 });
 		mockApi.markAttendance.mockResolvedValue({ ok: true, data: game, status: 200 });
-		const { findByText, getByLabelText, getByText } = await render(<AttendanceScreen {...params} />);
+		const { findByText, findByLabelText } = await render(<AttendanceScreen {...params} />);
 
 		expect(await findByText("Your game just ended!")).toBeTruthy();
-		expect(getByText("Player One")).toBeTruthy();
-		expect(getByText("★ 80")).toBeTruthy();
-		expect(getByText("New")).toBeTruthy();
-		expect(getByText("1 of 2 marked")).toBeTruthy();
+		expect(await findByText("Player One")).toBeTruthy();
+		expect(await findByText("★ 80")).toBeTruthy();
+		expect(await findByText("New")).toBeTruthy();
+		expect(await findByText("1 of 2 marked")).toBeTruthy();
 
-		await fireEvent.press(getByLabelText("New Player didn't show up"));
-		expect(getByText("2 of 2 marked")).toBeTruthy();
-		await fireEvent.press(getByLabelText("Player One didn't show up"));
-		await fireEvent.press(getByText("Everyone showed up"));
-		await fireEvent.press(getByText("Save attendance"));
+		await fireEvent.press(await findByLabelText("New Player didn't show up"));
+		expect(await findByText("2 of 2 marked")).toBeTruthy();
+		await fireEvent.press(await findByLabelText("Player One didn't show up"));
+		await fireEvent.press(await findByText("Everyone showed up"));
+		await fireEvent.press(await findByText("Save attendance"));
 
 		await waitFor(() => {
 			expect(mockApi.markAttendance).toHaveBeenCalledWith(
@@ -54,10 +54,13 @@ describe("AttendanceScreen", () => {
 		const { getByText, findByText } = await render(<AttendanceScreen {...params} />);
 
 		expect(getByText("Loading players…")).toBeTruthy();
-		resolveGame?.({ ok: false, data: null, status: 500, error: "Could not load players" });
+		await act(async () => {
+			resolveGame?.({ ok: false, data: null, status: 500, error: "Could not load players" });
+		});
 
 		await findByText("Could not load players");
 		await fireEvent.press(getByText("Try again"));
+
 		expect(await findByText("Player One")).toBeTruthy();
 		expect(mockApi.getGame).toHaveBeenCalledTimes(2);
 	});
@@ -93,7 +96,15 @@ describe("AttendanceScreen", () => {
 		expect(queryByText("Save attendance")).toBeNull();
 	});
 
-	it("shows attendance save errors and prevents saving until all players are marked", async () => {
+	it("prevents saving until all players are marked", async () => {
+		mockApi.getGame.mockResolvedValue({ ok: true, data: makeGameDetail(), status: 200 });
+		const { findByText } = await render(<AttendanceScreen {...params} />);
+
+		await fireEvent.press(await findByText("Save attendance"));
+		expect(mockApi.markAttendance).not.toHaveBeenCalled();
+	});
+
+	it("shows attendance save errors", async () => {
 		mockApi.getGame.mockResolvedValue({ ok: true, data: makeGameDetail(), status: 200 });
 		mockApi.markAttendance.mockResolvedValue({
 			ok: false,
@@ -101,14 +112,11 @@ describe("AttendanceScreen", () => {
 			status: 500,
 			error: "Unable to save attendance",
 		});
-		const { findByText, getByText, getByLabelText } = await render(<AttendanceScreen {...params} />);
+		const { findByText, findByLabelText } = await render(<AttendanceScreen {...params} />);
 
-		await findByText("Mark every player to save");
-		await fireEvent.press(getByText("Save attendance"));
-		expect(mockApi.markAttendance).not.toHaveBeenCalled();
+		await fireEvent.press(await findByLabelText("Player One showed up"));
+		await fireEvent.press(await findByText("Save attendance"));
 
-		await fireEvent.press(getByLabelText("Player One showed up"));
-		await fireEvent.press(getByText("Save attendance"));
 		expect(await findByText("Unable to save attendance")).toBeTruthy();
 		expect(mockNavigation.goBack).not.toHaveBeenCalled();
 	});
@@ -151,8 +159,10 @@ describe("AttendanceScreen", () => {
 
 		const savePress = fireEvent.press(getByText("Save attendance"));
 		expect(await findByText("Saving...")).toBeTruthy();
-		resolveSave?.({ ok: true, data: game, status: 200 });
-		await savePress;
+		await act(async () => {
+			resolveSave?.({ ok: true, data: game, status: 200 });
+			await savePress;
+		});
 		await waitFor(() => expect(mockNavigation.goBack).toHaveBeenCalled());
 	});
 });

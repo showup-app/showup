@@ -34,7 +34,9 @@ describe("GameDetailsScreen", () => {
 
 		expect(getByText("Loading game…")).toBeTruthy();
 		await waitFor(() => expect(resolveGame).toBeDefined());
-		resolveGame?.({ ok: false, data: null, status: 500, error: "Game unavailable" });
+		await act(async () => {
+			resolveGame?.({ ok: false, data: null, status: 500, error: "Game unavailable" });
+		});
 		expect(await findByText("Game unavailable")).toBeTruthy();
 		await fireEvent.press(getByText("Try again"));
 		expect(await findByText("PLAYERS")).toBeTruthy();
@@ -119,7 +121,9 @@ describe("GameDetailsScreen", () => {
 			{ cancelable: true },
 		);
 		const buttons = alert.mock.calls[0][2]!;
-		buttons[0].onPress?.();
+		await act(async () => {
+			buttons[0].onPress?.();
+		});
 		expect(mockApi.cancelGame).not.toHaveBeenCalled();
 		await act(async () => {
 			buttons[1].onPress?.();
@@ -335,7 +339,9 @@ describe("GameDetailsScreen", () => {
 		await view.findByText("Cancel Game");
 		await fireEvent.press(view.getByText("Cancel Game"));
 		const confirm = alert.mock.calls[0][2]![1].onPress;
-		confirm?.();
+		await act(async () => {
+			confirm?.();
+		});
 		await waitFor(() => expect(mockApi.cancelGame).toHaveBeenCalledWith(1, "test-token"));
 
 		await view.rerender(<GameDetailsScreen {...params} route={{ ...params.route, params: { gameId: 2 } }} />);
