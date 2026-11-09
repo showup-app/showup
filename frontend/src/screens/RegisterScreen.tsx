@@ -9,6 +9,7 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { api } from "../services/api";
 import { RegisterBody } from "../types/auth";
 import FormErrorMessage from "../components/ui/FormErrorMessage";
+import { useUser } from "../context/UserContext";
 
 type RegisterForm = {
 	email: string;
@@ -20,6 +21,7 @@ type RegisterForm = {
 const RegisterScreen = ({ navigation }: AppScreenProps<"Register">) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
+	const { login } = useUser();
 
 	const {
 		control,
@@ -47,8 +49,9 @@ const RegisterScreen = ({ navigation }: AppScreenProps<"Register">) => {
 
 		const res = await api.register(registerBody);
 		if (res.ok) {
-			// TODO: Once register API returns token, treat register the same as a successful login
-			navigation.replace("Login");
+			const { id, email, name, reputation, access_token } = res.data;
+			login({ id, email, name, reputation }, access_token);
+			navigation.replace("Tabs", { screen: "Home" });
 		} else {
 			if (res.status === 409) {
 				setError(

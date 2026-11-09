@@ -1,4 +1,4 @@
-import { LoginForm, LoginReponse, RegisterBody, User } from "../types/auth";
+import { LoginForm, LoginReponse, RegisterBody, RegisterResponse, User } from "../types/auth";
 import { Game, GameCreate, GameDetail, GameFilters, MyGames, AttendanceMark } from "../types/game";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
@@ -99,7 +99,7 @@ export const api = {
 			"Failed to login, please try again later",
 		),
 	register: (registerBody: RegisterBody) =>
-		request<User>(
+		request<RegisterResponse>(
 			`/auth/signup`,
 			getRequestBody("POST", registerBody),
 			"Failed to register, please try again later",
