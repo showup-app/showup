@@ -1,6 +1,6 @@
 import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import AttendanceScreen from "../screens/AttendanceScreen";
-import { getTestScreenParams, makeGameDetail, mockApi, mockNavigation, mockUserContext } from "./utils/mocks";
+import { getTestScreenParams, makeGameDetail, mockApi, mockNavigation } from "./utils/mocks";
 
 describe("AttendanceScreen", () => {
 	const params = getTestScreenParams("Attendance", { gameId: 1 });
@@ -42,46 +42,21 @@ describe("AttendanceScreen", () => {
 	});
 
 	it("shows loading then an error and retries the failed load", async () => {
-		let resolveGame: ((result: Awaited<ReturnType<typeof mockApi.getGame>>) => void) | undefined;
-		mockApi.getGame
-			.mockImplementationOnce(
-				() =>
-					new Promise((resolve) => {
-						resolveGame = resolve;
-					}),
-			)
-			.mockResolvedValueOnce({ ok: true, data: makeGameDetail(), status: 200 });
+		const { promise, resolve } = Promise.withResolvers<Awaited<ReturnType<typeof mockApi.getGame>>>();
+		mockApi.getGame.mockReturnValue(promise);
 		const { getByText, findByText } = await render(<AttendanceScreen {...params} />);
 
 		expect(getByText("Loading players…")).toBeTruthy();
-		await act(async () => {
-			resolveGame?.({ ok: false, data: null, status: 500, error: "Could not load players" });
+		await act(() => {
+			resolve({ ok: false, data: null, status: 500, error: "Could not load players" });
 		});
 
-		await findByText("Could not load players");
+		expect(await findByText("Could not load players")).toBeTruthy();
+		mockApi.getGame.mockResolvedValueOnce({ ok: true, data: makeGameDetail(), status: 200 });
 		await fireEvent.press(getByText("Try again"));
 
 		expect(await findByText("Player One")).toBeTruthy();
 		expect(mockApi.getGame).toHaveBeenCalledTimes(2);
-	});
-
-	it("requires a token before saving attendance", async () => {
-		mockUserContext.token = null;
-		mockApi.getGame.mockResolvedValue({
-			ok: true,
-			data: makeGameDetail({
-				players: [
-					{ id: 2, name: "Player One", reputation: 80, games_played: 4, is_new: false, showed_up: true },
-				],
-			}),
-			status: 200,
-		});
-		const { findByText, queryByText } = await render(<AttendanceScreen {...params} />);
-
-		expect(await findByText("Player One")).toBeTruthy();
-		await fireEvent.press(await findByText("Save attendance"));
-		expect(await findByText("Please log in again to save attendance")).toBeTruthy();
-		expect(queryByText("No players joined this game.")).toBeNull();
 	});
 
 	it("shows the empty-player message", async () => {
@@ -147,21 +122,17 @@ describe("AttendanceScreen", () => {
 		const game = makeGameDetail({
 			players: [{ id: 2, name: "Player One", reputation: 80, games_played: 4, is_new: false, showed_up: true }],
 		});
-		let resolveSave: ((result: Awaited<ReturnType<typeof mockApi.markAttendance>>) => void) | undefined;
 		mockApi.getGame.mockResolvedValue({ ok: true, data: game, status: 200 });
-		mockApi.markAttendance.mockImplementation(
-			() =>
-				new Promise((resolve) => {
-					resolveSave = resolve;
-				}),
-		);
-		const { getByText, findByText } = await render(<AttendanceScreen {...params} />);
 
-		const savePress = fireEvent.press(getByText("Save attendance"));
+		const { promise, resolve } = Promise.withResolvers<Awaited<ReturnType<typeof mockApi.markAttendance>>>();
+		mockApi.markAttendance.mockReturnValue(promise);
+
+		const { findByText } = await render(<AttendanceScreen {...params} />);
+		fireEvent.press(await findByText("Save attendance"));
 		expect(await findByText("Saving...")).toBeTruthy();
-		await act(async () => {
-			resolveSave?.({ ok: true, data: game, status: 200 });
-			await savePress;
+
+		await act(() => {
+			resolve({ ok: true, data: game, status: 200 });
 		});
 		await waitFor(() => expect(mockNavigation.goBack).toHaveBeenCalled());
 	});

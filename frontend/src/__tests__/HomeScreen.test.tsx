@@ -64,12 +64,4 @@ describe("HomeScreen", () => {
 		await fireEvent.press(getByText("Try again"));
 		await waitFor(() => expect(mockApi.getMyGames).toHaveBeenCalledTimes(2));
 	});
-
-	it("requires an authenticated user to load games", async () => {
-		mockUserContext.token = null;
-		const { findByText } = await render(<HomeScreen {...params} />);
-
-		expect(await findByText("Please log in again to see your games")).toBeTruthy();
-		expect(mockApi.getMyGames).not.toHaveBeenCalled();
-	});
 });

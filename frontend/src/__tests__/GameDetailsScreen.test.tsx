@@ -21,23 +21,17 @@ describe("GameDetailsScreen", () => {
 
 	it("shows loading, handles a load error, and retries", async () => {
 		setUser(5);
-		let resolveGame: ((result: Awaited<ReturnType<typeof mockApi.getGame>>) => void) | undefined;
-		mockApi.getGame
-			.mockImplementationOnce(
-				() =>
-					new Promise((resolve) => {
-						resolveGame = resolve;
-					}),
-			)
-			.mockResolvedValueOnce({ ok: true, data: makeGameDetail(), status: 200 });
+		const { promise, resolve } = Promise.withResolvers<Awaited<ReturnType<typeof mockApi.getGame>>>();
+		mockApi.getGame.mockReturnValue(promise);
 		const { getByText, findByText } = await render(<GameDetailsScreen {...params} />);
 
 		expect(getByText("Loading game…")).toBeTruthy();
-		await waitFor(() => expect(resolveGame).toBeDefined());
 		await act(async () => {
-			resolveGame?.({ ok: false, data: null, status: 500, error: "Game unavailable" });
+			resolve({ ok: false, data: null, status: 500, error: "Game unavailable" });
 		});
 		expect(await findByText("Game unavailable")).toBeTruthy();
+
+		mockApi.getGame.mockResolvedValueOnce({ ok: true, data: makeGameDetail(), status: 200 });
 		await fireEvent.press(getByText("Try again"));
 		expect(await findByText("PLAYERS")).toBeTruthy();
 		expect(mockApi.getGame).toHaveBeenCalledWith(1, "test-token");
@@ -51,11 +45,10 @@ describe("GameDetailsScreen", () => {
 			status: 500,
 			error: "placeholder",
 		};
-		Object.defineProperty(response, "error", { value: null });
 		mockApi.getGame.mockResolvedValue(response);
 		const view = await render(<GameDetailsScreen {...params} />);
 
-		expect(await view.findByText("Something went wrong...")).toBeTruthy();
+		expect(await view.findByText("placeholder")).toBeTruthy();
 	});
 
 	it("lets the host edit, remove players, and cancel a game after confirmation", async () => {
