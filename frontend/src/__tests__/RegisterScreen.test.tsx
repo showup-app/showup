@@ -53,6 +53,8 @@ describe("RegisterScreen", () => {
 				email: "person@example.com",
 				name: "Test Person",
 				reputation: 0,
+				token_type: "Bearer",
+				access_token: "test-token",
 			},
 			status: 201,
 		});
@@ -67,7 +69,9 @@ describe("RegisterScreen", () => {
 				name: "Test Person",
 				password: "secret123",
 			});
-			expect(mockNavigation.replace).toHaveBeenCalledWith("Login");
+			expect(mockNavigation.replace).toHaveBeenCalledWith("Tabs", {
+				screen: "Home",
+			});
 		});
 	});
 
