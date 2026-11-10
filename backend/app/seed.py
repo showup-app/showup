@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 
 from app.db import SessionLocal
 from app.models import Attendance, Game, GameStatus, Signup, SignupStatus, User
-from app.reputation import recompute
+from app.reputation import START, recompute
 from app.security import hash_password
 
 SEED_DOMAIN = "seed.showup.local"
@@ -27,14 +27,14 @@ DEMO_PASSWORD = "showup-demo"
 USERS: list[str] = ["Maya", "Jordan", "Sam", "Riley", "Alex"]
 
 # fmt: off
-# (host index into USERS, sport, venue, address, days from now, hour, spots, cost, min rep, status)
+# (host index into USERS, sport, venue, address, days from now, hour, spots, total cost, min rep, status)
 GAMES: list[tuple[int, str, str, str, int, int, int, str, int, GameStatus]] = [
-    (0, "basketball", "BCIT Gym",               "3700 Willingdon Ave, Burnaby",         1, 18, 10, "5.00", 80, GameStatus.OPEN),
+    (0, "basketball", "BCIT Gym",               "3700 Willingdon Ave, Burnaby",         1, 18, 10, "55.00", 80, GameStatus.OPEN),
     (1, "basketball", "Bonsor Rec Centre",      "6550 Bonsor Ave, Burnaby",             3, 19,  8, "0",     0, GameStatus.OPEN),
-    (2, "soccer",     "Central Park Turf",      "3883 Imperial St, Burnaby",            2, 17, 14, "3.00",  0, GameStatus.OPEN),
+    (2, "soccer",     "Central Park Turf",      "3883 Imperial St, Burnaby",            2, 17, 14, "45.00",  0, GameStatus.OPEN),
     (4, "soccer",     "Trillium Park",          "1 Trillium Ln, Vancouver",             5, 10, 12, "0",    50, GameStatus.OPEN),
-    (3, "volleyball", "Kitsilano Beach Courts", "1499 Arbutus St, Vancouver",           4, 20, 12, "4.00",  0, GameStatus.OPEN),
-    (0, "badminton",  "ClearOne Badminton",     "2368 No 5 Rd, Richmond",               6,  9,  4, "8.00", 70, GameStatus.OPEN),
+    (3, "volleyball", "Kitsilano Beach Courts", "1499 Arbutus St, Vancouver",           4, 20, 12, "52.00",  0, GameStatus.OPEN),
+    (0, "badminton",  "ClearOne Badminton",     "2368 No 5 Rd, Richmond",               6,  9,  4, "40.00", 70, GameStatus.FULL),
     (4, "basketball", "Hillcrest Centre",       "4575 Clancy Loranger Way, Vancouver", -2, 18, 10, "0",     0, GameStatus.PLAYED),
     (1, "soccer",     "Burnaby Lake Fields",    "3677 Kensington Ave, Burnaby",         7, 11, 10, "0",     0, GameStatus.CANCELLED),
 ]
@@ -112,6 +112,7 @@ def seed(db: Session) -> dict[str, int]:
             user_id=users[user].id,
             showed_up=showed_up,
             marked_by=games[game].host_id,
+            reputation_before=START,
         )
         for game, user, showed_up in ATTENDANCE
     ]
@@ -120,6 +121,9 @@ def seed(db: Session) -> dict[str, int]:
 
     for user in users:
         recompute(db, user)
+    by_id = {u.id: u for u in users}
+    for row in attendance:
+        row.reputation_after = by_id[row.user_id].reputation
     db.commit()
     return {
         "users": len(users),

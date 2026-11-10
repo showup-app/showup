@@ -25,6 +25,10 @@ class Attendance(Base):
     showed_up: Mapped[bool]
     marked_by: Mapped[int] = mapped_column(ForeignKey("users.id"))
     marked_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    # The player's reputation just before this game was first marked, and right after the latest
+    # mark. Their difference is what this game did to the score. Null on rows older than this.
+    reputation_before: Mapped[int | None]
+    reputation_after: Mapped[int | None]
     # A player who disagrees with a no-show can dispute once, within the marking window.
     # The host sees the note and may flip the mark. Both null means never disputed.
     disputed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

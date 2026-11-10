@@ -4,13 +4,21 @@ from sqlalchemy.exc import IntegrityError
 
 from app.deps import CurrentUser, DbDep
 from app.models import User
-from app.schemas.auth import LoginRequest, SignupRequest, TokenResponse, UserOut
+from app.reputation import player_stats
+from app.schemas.auth import (
+    LoginRequest,
+    ProfileOut,
+    SignupOut,
+    SignupRequest,
+    TokenResponse,
+    UserOut,
+)
 from app.security import DUMMY_HASH, create_access_token, hash_password, verify_password
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/signup", response_model=UserOut, status_code=status.HTTP_201_CREATED)
+@router.post("/signup", response_model=SignupOut, status_code=status.HTTP_201_CREATED)
 def signup(body: SignupRequest, db: DbDep):
     email = body.email.lower()
     if db.scalar(select(User).where(User.email == email)):
@@ -23,7 +31,10 @@ def signup(body: SignupRequest, db: DbDep):
         db.rollback()
         raise HTTPException(status.HTTP_409_CONFLICT, "Email already registered") from None
     db.refresh(user)
-    return user
+    return SignupOut(
+        **UserOut.model_validate(user).model_dump(),
+        access_token=create_access_token(user.id),
+    )
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -41,7 +52,15 @@ def login(body: LoginRequest, db: DbDep):
     return TokenResponse(access_token=create_access_token(user.id))
 
 
-@router.get("/me", response_model=UserOut)
-def me(user: CurrentUser):
-    """The signed-in user. What the app calls after login to fill the profile."""
-    return user
+@router.get("/me", response_model=ProfileOut)
+def me(user: CurrentUser, db: DbDep):
+    """The signed-in user with games played, games hosted and the New flag. What the app
+    calls after login to fill the profile."""
+    stats = player_stats(db, [user.id])[user.id]
+    return ProfileOut(**UserOut.model_validate(user).model_dump(), **stats)
+
+
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+def logout(_user: CurrentUser) -> None:
+    """Stateless: nothing to revoke server-side. The app discards the token and returns to
+    Login, whatever this returns, since an expired token gets a 401 here."""

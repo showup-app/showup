@@ -50,17 +50,19 @@ tests/           pytest, TestClient fixture in conftest.py
 
 ## Auth contract
 
-- `POST /auth/signup` creates a user, `POST /auth/login` returns the token, `GET /auth/me` returns the signed-in user.
+- `POST /auth/signup` creates a user, `POST /auth/login` returns the token, `GET /auth/me` returns the signed-in user, `POST /auth/logout` is a stateless 204 (the app drops the token; it stays valid until it expires).
 - Protected endpoints read `Authorization: Bearer <token>` through `CurrentUser` in `app/deps.py`.
 - A token is a JWT signed with `JWT_SECRET` (HS256) whose `sub` is the user id as a string. `app/security.py` has `create_access_token(user_id)` and `decode_access_token(token)`; the login endpoint should call the first, nothing else needs to touch JWTs.
 - Missing or bad token: 401 with `WWW-Authenticate: Bearer`. Wrong user for the action (not the host): 403.
+- Host-only game actions: `PATCH /games/{id}`, `POST /games/{id}/cancel`, `DELETE /games/{id}/players/{user_id}` (marks the signup `removed`; the player cannot rejoin), `POST /games/{id}/attendance`.
 
 ## Reputation
 
 All rules and constants are in `app/reputation.py`; the reasoning is in
 `docs/decisions/0002-reputation.md`. Short version: everyone starts at 100 and shows as "New"
 until three games; the score is a show-up rate with a three-game cushion, recomputed from
-`attendance` when a host marks; hosts set any minimum up to 100 and may set a one-step fallback
+`attendance` when a host marks (`POST /games/{id}/attendance`, host only, after kickoff, within 7
+days); hosts set any minimum up to 100 and may set a one-step fallback
 that applies N hours before kickoff.
 
 ## Conventions

@@ -24,6 +24,20 @@ def _game_id(db: Session, index: int) -> int:
 #   reputations: everyone 100 except Sam, 75 (one no-show at the played game)
 
 
+def test_detail_joined_flag_tracks_join_and_leave(
+    client: TestClient, db: Session, auth_headers: Headers
+) -> None:
+    seed(db)
+    game_id = _game_id(db, 1)
+
+    assert client.get(f"/games/{game_id}").json()["joined"] is False
+    assert client.get(f"/games/{game_id}", headers=auth_headers("Riley")).json()["joined"] is False
+    joined = client.post(f"/games/{game_id}/join", headers=auth_headers("Riley")).json()
+    assert joined["joined"] is True
+    left = client.delete(f"/games/{game_id}/join", headers=auth_headers("Riley")).json()
+    assert left["joined"] is False
+
+
 def test_join_takes_a_spot(client: TestClient, db: Session, auth_headers: Headers) -> None:
     seed(db)
     game_id = _game_id(db, 1)
@@ -160,3 +174,12 @@ def test_leave_then_rejoin_works(client: TestClient, db: Session, auth_headers: 
     assert client.delete(f"/games/{game_id}/join", headers=headers).status_code == 200
     assert "Jordan" not in {p["name"] for p in client.get(f"/games/{game_id}").json()["players"]}
     assert client.post(f"/games/{game_id}/join", headers=headers).status_code == 201
+
+
+def test_leave_after_kickoff_is_409(client: TestClient, db: Session, auth_headers: Headers) -> None:
+    seed(db)
+
+    response = client.delete(f"/games/{_game_id(db, 6)}/join", headers=auth_headers("Jordan"))
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == "Game has already started"

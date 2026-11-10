@@ -34,7 +34,7 @@ class GameOut(BaseModel):
     duration_minutes: int
     spots: int
     # Sent as a number (5.0), not a string, so the app can show it without parsing.
-    cost: float
+    cost: float = Field(description="Total venue cost entered by host. 0 = free")
     min_reputation: int
     fallback_min_reputation: int | None
     fallback_hours_before_start: int | None
@@ -59,6 +59,14 @@ class PlayerOut(BaseModel):
     is_new: bool = Field(
         description="True until 3 marked or hosted games; the app shows 'New' instead of the score"
     )
+    showed_up: bool | None = Field(
+        default=None,
+        description="The host's mark: true showed up, false no-show, null not marked yet",
+    )
+    reputation_change: int | None = Field(
+        default=None,
+        description="What this game did to the player's reputation, e.g. -25. Null until marked",
+    )
 
 
 class GameSummaryOut(GameOut):
@@ -71,16 +79,72 @@ class GameSummaryOut(GameOut):
     host_name: str
     host_reputation: int
     spots_left: int = Field(description="spots minus the players who have joined")
-
-
-class GameDetailOut(GameSummaryOut):
-    """A single game with its roster and the reputation requirement that applies right now."""
-
-    players: list[PlayerOut] = Field(description="Players who have joined, oldest signup first")
+    cost_per_player: float = Field(
+        description="cost divided by spots + 1(counting host). Stays the same even if "
+        "the players join or leave. It changes only if the host edits cost or spots"
+    )
     effective_min_reputation: int = Field(
         description="The requirement that applies right now: min_reputation, or the fallback "
         "once its window has started"
     )
+    joined: bool = Field(
+        description="True when the caller's Bearer token belongs to a player on this roster. "
+        "Always false without a token"
+    )
+    marked_count: int = Field(
+        default=0, description="Players the host has marked, present or not. 0 until marking"
+    )
+    showed_up_count: int = Field(default=0, description="Players the host marked as present")
+    my_showed_up: bool | None = Field(
+        default=None,
+        description="The host's mark for the caller: true showed up, false no-show, null not "
+        "marked or no token",
+    )
+    my_reputation_change: int | None = Field(
+        default=None,
+        description="What this game did to the caller's reputation. Null until marked or no token",
+    )
+
+
+class GameDetailOut(GameSummaryOut):
+    """A single game with its roster."""
+
+    players: list[PlayerOut] = Field(description="Players who have joined, oldest signup first")
+
+
+class MyGamesOut(BaseModel):
+    """GET /me/games. Two lists so the My Games screen maps straight to its tabs."""
+
+    hosting: list[GameSummaryOut] = Field(description="Games I host, soonest first")
+    joined: list[GameSummaryOut] = Field(description="Games I have a spot in, soonest first")
+
+
+class AttendanceMark(BaseModel):
+    user_id: int
+    showed_up: bool
+
+
+class AttendanceIn(BaseModel):
+    """Body of POST /games/{id}/attendance. Players left out keep whatever mark they had."""
+
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "examples": [
+                {"marks": [{"user_id": 2, "showed_up": True}, {"user_id": 3, "showed_up": False}]}
+            ]
+        },
+    )
+
+    marks: list[AttendanceMark] = Field(min_length=1)
+
+    @field_validator("marks")
+    @classmethod
+    def _no_duplicates(cls, marks: list[AttendanceMark]) -> list[AttendanceMark]:
+        ids = [m.user_id for m in marks]
+        if len(ids) != len(set(ids)):
+            raise ValueError("each user_id may appear once")
+        return marks
 
 
 def _check_sport(value: str) -> str:
@@ -112,7 +176,7 @@ class GameCreate(BaseModel):
                     "starts_at": "2026-10-20T18:00:00-07:00",
                     "duration_minutes": 90,
                     "spots": 10,
-                    "cost": "5.00",
+                    "cost": "55.00",
                     "min_reputation": 80,
                     "fallback_min_reputation": 70,
                     "fallback_hours_before_start": 10,
@@ -134,7 +198,8 @@ class GameCreate(BaseModel):
         ge=0,
         max_digits=6,
         decimal_places=2,
-        description="Venue or drop-in fee per player, for information only. 0 = free",
+        description="Total venue cost for the game. Each person's share is cost_per_player "
+        "(cost divided by spots + 1). 0 = free",
     )
     min_reputation: int = Field(
         default=0,
@@ -168,7 +233,13 @@ class GameUpdate(BaseModel):
     starts_at: datetime | None = None
     duration_minutes: int | None = Field(default=None, ge=15, le=480)
     spots: int | None = Field(default=None, ge=2, le=30)
-    cost: Decimal | None = Field(default=None, ge=0, max_digits=6, decimal_places=2)
+    cost: Decimal | None = Field(
+        default=None,
+        ge=0,
+        max_digits=6,
+        decimal_places=2,
+        description="Total venue cost for the game",
+    )
     min_reputation: int | None = Field(default=None, ge=0, le=MAX_MIN_REPUTATION)
     fallback_min_reputation: int | None = Field(default=None, ge=0, le=MAX_MIN_REPUTATION)
     fallback_hours_before_start: int | None = Field(default=None, ge=1, le=168)

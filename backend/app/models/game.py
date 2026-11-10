@@ -50,7 +50,7 @@ class Game(Base):
     # How long the game runs; the app uses it to know when to ask the host to mark attendance.
     duration_minutes: Mapped[int] = mapped_column(default=90, server_default="90")
     spots: Mapped[int]
-    # Per player. 0 means free.
+    # Total venue cost entered by the host. The per-player share is calculated. 0 means free.
     cost: Mapped[Decimal] = mapped_column(Numeric(6, 2), default=0, server_default="0")
     # 0 means anyone can join.
     min_reputation: Mapped[int] = mapped_column(default=0, server_default="0")

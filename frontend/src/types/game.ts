@@ -1,4 +1,9 @@
-export type GameStatus = "open" | "full" | "cancelled" | "played";
+export enum GameStatus {
+	Open = "open",
+	Full = "full",
+	Cancelled = "cancelled",
+	Played = "played",
+}
 
 /** GET /games returns a list of these. */
 export type Game = {
@@ -16,6 +21,12 @@ export type Game = {
 	fallback_hours_before_start: number | null;
 	status: GameStatus;
 	updated_at: string;
+	joined: boolean;
+	effective_min_reputation: number;
+	marked_count: number;
+	showed_up_count: number;
+	my_showed_up: boolean | null;
+	my_reputation_change: number | null;
 };
 
 export type Player = {
@@ -24,6 +35,7 @@ export type Player = {
 	reputation: number;
 	games_played: number;
 	is_new: boolean;
+	showed_up?: boolean | null;
 };
 
 /** GET /games/{id} returns one of these. */
@@ -32,7 +44,6 @@ export type GameDetail = Game & {
 	host_reputation: number;
 	players: Player[];
 	spots_left: number;
-	effective_min_reputation: number;
 };
 
 /** Query params for GET /games. */
@@ -52,4 +63,16 @@ export type GameCreate = {
 	spots: number; // players needed, not counting the host
 	cost: number;
 	min_reputation: number;
+};
+
+/** GET /me/games returns one of these. */
+export type MyGames = {
+	hosting: Game[];
+	joined: Game[];
+};
+
+/** POST /games/{id}/attendance */
+export type AttendanceMark = {
+	user_id: number;
+	showed_up: boolean;
 };

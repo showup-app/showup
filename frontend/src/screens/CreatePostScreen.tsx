@@ -1,5 +1,5 @@
 import { CustomTheme, useTheme } from "@react-navigation/native";
-import { Controller, SubmitHandler, useForm } from "react-hook-form";
+import { Controller, SubmitHandler, useForm, useWatch } from "react-hook-form";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Chip from "../components/form/Chip";
@@ -13,6 +13,9 @@ import { AppScreenProps } from "../navigation/types";
 import { GameCreate } from "../types/game";
 import { capitalize } from "../utils/format";
 import { SPORTS, sportIcon } from "../utils/sports";
+import { useState } from "react";
+import { useUser } from "../context/UserContext";
+import { api } from "../services/api";
 
 const MIN_SPOTS = 2;
 const MAX_SPOTS = 30;
@@ -67,27 +70,53 @@ function withDay(time: Date, day: Date): Date {
 	return result;
 }
 
-export function CreatePostScreen({ navigation }: AppScreenProps<"CreatePost">) {
+function toFormValues(game: GameCreate): CreateGameForm {
+	return {
+		sport: game.sport,
+		venue: game.venue,
+		address: game.address,
+		startsAt: new Date(game.starts_at),
+		durationMinutes: game.duration_minutes,
+		spots: game.spots,
+		minReputation: game.min_reputation,
+		isFree: game.cost === 0,
+		cost: game.cost === 0 ? "" : game.cost.toFixed(2),
+	};
+}
+
+export function CreatePostScreen({ navigation, route }: AppScreenProps<"CreatePost">) {
 	const theme = useTheme();
 	const styles = getStyles(theme);
+	const { token } = useUser();
 
-	const { control, handleSubmit, watch } = useForm<CreateGameForm>({
-		defaultValues: {
-			sport: "",
-			venue: "",
-			address: "",
-			startsAt: defaultStart(),
-			durationMinutes: 90,
-			spots: 10,
-			minReputation: 0,
-			isFree: true,
-			cost: "",
-		},
+	// When editing, the form starts with the game's current values
+	const edit = route.params?.edit;
+	const minSpots = Math.max(MIN_SPOTS, edit?.minSpots ?? MIN_SPOTS);
+	const [isSaving, setIsSaving] = useState(false);
+	const [saveError, setSaveError] = useState<string | null>(null);
+
+	const { control, handleSubmit } = useForm<CreateGameForm>({
+		defaultValues: edit
+			? toFormValues(edit.values)
+			: {
+					sport: "",
+					venue: "",
+					address: "",
+					startsAt: defaultStart(),
+					durationMinutes: 90,
+					spots: 10,
+					minReputation: 0,
+					isFree: true,
+					cost: "",
+				},
 	});
 
-	const isFree = watch("isFree");
+	const isFree = useWatch({
+		control,
+		name: "isFree",
+	});
 
-	const onSubmit: SubmitHandler<CreateGameForm> = (form) => {
+	const onSubmit: SubmitHandler<CreateGameForm> = async (form) => {
 		const draft: GameCreate = {
 			sport: form.sport,
 			venue: form.venue.trim(),
@@ -98,7 +127,25 @@ export function CreatePostScreen({ navigation }: AppScreenProps<"CreatePost">) {
 			cost: form.isFree ? 0 : Number(form.cost),
 			min_reputation: form.minReputation,
 		};
-		navigation.navigate("ConfirmPost", { draft });
+		if (!edit) {
+			navigation.navigate("ConfirmPost", { draft });
+			return;
+		}
+
+		// Editing: save straight away and go back to Game Details
+		if (!token) {
+			setSaveError("Please log in again to save your changes");
+			return;
+		}
+		setIsSaving(true);
+		setSaveError(null);
+		const res = await api.updateGame(edit.gameId, draft, token);
+		setIsSaving(false);
+		if (res.ok) {
+			navigation.goBack();
+		} else {
+			setSaveError(res.error);
+		}
 	};
 
 	return (
@@ -217,11 +264,15 @@ export function CreatePostScreen({ navigation }: AppScreenProps<"CreatePost">) {
 								<View style={styles.row}>
 									<View style={styles.rowText}>
 										<Text style={styles.rowTitle}>Players needed</Text>
-										<Text style={styles.caption}>Not counting you</Text>
+										<Text style={styles.caption}>
+											{edit && edit.minSpots > MIN_SPOTS
+												? `Not counting you · ${edit.minSpots} already joined`
+												: "Not counting you"}
+										</Text>
 									</View>
 									<Stepper
 										value={field.value}
-										min={MIN_SPOTS}
+										min={minSpots}
 										max={MAX_SPOTS}
 										onChange={field.onChange}
 									/>
@@ -307,7 +358,9 @@ export function CreatePostScreen({ navigation }: AppScreenProps<"CreatePost">) {
 													maxLength={7}
 												/>
 											</View>
-											{fieldState.error && <FormErrorMessage message={fieldState.error.message!} />}
+											{fieldState.error && (
+												<FormErrorMessage message={fieldState.error.message!} />
+											)}
 										</>
 									)}
 								/>
@@ -317,8 +370,9 @@ export function CreatePostScreen({ navigation }: AppScreenProps<"CreatePost">) {
 				</ScrollView>
 
 				<View style={styles.footer}>
-					<Button variant="primary" onPress={handleSubmit(onSubmit)}>
-						Next
+					{saveError && <FormErrorMessage message={saveError} />}
+					<Button variant="primary" onPress={() => handleSubmit(onSubmit)()} disabled={isSaving}>
+						{edit ? (isSaving ? "Saving..." : "Save changes") : "Next"}
 					</Button>
 				</View>
 			</KeyboardAvoidingView>

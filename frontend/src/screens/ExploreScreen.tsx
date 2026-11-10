@@ -1,21 +1,17 @@
 import { CustomTheme, useTheme } from "@react-navigation/native";
 import { useEffect, useState } from "react";
-import {
-	ActivityIndicator,
-	FlatList,
-	Platform,
-	Pressable,
-	RefreshControl,
-	StyleSheet,
-	Text,
-	TextInput,
-	View,
-} from "react-native";
+import { FlatList, Platform, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import GameCard from "../components/game/GameCard";
 import { TabScreenProps } from "../navigation/types";
 import { api } from "../services/api";
 import { Game } from "../types/game";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useUser } from "../context/UserContext";
+import LoadingView from "../components/layout/LoadingView";
+import ErrorView from "../components/layout/ErrorView";
+import Chip from "../components/form/Chip";
+import { SPORTS, sportIcon } from "../utils/sports";
+import { capitalize } from "../utils/format";
 
 const MIN_SEARCH_LENGTH = 2;
 const SEARCH_DELAY_MS = 400;
@@ -23,8 +19,10 @@ const SEARCH_DELAY_MS = 400;
 export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 	const theme = useTheme();
 	const styles = getStyles(theme);
+	const { token } = useUser();
 
 	const [search, setSearch] = useState("");
+	const [sport, setSport] = useState<string | undefined>(undefined);
 	const [games, setGames] = useState<Game[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [refreshing, setRefreshing] = useState(false);
@@ -34,10 +32,11 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 
 	const loadGames = async () => {
 		setError(null);
-		try {
-			setGames(await api.getGames({ location }));
-		} catch (err) {
-			setError(err instanceof Error ? err.message : "Couldn't load games");
+		const res = await api.getGames({ location }, token!);
+		if (res.ok) {
+			setGames(res.data);
+		} else {
+			setError(res.error);
 		}
 	};
 
@@ -46,13 +45,14 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 		const timer = setTimeout(async () => {
 			setLoading(true);
 			setError(null);
-			try {
-				const result = await api.getGames({ location });
-				if (!cancelled) setGames(result);
-			} catch (err) {
-				if (!cancelled) setError(err instanceof Error ? err.message : "Couldn't load games");
-			} finally {
-				if (!cancelled) setLoading(false);
+			if (!cancelled) {
+				const result = await api.getGames({ location, sport }, token!);
+				if (result.ok) {
+					setGames(result.data);
+				} else {
+					setError(result.error);
+				}
+				setLoading(false);
 			}
 		}, SEARCH_DELAY_MS);
 
@@ -60,7 +60,7 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 			cancelled = true;
 			clearTimeout(timer);
 		};
-	}, [location]);
+	}, [location, sport, token]);
 
 	const onRefresh = async () => {
 		setRefreshing(true);
@@ -84,30 +84,49 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 				/>
 			</View>
 
+			<ScrollView
+				horizontal
+				showsHorizontalScrollIndicator={false}
+				contentContainerStyle={styles.sportChips}
+				style={styles.sportChipsRow}
+			>
+				<Chip label="All" selected={sport === undefined} onPress={() => setSport(undefined)} />
+				{SPORTS.map((name) => (
+					<Chip
+						key={name}
+						label={capitalize(name)}
+						icon={sportIcon(name)}
+						selected={sport === name}
+						onPress={() => setSport(name)}
+					/>
+				))}
+			</ScrollView>
+
 			{loading && !refreshing ? (
-				<View style={styles.centered}>
-					<ActivityIndicator color={theme.colors.textSecondary} />
-					<Text style={styles.message}>Finding games…</Text>
-				</View>
+				<LoadingView message="Finding games…" screen={false} />
 			) : error ? (
-				<View style={styles.centered}>
-					<Text style={styles.message}>{error}</Text>
-					<Pressable onPress={onRefresh} hitSlop={8}>
-						<Text style={styles.retry}>Try again</Text>
-					</Pressable>
-				</View>
+				<ErrorView errorMsg={error} onRetry={onRefresh} screen={false} />
 			) : (
 				<FlatList
 					data={games}
 					keyExtractor={(game) => String(game.id)}
 					renderItem={({ item }) => (
-        <GameCard
-          game={item}
-          onSeePlayers={() => navigation.navigate("GameDetails", { gameId: item.id })}
-          onJoin={() => {
-            // TODO: call api.joinGame(item.id) once login exists
-          }}
-        />
+						<GameCard
+							game={item}
+							onSeePlayers={() => navigation.navigate("GameDetails", { gameId: item.id })}
+							onJoin={async () => {
+								const res = await api.joinGame(item.id, token!);
+								if (!res.ok) {
+									// TODO: Unify error message display across the entire app (i.e.: modal popup? toast message?)
+									console.log(res.error, res.status);
+									return;
+								}
+								// Set current game status to joined
+								setGames((prevGames) =>
+									prevGames.map((game) => (game.id === item.id ? { ...item, joined: true } : game)),
+								);
+							}}
+						/>
 					)}
 					contentContainerStyle={styles.list}
 					keyboardShouldPersistTaps="handled"
@@ -118,15 +137,16 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 							tintColor={theme.colors.textSecondary}
 						/>
 					}
-					ListEmptyComponent={
-						<Text style={styles.message}>
-							{location ? `No upcoming games near "${location}"` : "No upcoming games yet"}
-						</Text>
-					}
+					ListEmptyComponent={<Text style={styles.message}>{emptyMessage(sport, location)}</Text>}
 				/>
 			)}
 		</SafeAreaView>
 	);
+}
+
+function emptyMessage(sport?: string, location?: string): string {
+	const what = sport ? `${sport} games` : "games";
+	return location ? `No upcoming ${what} near "${location}"` : `No upcoming ${what} yet`;
 }
 
 const getStyles = (theme: CustomTheme) =>
@@ -161,21 +181,19 @@ const getStyles = (theme: CustomTheme) =>
 			paddingBottom: 20,
 			gap: 28,
 		},
-		centered: {
-			flex: 1,
-			alignItems: "center",
-			justifyContent: "center",
-			gap: 12,
-			padding: 20,
-		},
 		message: {
 			color: theme.colors.textMuted,
 			fontSize: 14,
 			textAlign: "center",
 		},
-		retry: {
-			color: theme.colors.textSecondary,
-			fontSize: 14,
-			fontWeight: "600",
+		sportChipsRow: {
+			flexGrow: 0,
+			flexShrink: 0,
+			marginBottom: 20,
+		},
+		sportChips: {
+			paddingHorizontal: 20,
+			gap: 8,
+			alignItems: "center",
 		},
 	});

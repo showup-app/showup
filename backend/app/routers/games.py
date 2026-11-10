@@ -1,13 +1,19 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, HTTPException, Query, status
-from sqlalchemy import func, or_, select
+from sqlalchemy import Select, func, or_, select
 from sqlalchemy.orm import selectinload
 
-from app.deps import CurrentUser, DbDep
-from app.models import Game, GameStatus, Signup, SignupStatus, User
-from app.reputation import effective_min_reputation, player_stats
+from app.deps import CurrentUser, DbDep, OptionalUser
+from app.models import Attendance, Game, GameStatus, Signup, SignupStatus, User
+from app.reputation import (
+    MARK_WINDOW_DAYS,
+    effective_min_reputation,
+    player_stats,
+    recompute,
+)
 from app.schemas.game import (
+    AttendanceIn,
     GameCreate,
     GameDetailOut,
     GameOut,
@@ -47,21 +53,104 @@ def _joined_count(db: DbDep, game_id: int) -> int:
     return db.scalar(stmt) or 0
 
 
-def _summary(game: Game, joined: int) -> GameSummaryOut:
+def _change(mark: Attendance | None) -> int | None:
+    """What a game did to a player's reputation, from the before/after stored at mark time."""
+    if mark is None or mark.reputation_before is None or mark.reputation_after is None:
+        return None
+    return mark.reputation_after - mark.reputation_before
+
+
+def _summary(
+    game: Game,
+    joined_count: int,
+    joined: bool,
+    marked: int = 0,
+    showed_up: int = 0,
+    my_showed_up: bool | None = None,
+    my_reputation_change: int | None = None,
+) -> GameSummaryOut:
     """The list row for a game whose host is already loaded."""
     return GameSummaryOut(
         **GameOut.model_validate(game).model_dump(),
         host_name=game.host.name,
         host_reputation=game.host.reputation,
-        spots_left=max(game.spots - joined, 0),
+        spots_left=max(game.spots - joined_count, 0),
+        cost_per_player=round(float(game.cost) / (game.spots + 1), 2),
+        effective_min_reputation=effective_min_reputation(game),
+        joined=joined,
+        marked_count=marked,
+        showed_up_count=showed_up,
+        my_showed_up=my_showed_up,
+        my_reputation_change=my_reputation_change,
     )
 
 
-def _detail(db: DbDep, game_id: int) -> GameDetailOut:
+def summaries(db: DbDep, stmt: Select[tuple[Game]], user: User | None) -> list[GameSummaryOut]:
+    """Run a select(Game) and build list rows. Grouped counts of joined players and of
+    attendance marks are joined in and, when a user is known, that user's own signup and mark,
+    so any list is two queries (games + hosts) however long it gets."""
+    counts = (
+        select(Signup.game_id, func.count().label("joined"))
+        .where(Signup.status == SignupStatus.JOINED)
+        .group_by(Signup.game_id)
+        .subquery()
+    )
+    marks = (
+        select(
+            Attendance.game_id,
+            func.count().label("marked"),
+            func.count().filter(Attendance.showed_up.is_(True)).label("showed_up"),
+        )
+        .group_by(Attendance.game_id)
+        .subquery()
+    )
+    stmt = (
+        stmt.add_columns(
+            func.coalesce(counts.c.joined, 0),
+            func.coalesce(marks.c.marked, 0),
+            func.coalesce(marks.c.showed_up, 0),
+        )
+        .outerjoin(counts, counts.c.game_id == Game.id)
+        .outerjoin(marks, marks.c.game_id == Game.id)
+        .options(selectinload(Game.host))
+    )
+    if user is None:
+        return [
+            _summary(game, count, False, marked, showed)
+            for game, count, marked, showed in db.execute(stmt)
+        ]
+    mine = (
+        select(Signup.game_id)
+        .where(Signup.user_id == user.id, Signup.status == SignupStatus.JOINED)
+        .subquery()
+    )
+    my_mark = (
+        select(
+            Attendance.game_id,
+            Attendance.showed_up,
+            (Attendance.reputation_after - Attendance.reputation_before).label("change"),
+        ).where(Attendance.user_id == user.id)
+    ).subquery()
+    stmt = (
+        stmt.add_columns(mine.c.game_id.is_not(None), my_mark.c.showed_up, my_mark.c.change)
+        .outerjoin(mine, mine.c.game_id == Game.id)
+        .outerjoin(my_mark, my_mark.c.game_id == Game.id)
+    )
+    return [
+        _summary(game, count, bool(joined), marked, showed, my_showed_up, change)
+        for game, count, marked, showed, joined, my_showed_up, change in db.execute(stmt)
+    ]
+
+
+def _detail(db: DbDep, game_id: int, user: User | None) -> GameDetailOut:
     stmt = (
         select(Game)
         .where(Game.id == game_id)
-        .options(selectinload(Game.host), selectinload(Game.signups).selectinload(Signup.user))
+        .options(
+            selectinload(Game.host),
+            selectinload(Game.signups).selectinload(Signup.user),
+            selectinload(Game.attendance),
+        )
     )
     game = db.scalar(stmt)
     if game is None:
@@ -71,6 +160,7 @@ def _detail(db: DbDep, game_id: int) -> GameDetailOut:
         key=lambda s: (s.created_at, s.id),
     )
     stats = player_stats(db, [s.user_id for s in joined])
+    marks = {a.user_id: a for a in game.attendance}
     players = [
         PlayerOut(
             id=s.user.id,
@@ -78,13 +168,15 @@ def _detail(db: DbDep, game_id: int) -> GameDetailOut:
             reputation=s.user.reputation,
             games_played=stats[s.user_id]["games_played"],
             is_new=stats[s.user_id]["is_new"],
+            showed_up=marks[s.user_id].showed_up if s.user_id in marks else None,
+            reputation_change=_change(marks.get(s.user_id)),
         )
         for s in joined
     ]
+    joined_here = user is not None and any(s.user_id == user.id for s in joined)
     return GameDetailOut(
-        **_summary(game, len(players)).model_dump(),
+        **_summary(game, len(players), joined_here).model_dump(),
         players=players,
-        effective_min_reputation=effective_min_reputation(game),
     )
 
 
@@ -99,6 +191,7 @@ def _escape_like(text: str) -> str:
 @router.get("", response_model=list[GameSummaryOut])
 def list_games(
     db: DbDep,
+    user: OptionalUser,
     sport: str | None = Query(None, description="Only this sport, case-insensitive"),
     location: str | None = Query(
         None,
@@ -108,23 +201,10 @@ def list_games(
     ),
     include_past: bool = Query(False, description="Also return games that already started"),
 ) -> list[GameSummaryOut]:
-    """Upcoming games, soonest first, each with its host and places left. Cancelled games are
-    never listed."""
-    # One grouped count of joined players per game, joined in, so the list is two queries
-    # (games + hosts) however long it gets.
-    joined = (
-        select(Signup.game_id, func.count().label("joined"))
-        .where(Signup.status == SignupStatus.JOINED)
-        .group_by(Signup.game_id)
-        .subquery()
-    )
-    stmt = (
-        select(Game, func.coalesce(joined.c.joined, 0))
-        .outerjoin(joined, joined.c.game_id == Game.id)
-        .options(selectinload(Game.host))
-        .where(Game.status != GameStatus.CANCELLED)
-        .order_by(Game.starts_at)
-    )
+    """Upcoming games, soonest first, each with its host, places left, the minimum that applies
+    right now and, if a token is sent, whether the caller has joined. Cancelled games are never
+    listed."""
+    stmt = select(Game).where(Game.status != GameStatus.CANCELLED).order_by(Game.starts_at)
     if sport:
         stmt = stmt.where(func.lower(Game.sport) == sport.lower())
     if location:
@@ -134,14 +214,14 @@ def list_games(
         )
     if not include_past:
         stmt = stmt.where(Game.starts_at >= func.now())
-    return [_summary(game, count) for game, count in db.execute(stmt)]
+    return summaries(db, stmt, user)
 
 
 @router.get("/{game_id}", response_model=GameDetailOut)
-def get_game(game_id: int, db: DbDep) -> GameDetailOut:
+def get_game(game_id: int, db: DbDep, user: OptionalUser) -> GameDetailOut:
     """One game with its host, the players who have joined (oldest signup first), and the
     reputation requirement that applies right now."""
-    return _detail(db, game_id)
+    return _detail(db, game_id, user)
 
 
 # ---------- hosting ----------
@@ -230,13 +310,16 @@ def join_game(game_id: int, db: DbDep, user: CurrentUser) -> GameDetailOut:
     if joined + 1 >= game.spots:
         game.status = GameStatus.FULL
     db.commit()
-    return _detail(db, game.id)
+    return _detail(db, game.id, user)
 
 
 @router.delete("/{game_id}/join", response_model=GameDetailOut)
 def leave_game(game_id: int, db: DbDep, user: CurrentUser) -> GameDetailOut:
-    """Give up your spot. Frees the game if it was full."""
+    """Give up your spot. Frees the game if it was full. Not after kickoff: the roster freezes
+    so the host can mark who showed up."""
     game = _get_game_or_404(db, game_id, lock=True)
+    if game.starts_at <= datetime.now(UTC):
+        raise HTTPException(status.HTTP_409_CONFLICT, "Game has already started")
     signup = db.scalar(
         select(Signup).where(
             Signup.game_id == game.id,
@@ -250,4 +333,99 @@ def leave_game(game_id: int, db: DbDep, user: CurrentUser) -> GameDetailOut:
     if game.status == GameStatus.FULL:
         game.status = GameStatus.OPEN
     db.commit()
-    return _detail(db, game.id)
+    return _detail(db, game.id, user)
+
+
+@router.delete("/{game_id}/players/{user_id}", response_model=GameDetailOut)
+def remove_player(game_id: int, user_id: int, db: DbDep, user: CurrentUser) -> GameDetailOut:
+    """Host takes a player off the roster. The signup is kept as removed, so the player cannot
+    rejoin and the history shows a removal rather than a leave. Not after kickoff: the roster
+    freezes so the host can mark who showed up."""
+    game = _get_game_or_404(db, game_id, lock=True)
+    _require_host(game, user)
+    if game.status == GameStatus.CANCELLED:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Game is cancelled")
+    if game.starts_at <= datetime.now(UTC):
+        raise HTTPException(status.HTTP_409_CONFLICT, "Game has already started")
+    signup = db.scalar(
+        select(Signup).where(
+            Signup.game_id == game.id,
+            Signup.user_id == user_id,
+            Signup.status == SignupStatus.JOINED,
+        )
+    )
+    if signup is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "That player is not in this game")
+    signup.status = SignupStatus.REMOVED
+    if game.status == GameStatus.FULL:
+        game.status = GameStatus.OPEN
+    db.commit()
+    return _detail(db, game.id, user)
+
+
+# ---------- after the game ----------
+
+
+@router.post("/{game_id}/attendance", response_model=GameDetailOut)
+def mark_attendance(
+    game_id: int, body: AttendanceIn, db: DbDep, user: CurrentUser
+) -> GameDetailOut:
+    """Host records who showed up. Only after kickoff and within the marking window; marks can
+    be changed inside the window. The first mark sets the game to played, and every marked
+    player's reputation is recomputed."""
+    game = _get_game_or_404(db, game_id, lock=True)
+    _require_host(game, user)
+    if game.status == GameStatus.CANCELLED:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Game is cancelled")
+    now = datetime.now(UTC)
+    if now < game.starts_at:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Game has not started yet")
+    if now > game.starts_at + timedelta(days=MARK_WINDOW_DAYS):
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            f"Attendance can only be marked within {MARK_WINDOW_DAYS} days of kickoff",
+        )
+
+    roster = set(
+        db.scalars(
+            select(Signup.user_id).where(
+                Signup.game_id == game.id, Signup.status == SignupStatus.JOINED
+            )
+        )
+    )
+    strangers = sorted(m.user_id for m in body.marks if m.user_id not in roster)
+    if strangers:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT,
+            "Not on the roster: " + ", ".join(map(str, strangers)),
+        )
+
+    existing = {
+        a.user_id: a for a in db.scalars(select(Attendance).where(Attendance.game_id == game.id))
+    }
+    marked_ids = [m.user_id for m in body.marks]
+    players = {p.id: p for p in db.scalars(select(User).where(User.id.in_(marked_ids)))}
+    rows: dict[int, Attendance] = {}
+    for mark in body.marks:
+        row = existing.get(mark.user_id)
+        if row is None:
+            row = Attendance(
+                game_id=game.id,
+                user_id=mark.user_id,
+                showed_up=mark.showed_up,
+                marked_by=user.id,
+                marked_at=now,
+                reputation_before=players[mark.user_id].reputation,
+            )
+            db.add(row)
+        else:
+            row.showed_up = mark.showed_up
+            row.marked_by = user.id
+            row.marked_at = now
+        rows[mark.user_id] = row
+    game.status = GameStatus.PLAYED
+    db.flush()
+    for user_id, row in rows.items():
+        row.reputation_after = recompute(db, players[user_id])
+    db.commit()
+    return _detail(db, game.id, user)

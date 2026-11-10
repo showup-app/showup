@@ -15,6 +15,8 @@ export type LoginReponse = {
 	token_type: string;
 };
 
+export type RegisterResponse = User & LoginReponse;
+
 export type RegisterBody = {
 	email: string;
 	name: string;

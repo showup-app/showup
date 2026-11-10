@@ -9,6 +9,7 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { api } from "../services/api";
 import { RegisterBody } from "../types/auth";
 import FormErrorMessage from "../components/ui/FormErrorMessage";
+import { useUser } from "../context/UserContext";
 
 type RegisterForm = {
 	email: string;
@@ -20,6 +21,7 @@ type RegisterForm = {
 const RegisterScreen = ({ navigation }: AppScreenProps<"Register">) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
+	const { login } = useUser();
 
 	const {
 		control,
@@ -38,23 +40,32 @@ const RegisterScreen = ({ navigation }: AppScreenProps<"Register">) => {
 		},
 	});
 
-	const onSubmit: SubmitHandler<RegisterForm> = async (
-		formData: RegisterForm,
-	) => {
+	const onSubmit: SubmitHandler<RegisterForm> = async (formData: RegisterForm) => {
 		const registerBody: RegisterBody = {
 			email: formData.email,
 			name: formData.name,
 			password: formData.password,
 		};
 
-		try {
-			const user = await api.register(registerBody);
-			console.log(user);
-			navigation.replace('Login'); // TODO: add flash message on login screen with success message?
-		} catch (error) {
-			setError("root.server", {
-				message: "Failed to register, please try again later",
-			});
+		const res = await api.register(registerBody);
+		if (res.ok) {
+			const { id, email, name, reputation, access_token } = res.data;
+			login({ id, email, name, reputation }, access_token);
+			navigation.replace("Tabs", { screen: "Home" });
+		} else {
+			if (res.status === 409) {
+				setError(
+					"email",
+					{
+						message: "This email is already in use by a registered user",
+					},
+					{ shouldFocus: true },
+				);
+			} else {
+				setError("root.server", {
+					message: res.error,
+				});
+			}
 		}
 	};
 
@@ -81,8 +92,7 @@ const RegisterScreen = ({ navigation }: AppScreenProps<"Register">) => {
 								required: "Email is required",
 								pattern: {
 									value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-									message:
-										"Email must be in the valid format",
+									message: "Email must be in the valid format",
 								},
 							},
 						}}
@@ -113,8 +123,7 @@ const RegisterScreen = ({ navigation }: AppScreenProps<"Register">) => {
 								required: "Password is required",
 								minLength: {
 									value: 8,
-									message:
-										"Password must be at least 8 characters long",
+									message: "Password must be at least 8 characters long",
 								},
 							},
 						}}
@@ -131,31 +140,18 @@ const RegisterScreen = ({ navigation }: AppScreenProps<"Register">) => {
 							name: "confirmPassword",
 							rules: {
 								required: "Confirm Password is required",
-								validate: (value) =>
-									value === getValues("password") ||
-									"Passwords must match",
+								validate: (value) => value === getValues("password") || "Passwords must match",
 							},
 						}}
 					/>
-					{errors.root?.server?.message && (
-						<FormErrorMessage
-							message={errors.root.server.message}
-						/>
-					)}
+					{errors.root?.server?.message && <FormErrorMessage message={errors.root.server.message} />}
 				</View>
-				<Button
-					variant="primary"
-					onPress={handleSubmit(onSubmit)}
-					disabled={isSubmitting}
-				>
+				<Button variant="primary" onPress={() => handleSubmit(onSubmit)()} disabled={isSubmitting}>
 					{isSubmitting ? "Registering..." : "Register"}
 				</Button>
 				<Text style={styles.footerText}>
 					Already have an account?{" "}
-					<Text
-						style={{ color: theme.colors.textSecondary }}
-						onPress={() => navigation.navigate("Login")}
-					>
+					<Text style={{ color: theme.colors.textSecondary }} onPress={() => navigation.navigate("Login")}>
 						Log In
 					</Text>
 				</Text>
