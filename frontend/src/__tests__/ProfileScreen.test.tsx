@@ -24,22 +24,19 @@ describe("ProfileScreen", () => {
 	});
 
 	it("shows loading and error states, then retries successfully", async () => {
-		let resolveGames: ((result: Awaited<ReturnType<typeof mockApi.getMyGames>>) => void) | undefined;
-		mockApi.getMyGames
-			.mockImplementationOnce(
-				() =>
-					new Promise((resolve) => {
-						resolveGames = resolve;
-					}),
-			)
-			.mockResolvedValueOnce({ ok: true, data: makeMyGames(), status: 200 });
+		const { promise, resolve } = Promise.withResolvers<Awaited<ReturnType<typeof mockApi.getMyGames>>>();
+		mockApi.getMyGames.mockReturnValueOnce(promise).mockResolvedValueOnce({
+			ok: true,
+			data: makeMyGames(),
+			status: 200,
+		});
 
 		const { getByText, findByText } = await render(<ProfileScreen {...params} />);
 
 		expect(getByText("Loading your games…")).toBeTruthy();
 		expect(mockApi.getMyGames).toHaveBeenCalledWith("test-token", true);
 		await act(async () => {
-			resolveGames?.({ ok: false, data: null, status: 500, error: "Could not load profile" });
+			resolve({ ok: false, data: null, status: 500, error: "Could not load profile" });
 		});
 		expect(await findByText("Could not load profile")).toBeTruthy();
 

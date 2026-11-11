@@ -63,31 +63,17 @@ describe("GameDetailsScreen", () => {
 			],
 		});
 		mockApi.getGame.mockResolvedValue({ ok: true, data: game, status: 200 });
-		let resolveRemovePlayer: ((result: Awaited<ReturnType<typeof mockApi.removePlayer>>) => void) | undefined;
-		let notifyRemovePlayerStarted: (() => void) | undefined;
-		const removePlayerStarted = new Promise<void>((resolve) => {
-			notifyRemovePlayerStarted = resolve;
+		const { promise: removePlayerPromise, resolve: resolveRemovePlayer } =
+			Promise.withResolvers<Awaited<ReturnType<typeof mockApi.removePlayer>>>();
+		mockApi.removePlayer.mockImplementation(() => {
+			return removePlayerPromise;
 		});
-		mockApi.removePlayer.mockImplementation(
-			() =>
-				new Promise((resolve) => {
-					resolveRemovePlayer = resolve;
-					notifyRemovePlayerStarted?.();
-				}),
-		);
-		let resolveCancelGame: ((result: Awaited<ReturnType<typeof mockApi.cancelGame>>) => void) | undefined;
-		let notifyCancelGameStarted: (() => void) | undefined;
-		const cancelGameStarted = new Promise<void>((resolve) => {
-			notifyCancelGameStarted = resolve;
+		const { promise: cancelGamePromise, resolve: resolveCancelGame } =
+			Promise.withResolvers<Awaited<ReturnType<typeof mockApi.cancelGame>>>();
+		mockApi.cancelGame.mockImplementation(() => {
+			return cancelGamePromise;
 		});
-		mockApi.cancelGame.mockImplementation(
-			() =>
-				new Promise((resolve) => {
-					resolveCancelGame = resolve;
-					notifyCancelGameStarted?.();
-				}),
-		);
-		const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
+		const alert = jest.spyOn(Alert, "alert");
 		const { getByText, getByTestId, findByText, queryByText } = await render(<GameDetailsScreen {...params} />);
 
 		await findByText("Edit Game Details");
@@ -97,11 +83,8 @@ describe("GameDetailsScreen", () => {
 			expect.objectContaining({ edit: expect.objectContaining({ gameId: 1, minSpots: 2 }) }),
 		);
 		await act(async () => {
-			const removePress = fireEvent.press(getByTestId("remove-player-2"));
-			await removePlayerStarted;
-			resolveRemovePlayer?.({ ok: true, data: game, status: 200 });
-			await removePress;
-			await new Promise<void>((resolve) => setImmediate(resolve));
+			resolveRemovePlayer({ ok: true, data: game, status: 200 });
+			await fireEvent.press(getByTestId("remove-player-2"));
 		});
 		expect(mockApi.removePlayer).toHaveBeenCalledWith(1, 2, "test-token");
 		expect(queryByText("Player One")).toBeNull();
@@ -114,15 +97,12 @@ describe("GameDetailsScreen", () => {
 			{ cancelable: true },
 		);
 		const buttons = alert.mock.calls[0][2]!;
-		await act(async () => {
-			buttons[0].onPress?.();
-		});
+		buttons[0].onPress?.();
 		expect(mockApi.cancelGame).not.toHaveBeenCalled();
+		buttons[1].onPress?.();
+
 		await act(async () => {
-			buttons[1].onPress?.();
-			await cancelGameStarted;
-			resolveCancelGame?.({ ok: true, data: game, status: 200 });
-			await new Promise<void>((resolve) => setImmediate(resolve));
+			resolveCancelGame({ ok: true, data: game, status: 200 });
 		});
 		expect(await findByText("This game has been cancelled by the host.")).toBeTruthy();
 		expect(mockApi.cancelGame).toHaveBeenCalledWith(1, "test-token");
@@ -130,49 +110,26 @@ describe("GameDetailsScreen", () => {
 		expect(alert).toHaveBeenCalledTimes(1);
 	});
 
-	// TODO: Add error messages for a failed player-removal/cancellation, and complete this test
-	// it("displays an error message for failed player-removal and cancellation requests", async () => {
-	// 	setUser(99);
-	// 	mockApi.getGame.mockResolvedValue({ ok: true, data: makeGameDetail({ host_id: 99 }), status: 200 });
-	// 	mockApi.removePlayer.mockResolvedValue({ ok: false, data: null, status: 500, error: "Remove failed" });
-	// 	mockApi.cancelGame.mockResolvedValue({ ok: false, data: null, status: 500, error: "Cancel failed" });
-	// 	const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
-	// 	const { getByTestId, getByText, findByText } = await render(<GameDetailsScreen {...params} />);
-
-	// 	await findByText("Edit Game Details");
-	// 	await fireEvent.press(getByTestId("remove-player-2"));
-	// 	await fireEvent.press(getByText("Cancel Game"));
-	// 	alert.mock.calls[0][2]![1].onPress?.();
-	// });
-
 	it("joins and leaves a game, showing the in-progress label", async () => {
 		setUser(5);
-		let resolveJoin: ((result: Awaited<ReturnType<typeof mockApi.joinGame>>) => void) | undefined;
+		const { promise: joinPromise, resolve: resolveJoin } =
+			Promise.withResolvers<Awaited<ReturnType<typeof mockApi.joinGame>>>();
 		mockApi.getGame.mockResolvedValue({
 			ok: true,
 			data: makeGameDetail({ host_id: 99, joined: false, spots_left: 2 }),
 			status: 200,
 		});
-		mockApi.joinGame.mockImplementation(
-			() =>
-				new Promise((resolve) => {
-					resolveJoin = resolve;
-				}),
-		);
-		let resolveLeave: ((result: Awaited<ReturnType<typeof mockApi.leaveGame>>) => void) | undefined;
-		mockApi.leaveGame.mockImplementation(
-			() =>
-				new Promise((resolve) => {
-					resolveLeave = resolve;
-				}),
-		);
+		mockApi.joinGame.mockReturnValue(joinPromise);
+		const { promise: leavePromise, resolve: resolveLeave } =
+			Promise.withResolvers<Awaited<ReturnType<typeof mockApi.leaveGame>>>();
+		mockApi.leaveGame.mockReturnValue(leavePromise);
 		const { getByText, findByText } = await render(<GameDetailsScreen {...params} />);
 
 		await findByText("PLAYERS");
 		const joinPress = fireEvent.press(getByText("Join"));
 		expect(await findByText("Joining...")).toBeTruthy();
 		await act(async () => {
-			resolveJoin?.({
+			resolveJoin({
 				ok: true,
 				data: makeGameDetail({ host_id: 99, joined: true, spots_left: 1 }),
 				status: 200,
@@ -183,7 +140,7 @@ describe("GameDetailsScreen", () => {
 		const leavePress = fireEvent.press(getByText("Leave"));
 		expect(await findByText("Leaving...")).toBeTruthy();
 		await act(async () => {
-			resolveLeave?.({
+			resolveLeave({
 				ok: true,
 				data: makeGameDetail({ host_id: 99, joined: false, spots_left: 2 }),
 				status: 200,
@@ -193,31 +150,6 @@ describe("GameDetailsScreen", () => {
 		await waitFor(() => expect(mockApi.leaveGame).toHaveBeenCalledWith(1, "test-token"));
 		expect(getByText("Join")).toBeTruthy();
 	});
-
-	// TODO: Add error message for a failed join/leave, and complete this test
-	// it("logs failed join and leave requests", async () => {
-	// 	setUser(5);
-	// 	mockApi.getGame.mockResolvedValue({
-	// 		ok: true,
-	// 		data: makeGameDetail({ joined: false, spots_left: 2 }),
-	// 		status: 200,
-	// 	});
-	// 	mockApi.joinGame.mockResolvedValue({ ok: false, data: null, status: 500, error: "Join failed" });
-	// 	const { getByText, findByText, unmount } = await render(<GameDetailsScreen {...params} />);
-
-	// 	await findByText("PLAYERS");
-	// 	await fireEvent.press(getByText("Join"));;
-
-	// 	await unmount();
-	// 	mockApi.getGame.mockResolvedValue({
-	// 		ok: true,
-	// 		data: makeGameDetail({ joined: true, spots_left: 1 }),
-	// 		status: 200,
-	// 	});
-	// 	mockApi.leaveGame.mockResolvedValue({ ok: false, data: null, status: 500, error: "Leave failed" });
-	// 	const joinedScreen = await render(<GameDetailsScreen {...params} />);
-	// 	await fireEvent.press(await joinedScreen.findByText("Leave"));
-	// });
 
 	it("disables joining full or cancelled games but allows a joined player to leave", async () => {
 		setUser(5);
@@ -287,16 +219,11 @@ describe("GameDetailsScreen", () => {
 		setUser(99);
 		mockApi.getGame.mockReset();
 		mockApi.removePlayer.mockReset();
-		let resolveRemoval: ((result: Awaited<ReturnType<typeof mockApi.removePlayer>>) => void) | undefined;
+		const { promise, resolve } = Promise.withResolvers<Awaited<ReturnType<typeof mockApi.removePlayer>>>();
 		mockApi.getGame
 			.mockResolvedValueOnce({ ok: true, data: makeGameDetail({ host_id: 99 }), status: 200 })
 			.mockResolvedValueOnce({ ok: false, data: null, status: 500, error: "Game unavailable" });
-		mockApi.removePlayer.mockImplementation(
-			() =>
-				new Promise((resolve) => {
-					resolveRemoval = resolve;
-				}),
-		);
+		mockApi.removePlayer.mockReturnValue(promise);
 		const view = await render(<GameDetailsScreen {...params} />);
 		await view.findByText("Edit Game Details");
 		const playerCard = await view.findByTestId("remove-player-2");
@@ -304,10 +231,8 @@ describe("GameDetailsScreen", () => {
 		await waitFor(() => expect(mockApi.removePlayer).toHaveBeenCalledWith(1, 2, "test-token"));
 
 		await view.rerender(<GameDetailsScreen {...params} route={{ ...params.route, params: { gameId: 2 } }} />);
-		await view.findByText("Game unavailable");
 		await act(async () => {
-			resolveRemoval?.({ ok: true, data: makeGameDetail(), status: 200 });
-			await new Promise<void>((resolve) => setImmediate(resolve));
+			resolve({ ok: true, data: makeGameDetail(), status: 200 });
 		});
 		await fireEvent.press(playerCard);
 		expect(view.getByText("Game unavailable")).toBeTruthy();
@@ -317,32 +242,28 @@ describe("GameDetailsScreen", () => {
 		setUser(99);
 		mockApi.getGame.mockReset();
 		mockApi.cancelGame.mockReset();
-		let resolveCancellation: ((result: Awaited<ReturnType<typeof mockApi.cancelGame>>) => void) | undefined;
+		const { promise, resolve } = Promise.withResolvers<Awaited<ReturnType<typeof mockApi.cancelGame>>>();
 		mockApi.getGame
 			.mockResolvedValueOnce({ ok: true, data: makeGameDetail({ host_id: 99 }), status: 200 })
 			.mockResolvedValueOnce({ ok: false, data: null, status: 500, error: "Game unavailable" });
-		mockApi.cancelGame.mockImplementation(
-			() =>
-				new Promise((resolve) => {
-					resolveCancellation = resolve;
-				}),
-		);
-		const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
-		const view = await render(<GameDetailsScreen {...params} />);
-		await view.findByText("Cancel Game");
-		await fireEvent.press(view.getByText("Cancel Game"));
-		const confirm = alert.mock.calls[0][2]![1].onPress;
-		await act(async () => {
-			confirm?.();
-		});
-		await waitFor(() => expect(mockApi.cancelGame).toHaveBeenCalledWith(1, "test-token"));
+		mockApi.cancelGame.mockReturnValue(promise);
 
+		const alert = jest.spyOn(Alert, "alert");
+		const view = await render(<GameDetailsScreen {...params} />);
+		await fireEvent.press(await view.findByText("Cancel Game"));
+		await waitFor(() => expect(alert).toHaveBeenCalled());
+
+		const alertButtons = alert.mock.calls[0][2];
+		if (alertButtons === undefined) throw new Error("Alert was not called");
+		const confirm = alertButtons.find((button) => button.text === "Confirm");
+		if (confirm === undefined) throw new Error("Alert has no confirm button");
+		confirm.onPress?.();
+
+		await waitFor(() => expect(mockApi.cancelGame).toHaveBeenCalledWith(1, "test-token"));
 		await view.rerender(<GameDetailsScreen {...params} route={{ ...params.route, params: { gameId: 2 } }} />);
-		await view.findByText("Game unavailable");
 		await act(async () => {
-			resolveCancellation?.({ ok: true, data: makeGameDetail(), status: 200 });
-			await new Promise<void>((resolve) => setImmediate(resolve));
+			resolve({ ok: true, data: makeGameDetail(), status: 200 });
 		});
-		expect(view.getByText("Game unavailable")).toBeTruthy();
+		expect(await view.findByText("Game unavailable")).toBeTruthy();
 	});
 });

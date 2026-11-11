@@ -3,7 +3,7 @@ import { Game, GameCreate, GameDetail, GameFilters, MyGames, AttendanceMark } fr
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
-export type ResponseObject<T> =
+type ResponseObject<T> =
 	| {
 			ok: true;
 			data: T;

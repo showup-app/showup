@@ -89,18 +89,6 @@ describe("ExploreScreen", () => {
 		expect(await findByText("No upcoming tennis games yet")).toBeTruthy();
 	});
 
-	// TODO: Add error message for a failed join, and complete this test
-	// it("displays an error message for a failed join request", async () => {
-	// 	const game = makeGame();
-	// 	mockApi.getGames.mockResolvedValue({ ok: true, data: [game], status: 200 });
-	// 	mockApi.joinGame.mockResolvedValue({ ok: false, data: null, status: 400, error: "Join failed" });
-	// 	const { getByText } = await render(<ExploreScreen {...params} />);
-	// 	await runSearch();
-	// 	await waitFor(() => {
-	// 		fireEvent.press(getByText("Join"));
-	// 	});
-	// });
-
 	it("refreshes the current list", async () => {
 		mockApi.getGames.mockResolvedValue({ ok: true, data: [], status: 200 });
 		const view = await render(<ExploreScreen {...params} />);

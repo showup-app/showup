@@ -15,18 +15,13 @@ describe("HomeScreen", () => {
 
 	it("loads upcoming games, attendance items, badges, and opens game screens", async () => {
 		mockUserContext.user = { id: 99, email: "host@example.com", name: "Host", reputation: 80 };
-		let resolveGames: ((result: Awaited<ReturnType<typeof mockApi.getMyGames>>) => void) | undefined;
-		mockApi.getMyGames.mockImplementation(
-			() =>
-				new Promise((resolve) => {
-					resolveGames = resolve;
-				}),
-		);
+		const { promise, resolve } = Promise.withResolvers<Awaited<ReturnType<typeof mockApi.getMyGames>>>();
+		mockApi.getMyGames.mockReturnValue(promise);
 		const { getByText, getAllByText, findByText } = await render(<HomeScreen {...params} />);
 
 		expect(getByText("Loading your games…")).toBeTruthy();
 		await act(async () => {
-			resolveGames?.({
+			resolve({
 				ok: true,
 				data: makeMyGames({
 					hosting: [
