@@ -25,6 +25,7 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 	const [gameState, setGameState] = useState<GameState>({
 		status: "loading",
 	});
+	const [loadTime] = useState(() => Date.now());
 
 	const fetchGame = useCallback(async () => {
 		const res = await api.getGame(gameId, token!);
@@ -64,7 +65,7 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 	const isFull = game.spots_left <= 0 || game.status === GameStatus.Full;
 	const isHost = user!.id === game.host_id;
 	const isCancelled = game.status === GameStatus.Cancelled;
-	const isStarted = new Date(game.starts_at).getTime() <= Date.now();
+	const isStarted = new Date(game.starts_at).getTime() <= loadTime;
 	const isPlayable = game.status === GameStatus.Open || game.status === GameStatus.Full;
 
 	const canManage = isPlayable && !isStarted;
