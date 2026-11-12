@@ -23,7 +23,7 @@ const config: Config = {
 
 	// An array of glob patterns indicating a set of files for which coverage information should be collected
 	collectCoverageFrom: [
-		"**/*.{fr,js,jsx,ts,tsx}",
+		"src/screens/*.tsx",
 		"!**/coverage/**",
 		"!**/node_modules/**",
 		"!**/babel.config.js",
@@ -143,7 +143,7 @@ const config: Config = {
 	// setupFiles: [],
 
 	// A list of paths to modules that run some code to configure or set up the testing framework before each test
-	setupFilesAfterEnv: ["<rootDir>/src/__tests__/utils/mocks.ts"],
+	setupFilesAfterEnv: ["<rootDir>/src/__tests__/utils/mocks.tsx"],
 
 	// The number of seconds after which a test is considered as slow and reported as such in the results.
 	// slowTestThreshold: 5,
