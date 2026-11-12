@@ -4,7 +4,7 @@ import { api } from "../../services/api";
 import { User } from "../../types/auth";
 import { Game, GameDetail, GameStatus, MyGames } from "../../types/game";
 
-// Keep React's act environment enabled when the testing-library wrapper restores it.
+// Prevent Jest warning when running tests
 Object.defineProperty(globalThis, "IS_REACT_ACT_ENVIRONMENT", {
 	configurable: true,
 	get: () => true,
@@ -19,29 +19,19 @@ beforeEach(() => {
 	mockContextLogout.mockReset();
 });
 
-jest.mock("@react-navigation/native", () => ({
-	...jest.requireActual("@react-navigation/native"),
-	useFocusEffect: (callback: () => void) => {
-		const React = jest.requireActual<typeof import("react")>("react");
-		React.useEffect(callback, [callback]);
-	},
-	useTheme: () => ({
-		typography: {
-			title: { fontSize: 24, fontWeight: "700" },
+jest.mock("@react-navigation/native", () => {
+	const actualNav = jest.requireActual<typeof import("@react-navigation/native")>("@react-navigation/native");
+	const { theme } = jest.requireActual<typeof import("../../theme/index")>("../../theme/index");
+
+	return {
+		...actualNav,
+		useFocusEffect: (callback: () => void) => {
+			const React = jest.requireActual<typeof import("react")>("react");
+			React.useEffect(callback, [callback]);
 		},
-		colors: {
-			background: "#ffffff",
-			surface: "#f5f5f5",
-			border: "#dddddd",
-			text: "#000000",
-			textMuted: "#666666",
-			textSecondary: "#333333",
-			success: "#008000",
-			danger: "#cc0000",
-			warning: "#ff9900",
-		},
-	}),
-}));
+		useTheme: () => theme,
+	};
+});
 
 jest.mock("@expo/vector-icons", () => {
 	const { Pressable } = jest.requireActual<typeof import("react-native")>("react-native");

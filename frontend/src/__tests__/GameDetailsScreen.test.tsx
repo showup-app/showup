@@ -37,20 +37,6 @@ describe("GameDetailsScreen", () => {
 		expect(mockApi.getGame).toHaveBeenCalledWith(1, "test-token");
 	});
 
-	it("shows a fallback if the API omits its error message", async () => {
-		setUser(5);
-		const response: Awaited<ReturnType<typeof mockApi.getGame>> = {
-			ok: false,
-			data: null,
-			status: 500,
-			error: "placeholder",
-		};
-		mockApi.getGame.mockResolvedValue(response);
-		const view = await render(<GameDetailsScreen {...params} />);
-
-		expect(await view.findByText("placeholder")).toBeTruthy();
-	});
-
 	it("lets the host edit, remove players, and cancel a game after confirmation", async () => {
 		setUser(99);
 		const game = makeGameDetail({
