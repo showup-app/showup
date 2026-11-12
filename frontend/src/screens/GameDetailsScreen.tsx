@@ -25,7 +25,6 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 	const [gameState, setGameState] = useState<GameState>({
 		status: "loading",
 	});
-	const [loadedAt, setLoadedAt] = useState(0);
 
 	const fetchGame = useCallback(async () => {
 		const res = await api.getGame(gameId, token!);
@@ -62,15 +61,18 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 	}
 
 	const { game } = gameState;
-	const isFull = game.spots_left <= 0;
+	const isFull = game.spots_left <= 0 || game.status === GameStatus.Full;
 	const isHost = user!.id === game.host_id;
 	const isCancelled = game.status === GameStatus.Cancelled;
-	const isJoinDisabled = (isFull && !game.joined) || isCancelled;
+	const isStarted = new Date(game.starts_at).getTime() <= Date.now();
+	const isPlayable = game.status === GameStatus.Open || game.status === GameStatus.Full;
+
+	const canManage = isPlayable && !isStarted;
+	const canJoinLeave = (!isFull || game.joined) && isPlayable && !isStarted && !isSubmitting;
 
 	const handleJoinLeaveGame = async () => {
 		setIsSubmitting(true);
 		const res = game.joined ? await api.leaveGame(game.id, token!) : await api.joinGame(game.id, token!);
-		setLoadedAt(Date.now());
 		if (!res.ok) {
 			// TODO: Unify error message display across the entire app (i.e.: modal popup? toast message?)
 			console.log(res.error, res.status);
@@ -84,7 +86,7 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 	};
 
 	const handleRemovePlayer = async (playerId: number) => {
-		if (isCancelled) return;
+		if (!canManage) return;
 
 		const res = await api.removePlayer(game.id, playerId, token!);
 		if (res.ok) {
@@ -100,10 +102,6 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 			console.log(res.error);
 		}
 	};
-
-	const canEdit =
-		(game.status === GameStatus.Open || game.status === GameStatus.Full) &&
-		new Date(game.starts_at).getTime() > loadedAt;
 
 	const handleEditGame = () =>
 		navigation.navigate("CreatePost", {
@@ -158,7 +156,7 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 		);
 	};
 
-	const joinButtonText = isSubmitting
+	const joinLeaveButtonText = isSubmitting
 		? game.joined
 			? "Leaving..."
 			: "Joining..."
@@ -184,7 +182,7 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 						<PlayerCard
 							key={player.id}
 							player={player}
-							isDisabled={isCancelled}
+							isDisabled={!canManage}
 							{...(isHost && { onRemove: handleRemovePlayer })}
 						/>
 					))}
@@ -197,7 +195,7 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 							flex: 1,
 						}}
 						variant="primary"
-						disabled={!canEdit}
+						disabled={!canManage}
 						onPress={handleEditGame}
 					>
 						Edit Game Details
@@ -207,7 +205,7 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 							flex: 1,
 						}}
 						variant="danger"
-						disabled={isCancelled}
+						disabled={!canManage}
 						onPress={showConfirmCancelGameAlert}
 					>
 						Cancel Game
@@ -216,11 +214,11 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 			) : (
 				<View style={styles.joinButton}>
 					<Button
-						disabled={isJoinDisabled || isSubmitting}
+						disabled={!canJoinLeave}
 						variant={game.joined ? "danger" : "primary"}
 						onPress={handleJoinLeaveGame}
 					>
-						{joinButtonText}
+						{joinLeaveButtonText}
 					</Button>
 				</View>
 			)}
