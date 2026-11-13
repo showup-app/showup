@@ -1,8 +1,8 @@
-import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppScreenProps } from "../navigation/types";
 import { CustomTheme, useFocusEffect, useTheme } from "@react-navigation/native";
-import { GameDetail, GameStatus } from "../types/game";
+import { GameDetail, GameStatus, Player } from "../types/game";
 import { api } from "../services/api";
 import { useCallback, useState } from "react";
 import PlayerCard from "../components/game/PlayerCard";
@@ -13,8 +13,11 @@ import { useUser } from "../context/UserContext";
 import LoadingView from "../components/layout/LoadingView";
 import ErrorView from "../components/layout/ErrorView";
 import FormErrorMessage from "../components/ui/FormErrorMessage";
+import ConfirmModal, { ConfirmModalProps } from "../components/ui/ConfirmModal";
 
 type GameState = { status: "loading" } | { status: "error"; error: string } | { status: "success"; game: GameDetail };
+type ModalTypes =
+	{ type: "join" } | { type: "leave" } | { type: "cancel" } | { type: "removePlayer"; player: Player } | null;
 
 const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">) => {
 	const theme = useTheme();
@@ -25,6 +28,7 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 	const [gameState, setGameState] = useState<GameState>({
 		status: "loading",
 	});
+	const [modal, setModal] = useState<ModalTypes>(null);
 	const [loadedAt, setLoadedAt] = useState(0);
 
 	const fetchGame = useCallback(async () => {
@@ -139,30 +143,41 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 		}
 	};
 
-	const showConfirmCancelGameAlert = () => {
-		Alert.alert(
-			"Cancel Game?",
-			"Are you sure you want to cancel this game? This action cannot be undone.",
-			[
-				{
-					text: "Cancel",
-					style: "cancel",
-				},
-				{
-					text: "Confirm",
-					style: "destructive",
-					onPress: () => handleCancelGame(),
-				},
-			],
-			{ cancelable: true },
-		);
-	};
-
 	const joinButtonText = isSubmitting
 		? game.joined
 			? "Leaving..."
 			: "Joining..."
 		: getJoinButtonText(game, user!, true);
+
+	const getModalProps = (modal: NonNullable<ModalTypes>): Omit<ConfirmModalProps, "onCancel" | "visible"> => {
+		switch (modal.type) {
+			case "cancel":
+				return {
+					title: "Cancel Game",
+					message: "Are you sure you want to cancel this game? This action cannot be undone.",
+					onConfirm: handleCancelGame,
+				};
+			case "join":
+				return {
+					title: "Join Game",
+					message:
+						"Are you sure you want to join this game? Failing to attend may decrease your profile's reputation.",
+					onConfirm: handleJoinLeaveGame,
+				};
+			case "leave":
+				return {
+					title: "Leave Game",
+					message: "Are you sure you want to leave this game?",
+					onConfirm: handleJoinLeaveGame,
+				};
+			case "removePlayer":
+				return {
+					title: "Remove Player",
+					message: `Are you sure you want to remove ${modal.player.name} from the game?`,
+					onConfirm: () => handleRemovePlayer(modal.player.id),
+				};
+		}
+	};
 
 	return (
 		<SafeAreaView style={styles.screen} edges={["left", "right", "bottom"]}>
@@ -185,7 +200,11 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 							key={player.id}
 							player={player}
 							isDisabled={isCancelled}
-							{...(isHost && { onRemove: handleRemovePlayer })}
+							{...(isHost && {
+								onPress: () => {
+									setModal({ type: "removePlayer", player: player });
+								},
+							})}
 						/>
 					))}
 				</ScrollView>
@@ -208,7 +227,7 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 						}}
 						variant="danger"
 						disabled={isCancelled}
-						onPress={showConfirmCancelGameAlert}
+						onPress={() => setModal({ type: "cancel" })}
 					>
 						Cancel Game
 					</Button>
@@ -218,11 +237,22 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 					<Button
 						disabled={isJoinDisabled || isSubmitting}
 						variant={game.joined ? "danger" : "primary"}
-						onPress={handleJoinLeaveGame}
+						onPress={() => setModal(game.joined ? { type: "leave" } : { type: "join" })}
 					>
 						{joinButtonText}
 					</Button>
 				</View>
+			)}
+			{modal !== null && (
+				<ConfirmModal
+					visible
+					onCancel={() => setModal(null)}
+					{...getModalProps(modal)}
+					onConfirm={() => {
+						getModalProps(modal).onConfirm();
+						setModal(null);
+					}}
+				/>
 			)}
 		</SafeAreaView>
 	);
