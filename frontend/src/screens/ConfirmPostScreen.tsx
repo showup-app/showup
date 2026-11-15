@@ -7,20 +7,20 @@ import GameCard from "../components/game/GameCard";
 import { useState } from "react";
 import FormErrorMessage from "../components/ui/FormErrorMessage";
 import { api } from "../services/api";
-import { useUser } from "../context/UserContext";
+import { useAuthenticatedUser } from "../context/UserContext";
 
 const ConfirmPostScreen = ({ navigation, route }: AppScreenProps<"ConfirmPost">) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
 	const { draft } = route.params;
-	const { token } = useUser();
+	const { token } = useAuthenticatedUser();
 
 	const [error, setError] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const handlePost = async () => {
 		setIsSubmitting(true);
-		const res = await api.createGame(draft, token!);
+		const res = await api.createGame(draft, token);
 		setIsSubmitting(false);
 		if (res.ok) {
 			navigation.dispatch(

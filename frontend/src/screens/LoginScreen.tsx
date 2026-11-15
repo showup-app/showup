@@ -1,6 +1,5 @@
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet, View } from "react-native";
-import { AppScreenProps } from "../navigation/types";
 import FormInput from "../components/ui/FormInput";
 import Button from "../components/ui/Button";
 import TitleAndSubtitle from "../components/ui/TitleAndSubtitle";
@@ -10,7 +9,7 @@ import { api } from "../services/api";
 import FormErrorMessage from "../components/ui/FormErrorMessage";
 import { useUser } from "../context/UserContext";
 
-const LoginScreen = ({ navigation }: AppScreenProps<"Login">) => {
+const LoginScreen = () => {
 	const styles = getStyles();
 	const { login } = useUser();
 
@@ -35,7 +34,6 @@ const LoginScreen = ({ navigation }: AppScreenProps<"Login">) => {
 			const meRes = await api.me(token.access_token);
 			if (meRes.ok) {
 				login(meRes.data, token.access_token);
-				navigation.replace("Tabs", { screen: "Home" });
 			} else {
 				setError("root.server", {
 					message: meRes.error,

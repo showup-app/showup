@@ -9,6 +9,11 @@ type UserContextData = {
 	logout: () => void;
 };
 
+type AuthenticatedUserContextData = UserContextData & {
+	user: User;
+	token: string;
+};
+
 const UserContext = createContext<UserContextData | undefined>(undefined);
 
 const TOKEN_KEY = "user-token";
@@ -40,9 +45,21 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
 	return <UserContext.Provider value={{ user, token, login, logout }}>{children}</UserContext.Provider>;
 };
 
-export const useUser = () => {
+export const useUser = (): UserContextData => {
 	const user = useContext(UserContext);
-	if (!user) throw new Error("useUser must be envoked in UserContext provider");
+	if (!user) throw new Error("useUser must be invoked in UserContext provider");
 
 	return user;
+};
+
+export const useAuthenticatedUser = (): AuthenticatedUserContextData => {
+	const user = useUser();
+	if (user.user == null || user.token == null) {
+		throw new Error("useAuthenticatedUser must be invoked in an authenticated screen");
+	}
+	return {
+		...user,
+		user: user.user,
+		token: user.token,
+	};
 };

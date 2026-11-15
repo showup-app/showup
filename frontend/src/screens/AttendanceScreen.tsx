@@ -5,7 +5,7 @@ import { FlatList, Platform, Pressable, StyleSheet, Text, View } from "react-nat
 import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../components/ui/Button";
 import FormErrorMessage from "../components/ui/FormErrorMessage";
-import { useUser } from "../context/UserContext";
+import { useAuthenticatedUser } from "../context/UserContext";
 import { AppScreenProps } from "../navigation/types";
 import { api } from "../services/api";
 import { AttendanceMark, GameDetail } from "../types/game";
@@ -20,7 +20,7 @@ const AttendanceScreen = ({ navigation, route }: AppScreenProps<"Attendance">) =
 	const theme = useTheme();
 	const styles = getStyles(theme);
 	const { gameId } = route.params;
-	const { token } = useUser();
+	const { token } = useAuthenticatedUser();
 
 	const [game, setGame] = useState<GameDetail | null>(null);
 	const [marks, setMarks] = useState<Marks>({});
@@ -69,10 +69,6 @@ const AttendanceScreen = ({ navigation, route }: AppScreenProps<"Attendance">) =
 	const markedCount = Object.values(marks).filter((mark) => mark !== undefined).length;
 
 	const handleSave = async () => {
-		if (!token) {
-			setSaveError("Please log in again to save attendance");
-			return;
-		}
 		const body: AttendanceMark[] = Object.entries(marks)
 			.filter(([, showedUp]) => showedUp !== undefined)
 			.map(([userId, showedUp]) => ({ user_id: Number(userId), showed_up: showedUp as boolean }));

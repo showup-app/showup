@@ -13,7 +13,7 @@ import {
 	getJoinButtonText,
 } from "../../utils/format";
 import { sportIcon } from "../../utils/sports";
-import { useUser } from "../../context/UserContext";
+import { useAuthenticatedUser } from "../../context/UserContext";
 
 // Change chip colour to orange below 3
 const LOW_SPOTS = 3;
@@ -40,7 +40,7 @@ const GameCard = ({
 }: GameCardProps) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
-	const { user } = useUser();
+	const { user } = useAuthenticatedUser();
 	const hostName = "host_name" in game ? game.host_name : null;
 	const hostReputation = "host_reputation" in game ? game.host_reputation : null;
 	const spotsLeft = "spots_left" in game ? game.spots_left : game.spots;
@@ -49,7 +49,7 @@ const GameCard = ({
 	const isAlmostFull = !isFull && spotsLeft <= LOW_SPOTS;
 	const showFooter = hostName !== null || onSeePlayers !== undefined;
 	const userJoinedGame = "joined" in game && game.joined;
-	const userHostingGame = "host_id" in game && game.host_id === user?.id;
+	const userHostingGame = "host_id" in game && game.host_id === user.id;
 	const joinButtonDisabled = isFull || userJoinedGame || userHostingGame;
 	const isCancelled = "status" in game && game.status === GameStatus.Cancelled;
 
@@ -72,7 +72,7 @@ const GameCard = ({
 						hitSlop={8}
 					>
 						<Text style={[styles.joinText, joinButtonDisabled && styles.joinTextDisabled]}>
-							{getJoinButtonText(game as Game | GameDetail, user!)}
+							{getJoinButtonText(game as Game | GameDetail, user)}
 						</Text>
 					</Pressable>
 				)}

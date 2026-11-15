@@ -14,7 +14,7 @@ import { GameCreate } from "../types/game";
 import { capitalize } from "../utils/format";
 import { SPORTS, sportIcon } from "../utils/sports";
 import { useState } from "react";
-import { useUser } from "../context/UserContext";
+import { useAuthenticatedUser } from "../context/UserContext";
 import { api } from "../services/api";
 
 const MIN_SPOTS = 2;
@@ -87,7 +87,7 @@ function toFormValues(game: GameCreate): CreateGameForm {
 export function CreatePostScreen({ navigation, route }: AppScreenProps<"CreatePost">) {
 	const theme = useTheme();
 	const styles = getStyles(theme);
-	const { token } = useUser();
+	const { token } = useAuthenticatedUser();
 
 	// When editing, the form starts with the game's current values
 	const edit = route.params?.edit;
@@ -133,10 +133,6 @@ export function CreatePostScreen({ navigation, route }: AppScreenProps<"CreatePo
 		}
 
 		// Editing: save straight away and go back to Game Details
-		if (!token) {
-			setSaveError("Please log in again to save your changes");
-			return;
-		}
 		setIsSaving(true);
 		setSaveError(null);
 		const res = await api.updateGame(edit.gameId, draft, token);

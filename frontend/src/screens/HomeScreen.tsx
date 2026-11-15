@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { RefreshControl, SectionList, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import GameCard from "../components/game/GameCard";
-import { useUser } from "../context/UserContext";
+import { useAuthenticatedUser } from "../context/UserContext";
 import { TabScreenProps } from "../navigation/types";
 import { api } from "../services/api";
 import { Game, GameStatus, MyGames } from "../types/game";
@@ -36,7 +36,7 @@ const needsAttendance = (game: Game, now: number) =>
 export function HomeScreen({ navigation }: TabScreenProps<"Home">) {
 	const theme = useTheme();
 	const styles = getStyles(theme);
-	const { token } = useUser();
+	const { token } = useAuthenticatedUser();
 
 	const [myGames, setMyGames] = useState<MyGames | null>(null);
 	const [loading, setLoading] = useState(true);
@@ -45,11 +45,6 @@ export function HomeScreen({ navigation }: TabScreenProps<"Home">) {
 	const [loadedAt, setLoadedAt] = useState(0);
 
 	const loadGames = useCallback(async () => {
-		if (!token) {
-			setError("Please log in again to see your games");
-			setLoading(false);
-			return;
-		}
 		setError(null);
 		const res = await api.getMyGames(token, true);
 		if (res.ok) {

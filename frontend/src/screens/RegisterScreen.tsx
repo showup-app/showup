@@ -1,5 +1,5 @@
 import { CustomTheme, useTheme } from "@react-navigation/native";
-import { AppScreenProps } from "../navigation/types";
+import { AuthScreenProps } from "../navigation/types";
 import { StyleSheet, View, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../components/ui/Button";
@@ -18,7 +18,7 @@ type RegisterForm = {
 	confirmPassword: string;
 };
 
-const RegisterScreen = ({ navigation }: AppScreenProps<"Register">) => {
+const RegisterScreen = ({ navigation }: AuthScreenProps<"Register">) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
 	const { login } = useUser();
@@ -51,7 +51,6 @@ const RegisterScreen = ({ navigation }: AppScreenProps<"Register">) => {
 		if (res.ok) {
 			const { id, email, name, reputation, access_token } = res.data;
 			login({ id, email, name, reputation }, access_token);
-			navigation.replace("Tabs", { screen: "Home" });
 		} else {
 			if (res.status === 409) {
 				setError(
