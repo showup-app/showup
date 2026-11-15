@@ -1,6 +1,6 @@
 import { fireEvent, render, waitFor, type RenderResult } from "@testing-library/react-native";
 import RegisterScreen from "../screens/RegisterScreen";
-import { getTestScreenParams, mockApi, mockNavigation } from "./utils/mocks";
+import { getTestScreenParams, mockApi, mockContextLogin, mockNavigation } from "./utils/mocks";
 
 describe("RegisterScreen", () => {
 	const params = getTestScreenParams("Register");
@@ -43,6 +43,7 @@ describe("RegisterScreen", () => {
 		expect(await findByText("Password must be at least 8 characters long")).toBeTruthy();
 		expect(await findByText("Passwords must match")).toBeTruthy();
 		expect(mockApi.register).not.toHaveBeenCalled();
+		expect(mockContextLogin).not.toHaveBeenCalled();
 	});
 
 	it("submits only registration fields and navigates to login", async () => {
@@ -69,9 +70,7 @@ describe("RegisterScreen", () => {
 				name: "Test Person",
 				password: "secret123",
 			});
-			expect(mockNavigation.replace).toHaveBeenCalledWith("Tabs", {
-				screen: "Home",
-			});
+			expect(mockContextLogin).toHaveBeenCalled();
 		});
 	});
 
@@ -88,7 +87,7 @@ describe("RegisterScreen", () => {
 		await fireEvent.press(getAllByText("Register")[1]);
 
 		expect(await findByText("This email is already in use by a registered user")).toBeTruthy();
-		expect(mockNavigation.replace).not.toHaveBeenCalled();
+		expect(mockContextLogin).not.toHaveBeenCalled();
 	});
 
 	it("shows other registration API errors", async () => {
@@ -104,7 +103,7 @@ describe("RegisterScreen", () => {
 		await fireEvent.press(getAllByText("Register")[1]);
 
 		expect(await findByText("Registration is unavailable")).toBeTruthy();
-		expect(mockNavigation.replace).not.toHaveBeenCalled();
+		expect(mockContextLogin).not.toHaveBeenCalled();
 	});
 
 	it("navigates to login from the existing-account link", async () => {

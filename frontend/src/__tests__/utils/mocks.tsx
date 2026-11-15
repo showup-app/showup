@@ -1,5 +1,12 @@
 import type { ComponentProps } from "react";
-import { AppScreenProps, AppStackParamList, MainTabParamList, TabScreenProps } from "../../navigation/types";
+import {
+	AppScreenProps,
+	AppStackParamList,
+	AuthScreenProps,
+	AuthStackParamList,
+	MainTabParamList,
+	TabScreenProps,
+} from "../../navigation/types";
 import { api } from "../../services/api";
 import { User } from "../../types/auth";
 import { Game, GameDetail, GameStatus, MyGames } from "../../types/game";
@@ -112,11 +119,12 @@ export const mockContextLogin = jest.fn();
 export const mockContextLogout = jest.fn();
 export const mockUserContext: { user: User | null; token: string | null } = {
 	user: null,
-	token: "test-token",
+	token: null,
 };
 
 jest.mock("../../context/UserContext", () => ({
 	useUser: () => ({ ...mockUserContext, login: mockContextLogin, logout: mockContextLogout }),
+	useAuthenticatedUser: () => ({ ...mockUserContext, login: mockContextLogin, logout: mockContextLogout }),
 }));
 
 jest.mock("../../services/api");
@@ -186,18 +194,24 @@ export const mockNavigation = {
 	setOptions: jest.fn(),
 };
 
-export const getTestScreenParams = <T extends keyof AppStackParamList>(
+type AllScreenProps = {
+	[K in keyof AppStackParamList]: AppScreenProps<K>;
+} & {
+	[K in keyof AuthStackParamList]: AuthScreenProps<K>;
+};
+
+export const getTestScreenParams = <T extends keyof AllScreenProps>(
 	screenName: T,
-	routeParams?: AppStackParamList[T],
-) => {
+	routeParams?: AllScreenProps[T]["route"]["params"],
+): AllScreenProps[T] => {
 	return {
-		navigation: mockNavigation as unknown as AppScreenProps<T>["navigation"],
+		navigation: mockNavigation as unknown as AllScreenProps[T]["navigation"],
 		route: {
 			key: `${screenName}-route`,
 			name: screenName,
 			...(routeParams === undefined ? {} : { params: routeParams }),
-		} as AppScreenProps<T>["route"],
-	};
+		} as AllScreenProps[T]["route"],
+	} as AllScreenProps[T];
 };
 
 export const getTestTabParams = <T extends keyof MainTabParamList>(screenName: T) => ({
