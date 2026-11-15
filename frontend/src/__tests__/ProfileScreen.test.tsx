@@ -127,15 +127,6 @@ describe("ProfileScreen", () => {
 		await fireEvent.press(getByText("Logout"));
 
 		expect(mockContextLogout).toHaveBeenCalledTimes(1);
-		expect(mockNavigation.dispatch).toHaveBeenCalledWith(
-			expect.objectContaining({
-				type: "RESET",
-				payload: {
-					index: 1,
-					routes: [{ name: "Splash" }, { name: "Login" }],
-				},
-			}),
-		);
 	});
 
 	it("shows zero attendance counts when there are no past games", async () => {

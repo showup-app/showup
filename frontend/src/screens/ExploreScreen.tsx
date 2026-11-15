@@ -6,7 +6,7 @@ import { TabScreenProps } from "../navigation/types";
 import { api } from "../services/api";
 import { Game } from "../types/game";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useUser } from "../context/UserContext";
+import { useAuthenticatedUser } from "../context/UserContext";
 import LoadingView from "../components/layout/LoadingView";
 import ErrorView from "../components/layout/ErrorView";
 import Chip from "../components/form/Chip";
@@ -19,7 +19,7 @@ const SEARCH_DELAY_MS = 400;
 export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 	const theme = useTheme();
 	const styles = getStyles(theme);
-	const { token } = useUser();
+	const { token } = useAuthenticatedUser();
 
 	const [search, setSearch] = useState("");
 	const [sport, setSport] = useState<string | undefined>(undefined);
@@ -32,7 +32,7 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 
 	const loadGames = async () => {
 		setError(null);
-		const res = await api.getGames({ location }, token!);
+		const res = await api.getGames({ location }, token);
 		if (res.ok) {
 			setGames(res.data);
 		} else {
@@ -46,7 +46,7 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 			setLoading(true);
 			setError(null);
 			if (!cancelled) {
-				const result = await api.getGames({ location, sport }, token!);
+				const result = await api.getGames({ location, sport }, token);
 				if (result.ok) {
 					setGames(result.data);
 				} else {
@@ -115,7 +115,7 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 							game={item}
 							onSeePlayers={() => navigation.navigate("GameDetails", { gameId: item.id })}
 							onJoin={async () => {
-								const res = await api.joinGame(item.id, token!);
+								const res = await api.joinGame(item.id, token);
 								if (!res.ok) {
 									// TODO: Unify error message display across the entire app (i.e.: modal popup? toast message?)
 									console.log(res.error, res.status);

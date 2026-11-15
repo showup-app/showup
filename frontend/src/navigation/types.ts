@@ -11,11 +11,14 @@ export type MainTabParamList = {
 	Profile: undefined;
 };
 
-/** Logged-in stack: the tabs plus screens that push on top of them. */
-export type AppStackParamList = {
+export type AuthStackParamList = {
 	Splash: undefined;
 	Login: undefined;
 	Register: undefined;
+};
+
+/** Logged-in stack: the tabs plus screens that push on top of them. */
+export type AppStackParamList = {
 	Tabs: NavigatorScreenParams<MainTabParamList>;
 	Search: undefined;
 	CreatePost: { edit?: { gameId: number; values: GameCreate; minSpots: number } } | undefined;
@@ -25,6 +28,7 @@ export type AppStackParamList = {
 };
 
 export type AppScreenProps<T extends keyof AppStackParamList> = NativeStackScreenProps<AppStackParamList, T>;
+export type AuthScreenProps<T extends keyof AuthStackParamList> = NativeStackScreenProps<AuthStackParamList, T>;
 
 /** Tab screens can also open the stack screens (Search, GameDetails, ...). */
 export type TabScreenProps<T extends keyof MainTabParamList> = CompositeScreenProps<

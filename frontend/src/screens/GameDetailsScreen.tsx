@@ -9,7 +9,7 @@ import PlayerCard from "../components/game/PlayerCard";
 import GameCard from "../components/game/GameCard";
 import Button from "../components/ui/Button";
 import { getJoinButtonText } from "../utils/format";
-import { useUser } from "../context/UserContext";
+import { useAuthenticatedUser } from "../context/UserContext";
 import LoadingView from "../components/layout/LoadingView";
 import ErrorView from "../components/layout/ErrorView";
 import FormErrorMessage from "../components/ui/FormErrorMessage";
@@ -21,7 +21,7 @@ type ModalTypes =
 
 const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">) => {
 	const theme = useTheme();
-	const { user, token } = useUser();
+	const { user, token } = useAuthenticatedUser();
 	const styles = getStyles(theme);
 	const { gameId } = route.params;
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,7 +32,7 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 	const [loadTime] = useState(() => Date.now());
 
 	const fetchGame = useCallback(async () => {
-		const res = await api.getGame(gameId, token!);
+		const res = await api.getGame(gameId, token);
 		if (res.ok) {
 			setGameState({
 				status: "success",
@@ -67,7 +67,7 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 
 	const { game } = gameState;
 	const isFull = game.spots_left <= 0 || game.status === GameStatus.Full;
-	const isHost = user!.id === game.host_id;
+	const isHost = user.id === game.host_id;
 	const isCancelled = game.status === GameStatus.Cancelled;
 	const isStarted = new Date(game.starts_at).getTime() <= loadTime;
 	const isPlayable = game.status === GameStatus.Open || game.status === GameStatus.Full;
@@ -93,7 +93,7 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 	const handleRemovePlayer = async (playerId: number) => {
 		if (!canManage) return;
 
-		const res = await api.removePlayer(game.id, playerId, token!);
+		const res = await api.removePlayer(game.id, playerId, token);
 		if (res.ok) {
 			setGameState((prev) => {
 				if (prev.status !== "success") return prev;
@@ -127,7 +127,7 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 		});
 
 	const handleCancelGame = async () => {
-		const res = await api.cancelGame(game.id, token!);
+		const res = await api.cancelGame(game.id, token);
 		if (res.ok) {
 			setGameState((prev) => {
 				if (prev.status !== "success") return prev;
@@ -146,7 +146,7 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 		? game.joined
 			? "Leaving..."
 			: "Joining..."
-		: getJoinButtonText(game, user!, true);
+		: getJoinButtonText(game, user, true);
 
 	const getModalProps = (modal: NonNullable<ModalTypes>): Omit<ConfirmModalProps, "onCancel" | "visible"> => {
 		switch (modal.type) {
