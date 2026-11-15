@@ -1,5 +1,5 @@
-import { CommonActions, CustomTheme, useFocusEffect, useTheme } from "@react-navigation/native";
-import { useUser } from "../context/UserContext";
+import { CustomTheme, useFocusEffect, useTheme } from "@react-navigation/native";
+import { useAuthenticatedUser } from "../context/UserContext";
 import { TabScreenProps } from "../navigation/types";
 
 import { SectionList, StyleSheet, View, Text } from "react-native";
@@ -32,10 +32,10 @@ const ProfileScreen = ({ navigation }: TabScreenProps<"Profile">) => {
 		status: "loading",
 	});
 
-	const { user, token, logout } = useUser();
+	const { user, token, logout } = useAuthenticatedUser();
 
 	const loadProfileData = useCallback(async () => {
-		const res = await api.getMyGames(token!, true);
+		const res = await api.getMyGames(token, true);
 		if (res.ok) {
 			setProfileState({
 				status: "success",
@@ -62,16 +62,6 @@ const ProfileScreen = ({ navigation }: TabScreenProps<"Profile">) => {
 	if (profileState.status === "error") {
 		return <ErrorView errorMsg={profileState.error} onRetry={loadProfileData} />;
 	}
-
-	const handleLogout = () => {
-		logout();
-		navigation.dispatch(
-			CommonActions.reset({
-				index: 1,
-				routes: [{ name: "Splash" }, { name: "Login" }],
-			}),
-		);
-	};
 
 	const filterPastGames = (games: Game[]): Game[] => games.filter((game) => new Date(game.starts_at) <= new Date());
 
@@ -107,13 +97,13 @@ const ProfileScreen = ({ navigation }: TabScreenProps<"Profile">) => {
 		<SafeAreaView edges={["left", "right"]} style={styles.screen}>
 			<View style={styles.playerInfo}>
 				<MaterialCommunityIcons name="account-circle" size={46} color={theme.colors.textMuted} />
-				<Text style={[styles.name]}>{user!.name}</Text>
+				<Text style={[styles.name]}>{user.name}</Text>
 			</View>
 			<View style={[globalStyles.container, styles.reputationContainer]}>
 				<Text style={styles.info}>REPUTATION</Text>
 				<View style={styles.progressContainer}>
-					<Text style={styles.reputation}>{user!.reputation} ★</Text>
-					<ProgressBar value={user!.reputation} />
+					<Text style={styles.reputation}>{user.reputation} ★</Text>
+					<ProgressBar value={user.reputation} />
 				</View>
 			</View>
 			<SectionList
@@ -124,7 +114,7 @@ const ProfileScreen = ({ navigation }: TabScreenProps<"Profile">) => {
 				renderItem={({ item }) => (
 					<ProfileGameCard
 						game={item}
-						user={user!}
+						user={user}
 						onPress={() => navigation.navigate("GameDetails", { gameId: item.id })}
 					/>
 				)}
@@ -137,7 +127,7 @@ const ProfileScreen = ({ navigation }: TabScreenProps<"Profile">) => {
 				ItemSeparatorComponent={() => <View style={styles.separator} />}
 				SectionSeparatorComponent={() => <View style={styles.separator} />}
 			/>
-			<Button onPress={() => handleLogout()} variant="primary">
+			<Button onPress={logout} variant="primary">
 				Logout
 			</Button>
 		</SafeAreaView>

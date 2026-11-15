@@ -9,7 +9,7 @@ import PlayerCard from "../components/game/PlayerCard";
 import GameCard from "../components/game/GameCard";
 import Button from "../components/ui/Button";
 import { getJoinButtonText } from "../utils/format";
-import { useUser } from "../context/UserContext";
+import { useAuthenticatedUser } from "../context/UserContext";
 import LoadingView from "../components/layout/LoadingView";
 import ErrorView from "../components/layout/ErrorView";
 import FormErrorMessage from "../components/ui/FormErrorMessage";
@@ -18,7 +18,7 @@ type GameState = { status: "loading" } | { status: "error"; error: string } | { 
 
 const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">) => {
 	const theme = useTheme();
-	const { user, token } = useUser();
+	const { user, token } = useAuthenticatedUser();
 	const styles = getStyles(theme);
 	const { gameId } = route.params;
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,7 +28,7 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 	const [loadedAt, setLoadedAt] = useState(0);
 
 	const fetchGame = useCallback(async () => {
-		const res = await api.getGame(gameId, token!);
+		const res = await api.getGame(gameId, token);
 		if (res.ok) {
 			setGameState({
 				status: "success",
@@ -63,13 +63,13 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 
 	const { game } = gameState;
 	const isFull = game.spots_left <= 0;
-	const isHost = user!.id === game.host_id;
+	const isHost = user.id === game.host_id;
 	const isCancelled = game.status === GameStatus.Cancelled;
 	const isJoinDisabled = (isFull && !game.joined) || isCancelled;
 
 	const handleJoinLeaveGame = async () => {
 		setIsSubmitting(true);
-		const res = game.joined ? await api.leaveGame(game.id, token!) : await api.joinGame(game.id, token!);
+		const res = game.joined ? await api.leaveGame(game.id, token) : await api.joinGame(game.id, token);
 		setLoadedAt(Date.now());
 		if (!res.ok) {
 			// TODO: Unify error message display across the entire app (i.e.: modal popup? toast message?)
@@ -86,7 +86,7 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 	const handleRemovePlayer = async (playerId: number) => {
 		if (isCancelled) return;
 
-		const res = await api.removePlayer(game.id, playerId, token!);
+		const res = await api.removePlayer(game.id, playerId, token);
 		if (res.ok) {
 			setGameState((prev) => {
 				if (prev.status !== "success") return prev;
@@ -124,7 +124,7 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 		});
 
 	const handleCancelGame = async () => {
-		const res = await api.cancelGame(game.id, token!);
+		const res = await api.cancelGame(game.id, token);
 		if (res.ok) {
 			setGameState((prev) => {
 				if (prev.status !== "success") return prev;
@@ -162,7 +162,7 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 		? game.joined
 			? "Leaving..."
 			: "Joining..."
-		: getJoinButtonText(game, user!, true);
+		: getJoinButtonText(game, user, true);
 
 	return (
 		<SafeAreaView style={styles.screen} edges={["left", "right", "bottom"]}>

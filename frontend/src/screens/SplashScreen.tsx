@@ -1,11 +1,11 @@
-import { AppScreenProps } from "../navigation/types";
+import { AuthScreenProps } from "../navigation/types";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet, Text, View } from "react-native";
 import { CustomTheme, useTheme } from "@react-navigation/native";
 import Button from "../components/ui/Button";
 import Logo from "../components/ui/Logo";
 
-const SplashScreen = ({ navigation }: AppScreenProps<"Splash">) => {
+const SplashScreen = ({ navigation }: AuthScreenProps<"Splash">) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
 

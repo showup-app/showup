@@ -39,6 +39,7 @@ export function MainTabs() {
 					return <MaterialCommunityIcons name={focused ? filled : outline} size={size} color={color} />;
 				},
 			})}
+			initialRouteName="Home"
 		>
 			<Tab.Screen name="Home" component={HomeScreen} />
 			<Tab.Screen name="Explore" component={ExploreScreen} />
