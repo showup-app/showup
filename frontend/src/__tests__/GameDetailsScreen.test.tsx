@@ -252,4 +252,58 @@ describe("GameDetailsScreen", () => {
 		});
 		expect(await view.findByText("Game unavailable")).toBeTruthy();
 	});
+
+	it("does not allow hosts to edit games or remove players after the game has started", async () => {
+		setUser(99);
+		const yesterday = new Date();
+		yesterday.setDate(yesterday.getDate() - 1);
+		mockApi.getGame.mockResolvedValue({
+			ok: true,
+			data: makeGameDetail({ host_id: 99, starts_at: yesterday.toISOString() }),
+			status: 200,
+		});
+		const game = await render(<GameDetailsScreen {...params} />);
+		expect(await game.findByText("Edit Game Details")).toBeTruthy();
+
+		await fireEvent.press(game.getByText("Edit Game Details"));
+		expect(mockNavigation.navigate).not.toHaveBeenCalled();
+
+		await fireEvent.press(await game.findByTestId("remove-player-2"));
+		expect(mockApi.removePlayer).not.toHaveBeenCalled();
+	});
+
+	it("does not allow players to leave a game after the game has started", async () => {
+		setUser(2);
+		const yesterday = new Date();
+		yesterday.setDate(yesterday.getDate() - 1);
+		mockApi.getGame.mockResolvedValue({
+			ok: true,
+			data: makeGameDetail({ host_id: 99, starts_at: yesterday.toISOString(), joined: true }),
+			status: 200,
+		});
+		const game = await render(<GameDetailsScreen {...params} />);
+
+		const leaveButton = await game.findByText("Leave");
+		expect(leaveButton).toBeTruthy();
+		await fireEvent.press(leaveButton);
+		expect(mockApi.leaveGame).not.toHaveBeenCalled();
+	});
+
+	it("does not allow players to join a game after the game has started", async () => {
+		setUser(3);
+
+		const yesterday = new Date();
+		yesterday.setDate(yesterday.getDate() - 1);
+		mockApi.getGame.mockResolvedValue({
+			ok: true,
+			data: makeGameDetail({ host_id: 99, starts_at: yesterday.toISOString(), joined: false, spots_left: 1 }),
+			status: 200,
+		});
+		const game = await render(<GameDetailsScreen {...params} />);
+
+		const joinButton = await game.findByText("Join");
+		expect(joinButton).toBeTruthy();
+		await fireEvent.press(joinButton);
+		expect(mockApi.joinGame).not.toHaveBeenCalled();
+	});
 });
