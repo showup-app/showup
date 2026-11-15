@@ -1,6 +1,6 @@
 import { CustomTheme, useTheme } from "@react-navigation/native";
-import { useEffect, useState } from "react";
-import { FlatList, Platform, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { useState, useEffect, useMemo } from "react";
+import { Animated, Platform, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import GameCard from "../components/game/GameCard";
 import { TabScreenProps } from "../navigation/types";
 import { api } from "../services/api";
@@ -29,6 +29,24 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 	const [error, setError] = useState<string | null>(null);
 
 	const location = search.trim().length >= MIN_SEARCH_LENGTH ? search.trim() : undefined;
+
+	// Hide-on-scroll header logic written with AI assistance (Claude)
+	const [scrollY] = useState(() => new Animated.Value(0));
+	const [headerHeight, setHeaderHeight] = useState(0);
+
+	const headerTranslateY = useMemo(() => {
+		const scrollDown = scrollY.interpolate({
+			inputRange: [0, 1],
+			outputRange: [0, 1],
+			extrapolateLeft: "clamp",
+		});
+		const clamped = Animated.diffClamp(scrollDown, 0, Math.max(headerHeight, 1));
+		return Animated.multiply(clamped, -1);
+	}, [scrollY, headerHeight]);
+
+	const onScroll = Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
+		useNativeDriver: true,
+	});
 
 	const loadGames = async () => {
 		setError(null);
@@ -70,46 +88,21 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 
 	return (
 		<SafeAreaView style={styles.screen} edges={["left", "right"]}>
-			<View style={styles.searchSection}>
-				<Text style={styles.label}>Search by location</Text>
-				<TextInput
-					style={styles.input}
-					value={search}
-					onChangeText={setSearch}
-					placeholder="e.g. Burnaby"
-					placeholderTextColor={theme.colors.textMuted}
-					autoCorrect={false}
-					returnKeyType="search"
-					clearButtonMode="while-editing"
-				/>
-			</View>
-
-			<ScrollView
-				horizontal
-				showsHorizontalScrollIndicator={false}
-				contentContainerStyle={styles.sportChips}
-				style={styles.sportChipsRow}
-			>
-				<Chip label="All" selected={sport === undefined} onPress={() => setSport(undefined)} />
-				{SPORTS.map((name) => (
-					<Chip
-						key={name}
-						label={capitalize(name)}
-						icon={sportIcon(name)}
-						selected={sport === name}
-						onPress={() => setSport(name)}
-					/>
-				))}
-			</ScrollView>
-
 			{loading && !refreshing ? (
-				<LoadingView message="Finding games…" screen={false} />
+				<View style={{ flex: 1, paddingTop: headerHeight }}>
+					<LoadingView message="Finding games…" screen={false} />
+				</View>
 			) : error ? (
-				<ErrorView errorMsg={error} onRetry={onRefresh} screen={false} />
+				<View style={{ flex: 1, paddingTop: headerHeight }}>
+					<ErrorView errorMsg={error} onRetry={onRefresh} screen={false} />
+				</View>
 			) : (
-				<FlatList
+				<Animated.FlatList
 					data={games}
 					keyExtractor={(game) => String(game.id)}
+					onScroll={onScroll}
+					scrollEventThrottle={16}
+					contentContainerStyle={[styles.list, { paddingTop: headerHeight }]}
 					renderItem={({ item }) => (
 						<GameCard
 							game={item}
@@ -128,18 +121,55 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 							}}
 						/>
 					)}
-					contentContainerStyle={styles.list}
 					keyboardShouldPersistTaps="handled"
 					refreshControl={
 						<RefreshControl
 							refreshing={refreshing}
 							onRefresh={onRefresh}
 							tintColor={theme.colors.textSecondary}
+							progressViewOffset={headerHeight}
 						/>
 					}
 					ListEmptyComponent={<Text style={styles.message}>{emptyMessage(sport, location)}</Text>}
 				/>
 			)}
+
+			<Animated.View
+				style={[styles.header, { transform: [{ translateY: headerTranslateY }] }]}
+				onLayout={(e) => setHeaderHeight(e.nativeEvent.layout.height)}
+			>
+				<View style={styles.searchSection}>
+					<Text style={styles.label}>Search by location</Text>
+					<TextInput
+						style={styles.input}
+						value={search}
+						onChangeText={setSearch}
+						placeholder="e.g. Burnaby"
+						placeholderTextColor={theme.colors.textMuted}
+						autoCorrect={false}
+						returnKeyType="search"
+						clearButtonMode="while-editing"
+					/>
+				</View>
+
+				<ScrollView
+					horizontal
+					showsHorizontalScrollIndicator={false}
+					contentContainerStyle={styles.sportChips}
+					style={styles.sportChipsRow}
+				>
+					<Chip label="All" selected={sport === undefined} onPress={() => setSport(undefined)} />
+					{SPORTS.map((name) => (
+						<Chip
+							key={name}
+							label={capitalize(name)}
+							icon={sportIcon(name)}
+							selected={sport === name}
+							onPress={() => setSport(name)}
+						/>
+					))}
+				</ScrollView>
+			</Animated.View>
 		</SafeAreaView>
 	);
 }
@@ -195,5 +225,13 @@ const getStyles = (theme: CustomTheme) =>
 			paddingHorizontal: 20,
 			gap: 8,
 			alignItems: "center",
+		},
+		header: {
+			position: "absolute",
+			top: 0,
+			left: 0,
+			right: 0,
+			zIndex: 1,
+			backgroundColor: theme.colors.background,
 		},
 	});
