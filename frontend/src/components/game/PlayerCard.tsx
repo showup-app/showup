@@ -5,11 +5,11 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const PlayerCard = ({
 	player,
-	onRemove,
+	onPress,
 	isDisabled = false,
 }: {
 	player: Player;
-	onRemove?: (playerId: number) => void;
+	onPress?: () => void;
 	isDisabled?: boolean;
 }) => {
 	const theme = useTheme();
@@ -23,11 +23,11 @@ const PlayerCard = ({
 			</View>
 			<View style={styles.rightSection}>
 				<Text style={styles.reputation}>★ {player.reputation}</Text>
-				{onRemove && (
+				{onPress && (
 					<MaterialCommunityIcons
 						testID={`remove-player-${player.id}`}
 						name="close"
-						onPress={() => onRemove(player.id)}
+						onPress={onPress}
 						disabled={isDisabled}
 						size={36}
 						color={isDisabled ? theme.colors.textMuted : theme.colors.danger}

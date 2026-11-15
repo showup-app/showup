@@ -1,4 +1,3 @@
-import { Alert } from "react-native";
 import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import GameDetailsScreen from "../screens/GameDetailsScreen";
 import { getTestScreenParams, makeGameDetail, mockApi, mockNavigation, mockUserContext } from "./utils/mocks";
@@ -59,7 +58,6 @@ describe("GameDetailsScreen", () => {
 		mockApi.cancelGame.mockImplementation(() => {
 			return cancelGamePromise;
 		});
-		const alert = jest.spyOn(Alert, "alert");
 		const { getByText, getByTestId, findByText, queryByText } = await render(<GameDetailsScreen {...params} />);
 
 		await findByText("Edit Game Details");
@@ -68,24 +66,17 @@ describe("GameDetailsScreen", () => {
 			"CreatePost",
 			expect.objectContaining({ edit: expect.objectContaining({ gameId: 1, minSpots: 2 }) }),
 		);
+		await fireEvent.press(getByTestId("remove-player-2"));
 		await act(async () => {
 			resolveRemovePlayer({ ok: true, data: game, status: 200 });
-			await fireEvent.press(getByTestId("remove-player-2"));
 		});
+		await fireEvent.press(await findByText("Confirm"));
 		expect(mockApi.removePlayer).toHaveBeenCalledWith(1, 2, "test-token");
 		expect(queryByText("Player One")).toBeNull();
 
 		await fireEvent.press(getByText("Cancel Game"));
-		expect(alert).toHaveBeenCalledWith(
-			"Cancel Game?",
-			"Are you sure you want to cancel this game? This action cannot be undone.",
-			expect.any(Array),
-			{ cancelable: true },
-		);
-		const buttons = alert.mock.calls[0][2]!;
-		buttons[0].onPress?.();
 		expect(mockApi.cancelGame).not.toHaveBeenCalled();
-		buttons[1].onPress?.();
+		await fireEvent.press(await findByText("Confirm"));
 
 		await act(async () => {
 			resolveCancelGame({ ok: true, data: game, status: 200 });
@@ -93,7 +84,7 @@ describe("GameDetailsScreen", () => {
 		expect(await findByText("This game has been cancelled by the host.")).toBeTruthy();
 		expect(mockApi.cancelGame).toHaveBeenCalledWith(1, "test-token");
 		await fireEvent.press(getByText("Cancel Game"));
-		expect(alert).toHaveBeenCalledTimes(1);
+		expect(mockApi.cancelGame).toHaveBeenCalledTimes(1);
 	});
 
 	it("joins and leaves a game, showing the in-progress label", async () => {
@@ -113,6 +104,7 @@ describe("GameDetailsScreen", () => {
 
 		await findByText("PLAYERS");
 		const joinPress = fireEvent.press(getByText("Join"));
+		await fireEvent.press(await findByText("Confirm"));
 		expect(await findByText("Joining...")).toBeTruthy();
 		await act(async () => {
 			resolveJoin({
@@ -124,6 +116,7 @@ describe("GameDetailsScreen", () => {
 		});
 		await findByText("Leave");
 		const leavePress = fireEvent.press(getByText("Leave"));
+		await fireEvent.press(await findByText("Confirm"));
 		expect(await findByText("Leaving...")).toBeTruthy();
 		await act(async () => {
 			resolveLeave({
@@ -172,6 +165,7 @@ describe("GameDetailsScreen", () => {
 		});
 		const joined = await render(<GameDetailsScreen {...params} />);
 		await fireEvent.press(await joined.findByText("Leave"));
+		await fireEvent.press(await joined.findByText("Confirm"));
 		await waitFor(() => expect(mockApi.leaveGame).toHaveBeenCalled());
 	});
 
@@ -213,14 +207,14 @@ describe("GameDetailsScreen", () => {
 		const view = await render(<GameDetailsScreen {...params} />);
 		await view.findByText("Edit Game Details");
 		const playerCard = await view.findByTestId("remove-player-2");
-		fireEvent.press(playerCard);
+		await fireEvent.press(playerCard);
+		await fireEvent.press(await view.findByText("Confirm"));
 		await waitFor(() => expect(mockApi.removePlayer).toHaveBeenCalledWith(1, 2, "test-token"));
 
 		await view.rerender(<GameDetailsScreen {...params} route={{ ...params.route, params: { gameId: 2 } }} />);
 		await act(async () => {
 			resolve({ ok: true, data: makeGameDetail(), status: 200 });
 		});
-		await fireEvent.press(playerCard);
 		expect(view.getByText("Game unavailable")).toBeTruthy();
 	});
 
@@ -234,16 +228,9 @@ describe("GameDetailsScreen", () => {
 			.mockResolvedValueOnce({ ok: false, data: null, status: 500, error: "Game unavailable" });
 		mockApi.cancelGame.mockReturnValue(promise);
 
-		const alert = jest.spyOn(Alert, "alert");
 		const view = await render(<GameDetailsScreen {...params} />);
 		await fireEvent.press(await view.findByText("Cancel Game"));
-		await waitFor(() => expect(alert).toHaveBeenCalled());
-
-		const alertButtons = alert.mock.calls[0][2];
-		if (alertButtons === undefined) throw new Error("Alert was not called");
-		const confirm = alertButtons.find((button) => button.text === "Confirm");
-		if (confirm === undefined) throw new Error("Alert has no confirm button");
-		confirm.onPress?.();
+		await fireEvent.press(await view.findByText("Confirm"));
 
 		await waitFor(() => expect(mockApi.cancelGame).toHaveBeenCalledWith(1, "test-token"));
 		await view.rerender(<GameDetailsScreen {...params} route={{ ...params.route, params: { gameId: 2 } }} />);
