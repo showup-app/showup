@@ -175,7 +175,7 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		footerText: {
 			color: theme.colors.text,
-			fontSize: 16,
+			fontSize: theme.fontSize.lg,
 			textAlign: "center",
 			fontWeight: 600,
 		},

@@ -36,6 +36,6 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		message: {
 			color: theme.colors.textMuted,
-			fontSize: 14,
+			fontSize: theme.fontSize.md,
 		},
 	});

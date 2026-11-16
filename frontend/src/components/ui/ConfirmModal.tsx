@@ -52,7 +52,7 @@ const getStyles = (theme: CustomTheme) =>
 	StyleSheet.create({
 		backdrop: {
 			flex: 1,
-			backgroundColor: "rgba(0, 0, 0, 0.5)",
+			backgroundColor: theme.colors.overlay,
 			justifyContent: "center",
 			alignItems: "center",
 			padding: 24,
@@ -77,11 +77,11 @@ const getStyles = (theme: CustomTheme) =>
 		title: {
 			color: theme.colors.text,
 			textAlign: "center",
-			fontSize: 24,
+			fontSize: theme.fontSize.xxl,
 		},
 		message: {
 			color: theme.colors.textMuted,
 			textAlign: "center",
-			fontSize: 18,
+			fontSize: theme.fontSize.xl,
 		},
 	});

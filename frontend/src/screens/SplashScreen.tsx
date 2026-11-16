@@ -42,6 +42,6 @@ const getStyles = (theme: CustomTheme) =>
 		subtitle: {
 			fontWeight: 400,
 			color: theme.colors.textMuted,
-			fontSize: 16,
+			fontSize: theme.fontSize.lg,
 		},
 	});

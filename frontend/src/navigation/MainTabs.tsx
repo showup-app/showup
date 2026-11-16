@@ -33,7 +33,7 @@ export function MainTabs() {
 				},
 				tabBarActiveTintColor: theme.colors.textSecondary,
 				tabBarInactiveTintColor: theme.colors.textMuted,
-				tabBarLabelStyle: { fontSize: 10 },
+				tabBarLabelStyle: { fontSize: theme.fontSize.xxs },
 				tabBarIcon: ({ focused, color, size }) => {
 					const [outline, filled] = TAB_ICONS[route.name];
 					return <MaterialCommunityIcons name={focused ? filled : outline} size={size} color={color} />;

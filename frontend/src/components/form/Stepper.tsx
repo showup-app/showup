@@ -57,7 +57,7 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		value: {
 			color: theme.colors.text,
-			fontSize: 18,
+			fontSize: theme.fontSize.xl,
 			fontWeight: "500",
 			minWidth: 24,
 			textAlign: "center",

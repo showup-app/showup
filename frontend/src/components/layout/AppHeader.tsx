@@ -43,7 +43,7 @@ const getStyles = (theme: CustomTheme) =>
 			paddingVertical: 12,
 		},
 		logo: {
-			fontSize: 26,
+			fontSize: theme.fontSize.xxl,
 			textAlign: "left",
 		},
 		avatarWrap: {
@@ -54,6 +54,6 @@ const getStyles = (theme: CustomTheme) =>
 			top: -4,
 			right: -18,
 			color: theme.colors.textSecondary,
-			fontSize: 10,
+			fontSize: theme.fontSize.xxs,
 		},
 	});

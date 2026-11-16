@@ -198,12 +198,12 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		title: {
 			color: theme.colors.text,
-			fontSize: 18,
+			fontSize: theme.fontSize.xl,
 			fontWeight: "500",
 		},
 		subtitle: {
 			color: theme.colors.textMuted,
-			fontSize: 13,
+			fontSize: theme.fontSize.sm,
 		},
 		joinButton: {
 			backgroundColor: theme.colors.textSecondary,
@@ -218,7 +218,7 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		joinText: {
 			color: theme.colors.background,
-			fontSize: 14,
+			fontSize: theme.fontSize.md,
 			fontWeight: "600",
 		},
 		joinTextDisabled: {
@@ -240,7 +240,7 @@ const getStyles = (theme: CustomTheme) =>
 			paddingVertical: 5,
 		},
 		chipText: {
-			fontSize: 13,
+			fontSize: theme.fontSize.sm,
 		},
 		footer: {
 			flexDirection: "row",
@@ -253,11 +253,11 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		hostName: {
 			color: theme.colors.text,
-			fontSize: 14,
+			fontSize: theme.fontSize.md,
 		},
 		reputation: {
 			color: theme.colors.textSecondary,
-			fontSize: 12,
+			fontSize: theme.fontSize.xs,
 			fontWeight: 500,
 		},
 		seePlayers: {
@@ -265,7 +265,7 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		link: {
 			color: theme.colors.textSecondary,
-			fontSize: 13,
+			fontSize: theme.fontSize.sm,
 			fontWeight: "500",
 		},
 		details: {
@@ -282,13 +282,13 @@ const getStyles = (theme: CustomTheme) =>
 			width: "50%",
 		},
 		detailName: {
-			color: "#ADADAD",
-			fontSize: 14,
+			color: theme.colors.textMuted,
+			fontSize: theme.fontSize.md,
 			fontWeight: 400,
 		},
 		detailValue: {
 			color: theme.colors.text,
-			fontSize: 14,
+			fontSize: theme.fontSize.md,
 			fontWeight: 400,
 		},
 		hostContainer: {

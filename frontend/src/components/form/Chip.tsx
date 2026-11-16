@@ -45,6 +45,6 @@ const getStyles = (theme: CustomTheme) =>
 			paddingVertical: 7,
 		},
 		text: {
-			fontSize: 14,
+			fontSize: theme.fontSize.md,
 		},
 	});

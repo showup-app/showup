@@ -20,7 +20,7 @@ const getStyles = (theme: CustomTheme) =>
 		logo: {
 			fontWeight: 600,
 			color: theme.colors.text,
-			fontSize: 64,
+			fontSize: theme.fontSize.hero,
 			textAlign: "center",
 		},
 	});

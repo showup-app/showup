@@ -19,7 +19,7 @@ const getStyles = (theme: CustomTheme) =>
 		track: {
 			height: 12,
 			width: "100%",
-			backgroundColor: "#3C3C3C",
+			backgroundColor: theme.colors.border,
 			borderRadius: 6,
 			overflow: "hidden",
 		},

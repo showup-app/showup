@@ -48,11 +48,11 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		message: {
 			color: theme.colors.textMuted,
-			fontSize: 14,
+			fontSize: theme.fontSize.md,
 		},
 		link: {
 			color: theme.colors.textSecondary,
-			fontSize: 14,
+			fontSize: theme.fontSize.md,
 			fontWeight: 600,
 		},
 	});

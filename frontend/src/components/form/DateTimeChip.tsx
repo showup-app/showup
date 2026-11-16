@@ -87,7 +87,7 @@ const getStyles = (theme: CustomTheme) =>
 	StyleSheet.create({
 		backdrop: {
 			flex: 1,
-			backgroundColor: "rgba(0, 0, 0, 0.5)",
+			backgroundColor: theme.colors.overlay,
 		},
 		sheet: {
 			backgroundColor: theme.colors.surface,
@@ -101,11 +101,11 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		cancel: {
 			color: theme.colors.textMuted,
-			fontSize: 16,
+			fontSize: theme.fontSize.lg,
 		},
 		done: {
 			color: theme.colors.textSecondary,
-			fontSize: 16,
+			fontSize: theme.fontSize.lg,
 			fontWeight: "600",
 		},
 	});

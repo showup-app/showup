@@ -208,17 +208,17 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		title: {
 			color: theme.colors.text,
-			fontSize: 18,
+			fontSize: theme.fontSize.xl,
 			fontWeight: "600",
 		},
 		subtitle: {
 			color: theme.colors.textMuted,
-			fontSize: 14,
+			fontSize: theme.fontSize.md,
 			fontFamily: Platform.select({ ios: "Menlo", default: "monospace" }),
 		},
 		gameInfo: {
 			color: theme.colors.textMuted,
-			fontSize: 12,
+			fontSize: theme.fontSize.xs,
 		},
 		row: {
 			flexDirection: "row",
@@ -232,12 +232,12 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		playerName: {
 			color: theme.colors.text,
-			fontSize: 15,
+			fontSize: theme.fontSize.lg,
 			fontWeight: "600",
 		},
 		reputation: {
 			color: theme.colors.textSecondary,
-			fontSize: 12,
+			fontSize: theme.fontSize.xs,
 		},
 		divider: {
 			height: 1,
@@ -256,11 +256,11 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		message: {
 			color: theme.colors.textMuted,
-			fontSize: 14,
+			fontSize: theme.fontSize.md,
 		},
 		link: {
 			color: theme.colors.textSecondary,
-			fontSize: 14,
+			fontSize: theme.fontSize.md,
 			fontWeight: "600",
 		},
 		hintRow: {
@@ -271,7 +271,7 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		hint: {
 			color: theme.colors.warning,
-			fontSize: 13,
+			fontSize: theme.fontSize.sm,
 			fontWeight: "500",
 		},
 	});

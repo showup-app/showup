@@ -5,8 +5,8 @@ import { StyleSheet } from "react-native";
 export const getGlobalStyles = (theme: CustomTheme) => {
 	return StyleSheet.create({
 		container: {
-			borderColor: "#3C3C3C",
-			backgroundColor: "#2B2B2B",
+			borderColor: theme.colors.border,
+			backgroundColor: theme.colors.surface,
 			borderWidth: 1,
 			borderRadius: 5,
 			width: "100%",
