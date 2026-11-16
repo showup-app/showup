@@ -2,7 +2,7 @@ import { DefaultTheme } from "@react-navigation/native";
 
 export const colors = {
 	...DefaultTheme.colors,
-		background: "#212121",
+	background: "#212121",
 	surface: "#2C2C2C",
 	border: "#3A3A3A",
 	text: "#FFFFFF",
