@@ -129,7 +129,7 @@ const AttendanceScreen = ({ navigation, route }: AppScreenProps<"Attendance">) =
 								<MaterialCommunityIcons
 									name={mark === true ? "thumb-up" : "thumb-up-outline"}
 									size={30}
-									color={mark === true ? theme.colors.textSecondary : theme.colors.textMuted}
+									color={mark === true ? theme.colors.success : theme.colors.textMuted}
 								/>
 							</Pressable>
 							<Pressable
