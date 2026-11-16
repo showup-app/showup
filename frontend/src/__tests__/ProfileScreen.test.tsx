@@ -124,7 +124,7 @@ describe("ProfileScreen", () => {
 
 		await fireEvent.press(getByText("Tennis game"));
 		expect(mockNavigation.navigate).toHaveBeenCalledWith("GameDetails", { gameId: 3 });
-		await fireEvent.press(getByText("Logout"));
+		await fireEvent.press(getByText(/Log out/));
 
 		expect(mockContextLogout).toHaveBeenCalledTimes(1);
 	});
