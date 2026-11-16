@@ -151,7 +151,7 @@ const getStyles = (theme: CustomTheme) =>
 			width: "100%",
 		},
 		playersText: {
-			fontSize: 14,
+			fontSize: theme.fontSize.md,
 			color: theme.colors.textMuted,
 		},
 		separator: {
@@ -161,7 +161,7 @@ const getStyles = (theme: CustomTheme) =>
 		reputation: {
 			color: theme.colors.textSecondary,
 			fontWeight: 600,
-			fontSize: 26,
+			fontSize: theme.fontSize.xxl,
 		},
 		info: {
 			color: theme.colors.textMuted,
@@ -174,7 +174,7 @@ const getStyles = (theme: CustomTheme) =>
 			gap: 5,
 		},
 		name: {
-			fontSize: 26,
+			fontSize: theme.fontSize.xxl,
 			color: theme.colors.text,
 		},
 		playerInfo: {

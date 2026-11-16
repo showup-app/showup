@@ -33,7 +33,7 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		label: {
 			color: theme.colors.textMuted,
-			fontSize: 12,
+			fontSize: theme.fontSize.xs,
 			fontFamily: Platform.select({ ios: "Menlo", default: "monospace" }),
 		},
 	});

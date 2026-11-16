@@ -404,11 +404,11 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		rowTitle: {
 			color: theme.colors.text,
-			fontSize: 16,
+			fontSize: theme.fontSize.lg,
 		},
 		caption: {
 			color: theme.colors.textMuted,
-			fontSize: 12,
+			fontSize: theme.fontSize.xs,
 		},
 		divider: {
 			height: 1,
@@ -427,12 +427,12 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		dollar: {
 			color: theme.colors.textMuted,
-			fontSize: 16,
+			fontSize: theme.fontSize.lg,
 		},
 		priceText: {
 			flex: 1,
 			color: theme.colors.text,
-			fontSize: 16,
+			fontSize: theme.fontSize.lg,
 			paddingVertical: 12,
 		},
 		footer: {

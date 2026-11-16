@@ -277,7 +277,7 @@ const getStyles = (theme: CustomTheme) =>
 			width: "100%",
 		},
 		playersText: {
-			fontSize: 14,
+			fontSize: theme.fontSize.md,
 			color: theme.colors.textMuted,
 		},
 		playersContainer: {

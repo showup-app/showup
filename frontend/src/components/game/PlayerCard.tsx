@@ -56,7 +56,7 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		reputation: {
 			color: theme.colors.textSecondary,
-			fontSize: 14,
+			fontSize: theme.fontSize.md,
 			fontWeight: 600,
 		},
 		userProfile: {

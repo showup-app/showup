@@ -163,7 +163,7 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		label: {
 			color: theme.colors.textMuted,
-			fontSize: 13,
+			fontSize: theme.fontSize.sm,
 			fontFamily: Platform.select({ ios: "Menlo", default: "monospace" }),
 		},
 		input: {
@@ -172,7 +172,7 @@ const getStyles = (theme: CustomTheme) =>
 			borderWidth: 1,
 			borderRadius: 6,
 			color: theme.colors.text,
-			fontSize: 16,
+			fontSize: theme.fontSize.lg,
 			paddingHorizontal: 12,
 			paddingVertical: 12,
 		},
@@ -183,7 +183,7 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		message: {
 			color: theme.colors.textMuted,
-			fontSize: 14,
+			fontSize: theme.fontSize.md,
 			textAlign: "center",
 		},
 		sportChipsRow: {

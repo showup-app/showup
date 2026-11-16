@@ -52,14 +52,14 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		label: {
 			color: theme.colors.textMuted,
-			fontSize: 12,
+			fontSize: theme.fontSize.xs,
 		},
 		input: {
 			borderWidth: 1,
 			borderColor: theme.colors.border,
 			backgroundColor: theme.colors.surface,
 			color: theme.colors.text,
-			fontSize: 14,
+			fontSize: theme.fontSize.md,
 			padding: 10,
 		},
 	});

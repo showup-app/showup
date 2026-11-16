@@ -24,13 +24,13 @@ const getStyles = (theme: CustomTheme) =>
 		titleText: {
 			fontWeight: 600,
 			color: theme.colors.text,
-			fontSize: 32,
+			fontSize: theme.fontSize.display,
 			textAlign: "center",
 		},
 		subtitleText: {
 			fontWeight: 400,
 			color: theme.colors.textMuted,
-			fontSize: 16,
+			fontSize: theme.fontSize.lg,
 			textAlign: "center",
 		},
 	});

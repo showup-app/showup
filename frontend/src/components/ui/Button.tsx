@@ -71,7 +71,7 @@ const getStyles = (theme: CustomTheme) =>
 			backgroundColor: theme.colors.textSecondary,
 		},
 		baseText: {
-			fontSize: 16,
+			fontSize: theme.fontSize.lg,
 			fontWeight: "600",
 			color: theme.colors.text,
 		},

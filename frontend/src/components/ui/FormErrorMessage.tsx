@@ -25,7 +25,7 @@ const getStyles = (theme: CustomTheme) =>
 			borderRadius: 5,
 		},
 		text: {
-			fontSize: 14,
+			fontSize: theme.fontSize.md,
 			color: theme.colors.text,
 			fontWeight: "500",
 		},

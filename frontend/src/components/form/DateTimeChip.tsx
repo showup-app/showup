@@ -101,11 +101,11 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		cancel: {
 			color: theme.colors.textMuted,
-			fontSize: 16,
+			fontSize: theme.fontSize.lg,
 		},
 		done: {
 			color: theme.colors.textSecondary,
-			fontSize: 16,
+			fontSize: theme.fontSize.lg,
 			fontWeight: "600",
 		},
 	});

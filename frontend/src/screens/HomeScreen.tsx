@@ -190,7 +190,7 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		sectionTitle: {
 			color: theme.colors.textMuted,
-			fontSize: 13,
+			fontSize: theme.fontSize.sm,
 			fontWeight: "600",
 			letterSpacing: 1,
 			textTransform: "uppercase",
@@ -208,11 +208,11 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		message: {
 			color: theme.colors.textMuted,
-			fontSize: 14,
+			fontSize: theme.fontSize.md,
 		},
 		link: {
 			color: theme.colors.textSecondary,
-			fontSize: 14,
+			fontSize: theme.fontSize.md,
 			fontWeight: "600",
 		},
 		sectionHeader: {
@@ -234,7 +234,7 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		countText: {
 			color: theme.colors.textOnDanger,
-			fontSize: 11,
+			fontSize: theme.fontSize.xs,
 			fontWeight: "600",
 		},
 	});

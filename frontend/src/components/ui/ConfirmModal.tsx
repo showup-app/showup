@@ -77,11 +77,11 @@ const getStyles = (theme: CustomTheme) =>
 		title: {
 			color: theme.colors.text,
 			textAlign: "center",
-			fontSize: 24,
+			fontSize: theme.fontSize.xxl,
 		},
 		message: {
 			color: theme.colors.textMuted,
 			textAlign: "center",
-			fontSize: 18,
+			fontSize: theme.fontSize.xl,
 		},
 	});
