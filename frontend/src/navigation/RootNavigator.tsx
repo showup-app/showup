@@ -3,7 +3,7 @@ import { AppNavigator } from "./AppNavigator";
 import { theme } from "../theme";
 import { useUser } from "../context/UserContext";
 import { AuthNavigator } from "./AuthNavigator";
-import Toast from "react-native-toast-message";
+import { ThemedToast } from "../components/ui/ThemedToast";
 
 export function RootNavigator() {
 	const { token } = useUser();
@@ -11,7 +11,7 @@ export function RootNavigator() {
 	return (
 		<NavigationContainer theme={theme}>
 			{token !== null ? <AppNavigator /> : <AuthNavigator />}
-			<Toast position="bottom" />
+			<ThemedToast position="bottom" />
 		</NavigationContainer>
 	);
 }

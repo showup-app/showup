@@ -1,6 +1,6 @@
 import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import { CreatePostScreen } from "../screens/CreatePostScreen";
-import { getTestScreenParams, makeGame, mockApi, mockNavigation } from "./utils/mocks";
+import { getTestScreenParams, makeGame, mockApi, mockNavigation, mockToastShow } from "./utils/mocks";
 
 describe("CreatePostScreen", () => {
 	const params = getTestScreenParams("CreatePost");
@@ -121,6 +121,7 @@ describe("CreatePostScreen", () => {
 			);
 			expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
 		});
+		expect(mockToastShow).toHaveBeenCalled();
 	});
 
 	it("shows a failed update error and stays on the form", async () => {

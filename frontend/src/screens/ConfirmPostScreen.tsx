@@ -8,6 +8,7 @@ import { useState } from "react";
 import FormErrorMessage from "../components/ui/FormErrorMessage";
 import { api } from "../services/api";
 import { useAuthenticatedUser } from "../context/UserContext";
+import Toast from "react-native-toast-message";
 
 const ConfirmPostScreen = ({ navigation, route }: AppScreenProps<"ConfirmPost">) => {
 	const theme = useTheme();
@@ -23,6 +24,10 @@ const ConfirmPostScreen = ({ navigation, route }: AppScreenProps<"ConfirmPost">)
 		const res = await api.createGame(draft, token);
 		setIsSubmitting(false);
 		if (res.ok) {
+			Toast.show({
+				type: "success",
+				text1: "Game successfully created!",
+			});
 			navigation.dispatch(
 				CommonActions.reset({
 					index: 1,

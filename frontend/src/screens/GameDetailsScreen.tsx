@@ -83,7 +83,7 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 		if (!res.ok) {
 			Toast.show({
 				type: "error",
-				text1: `Failed to ${game.joined ? "leave" : "join"} the game, please try again later`,
+				text1: `Failed to ${game.joined ? "leave" : "join"} the game`,
 				text2: res.error,
 			});
 		} else {
@@ -157,7 +157,7 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 		} else {
 			Toast.show({
 				type: "error",
-				text1: "Failed to cancel this game, please try again later",
+				text1: "Failed to cancel this game",
 				text2: res.error,
 			});
 		}

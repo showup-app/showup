@@ -37,6 +37,7 @@ const LoginScreen = () => {
 				Toast.show({
 					type: "success",
 					text1: "Login successful!",
+					bottomOffset: 90,
 				});
 				login(meRes.data, token.access_token);
 			} else {

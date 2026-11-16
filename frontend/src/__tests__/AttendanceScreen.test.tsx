@@ -1,6 +1,6 @@
 import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import AttendanceScreen from "../screens/AttendanceScreen";
-import { getTestScreenParams, makeGameDetail, mockApi, mockNavigation } from "./utils/mocks";
+import { getTestScreenParams, makeGameDetail, mockApi, mockNavigation, mockToastShow } from "./utils/mocks";
 
 describe("AttendanceScreen", () => {
 	const params = getTestScreenParams("Attendance", { gameId: 1 });
@@ -39,6 +39,7 @@ describe("AttendanceScreen", () => {
 			);
 			expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
 		});
+		expect(mockToastShow).toHaveBeenCalled();
 	});
 
 	it("shows loading then an error and retries the failed load", async () => {

@@ -1,6 +1,6 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import LoginScreen from "../screens/LoginScreen";
-import { mockApi, mockContextLogin } from "./utils/mocks";
+import { mockApi, mockContextLogin, mockToastShow } from "./utils/mocks";
 
 describe("LoginScreen", () => {
 	it("renders the login form", async () => {
@@ -53,6 +53,7 @@ describe("LoginScreen", () => {
 			expect(mockApi.me).toHaveBeenCalledWith("access-token");
 			expect(mockContextLogin).toHaveBeenCalledWith(user, "access-token");
 		});
+		expect(mockToastShow).toHaveBeenCalled();
 	});
 
 	it("shows an API login error", async () => {

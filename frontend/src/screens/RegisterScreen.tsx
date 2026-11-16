@@ -55,6 +55,7 @@ const RegisterScreen = ({ navigation }: AuthScreenProps<"Register">) => {
 			Toast.show({
 				type: "success",
 				text1: "Account creation successful!",
+				bottomOffset: 90,
 			});
 		} else {
 			if (res.status === 409) {

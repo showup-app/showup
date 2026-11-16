@@ -16,6 +16,7 @@ import { SPORTS, sportIcon } from "../utils/sports";
 import { useState } from "react";
 import { useAuthenticatedUser } from "../context/UserContext";
 import { api } from "../services/api";
+import Toast from "react-native-toast-message";
 
 const MIN_SPOTS = 2;
 const MAX_SPOTS = 30;
@@ -138,6 +139,10 @@ export function CreatePostScreen({ navigation, route }: AppScreenProps<"CreatePo
 		const res = await api.updateGame(edit.gameId, draft, token);
 		setIsSaving(false);
 		if (res.ok) {
+			Toast.show({
+				type: "success",
+				text1: "Game successfully updated!",
+			});
 			navigation.goBack();
 		} else {
 			setSaveError(res.error);

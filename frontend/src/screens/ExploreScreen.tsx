@@ -113,8 +113,9 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 								if (!res.ok) {
 									Toast.show({
 										type: "error",
-										text1: "Failed to join the game, please try again later",
+										text1: "Failed to join the game",
 										text2: res.error,
+										bottomOffset: 90,
 									});
 									return;
 								}
@@ -124,7 +125,8 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 								);
 								Toast.show({
 									type: "success",
-									text1: "Successfully joined the game",
+									text1: "Successfully joined the game!",
+									bottomOffset: 90,
 								});
 							}}
 						/>

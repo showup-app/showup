@@ -26,6 +26,12 @@ beforeEach(() => {
 	mockContextLogout.mockReset();
 });
 
+jest.mock("react-native-toast-message", () => ({
+	show: jest.fn(),
+}));
+
+export const mockToastShow = jest.mocked(jest.requireMock("react-native-toast-message").show) as jest.Mock;
+
 jest.mock("@react-navigation/native", () => {
 	const actualNav = jest.requireActual<typeof import("@react-navigation/native")>("@react-navigation/native");
 	const { theme } = jest.requireActual<typeof import("../../theme/index")>("../../theme/index");
