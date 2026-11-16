@@ -15,6 +15,7 @@ import ErrorView from "../components/layout/ErrorView";
 import FormErrorMessage from "../components/ui/FormErrorMessage";
 import ConfirmModal, { ConfirmModalProps } from "../components/ui/ConfirmModal";
 import Toast from "react-native-toast-message";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 type GameState = { status: "loading" } | { status: "error"; error: string } | { status: "success"; game: GameDetail };
 type ModalTypes =
@@ -206,6 +207,32 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 					<FormErrorMessage message="This game has been cancelled by the host." />
 				</View>
 			)}
+			{isHost ? (
+				<View style={styles.buttonsContainer}>
+					<Button buttonStyle={{ flex: 1 }} variant="outline" disabled={!canManage} onPress={handleEditGame}>
+						<MaterialCommunityIcons name="pencil-outline" size={16} color={theme.colors.text} /> Edit
+						details
+					</Button>
+					<Button
+						buttonStyle={{ flex: 1 }}
+						variant="dangerSoft"
+						disabled={!canManage}
+						onPress={() => setModal({ type: "cancel" })}
+					>
+						<MaterialCommunityIcons name="close" size={16} color={theme.colors.danger} /> Cancel game
+					</Button>
+				</View>
+			) : (
+				<View style={styles.joinButton}>
+					<Button
+						disabled={!canJoinLeave}
+						variant={game.joined ? "dangerSoft" : "primary"}
+						onPress={() => setModal(game.joined ? { type: "leave" } : { type: "join" })}
+					>
+						{joinLeaveButtonText}
+					</Button>
+				</View>
+			)}
 			<View style={styles.playersContainer}>
 				<View style={styles.playersHeading}>
 					<Text style={styles.playersText}>PLAYERS</Text>
@@ -228,40 +255,7 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 					))}
 				</ScrollView>
 			</View>
-			{isHost ? (
-				<View style={styles.buttonsContainer}>
-					<Button
-						buttonStyle={{
-							flex: 1,
-						}}
-						variant="primary"
-						disabled={!canManage}
-						onPress={handleEditGame}
-					>
-						Edit Game Details
-					</Button>
-					<Button
-						buttonStyle={{
-							flex: 1,
-						}}
-						variant="danger"
-						disabled={!canManage}
-						onPress={() => setModal({ type: "cancel" })}
-					>
-						Cancel Game
-					</Button>
-				</View>
-			) : (
-				<View style={styles.joinButton}>
-					<Button
-						disabled={!canJoinLeave}
-						variant={game.joined ? "danger" : "primary"}
-						onPress={() => setModal(game.joined ? { type: "leave" } : { type: "join" })}
-					>
-						{joinLeaveButtonText}
-					</Button>
-				</View>
-			)}
+
 			{modal !== null && (
 				<ConfirmModal
 					visible
@@ -286,7 +280,7 @@ const getStyles = (theme: CustomTheme) =>
 			backgroundColor: theme.colors.background,
 			alignItems: "center",
 			paddingHorizontal: 20,
-			gap: 30,
+			gap: 16,
 		},
 		playerCards: {
 			gap: 10,
@@ -310,7 +304,7 @@ const getStyles = (theme: CustomTheme) =>
 		buttonsContainer: {
 			flexDirection: "row",
 			width: "100%",
-			gap: 20,
+			gap: 10,
 			alignSelf: "center",
 			alignItems: "center",
 			justifyContent: "space-between",
