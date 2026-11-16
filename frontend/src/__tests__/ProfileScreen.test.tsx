@@ -115,7 +115,7 @@ describe("ProfileScreen", () => {
 		expect(getByText("1 hosted")).toBeTruthy();
 		expect(getAllByText("Showed Up")).toHaveLength(2);
 		expect(getByText("No-show")).toBeTruthy();
-		expect(getAllByText("Unknown")).toHaveLength(2);
+		expect(getByText("Not marked yet")).toBeTruthy();
 		expect(getByText("No change")).toBeTruthy();
 		expect(getByText("Played")).toBeTruthy();
 		expect(getByText("2/3 showed up")).toBeTruthy();
