@@ -48,10 +48,14 @@ const getStyles = (theme: CustomTheme) =>
 		baseButton: {
 			borderWidth: 1,
 			borderColor: "transparent",
-			borderRadius: 16,
 			padding: 18,
 			alignItems: "center",
 			justifyContent: "center",
+			borderRadius: 8,
+			paddingVertical: 12,
+			paddingHorizontal: 16,
+			flexDirection: "row",
+			gap: 6,
 		},
 		baseButtonDisabled: {
 			backgroundColor: theme.colors.disabled,
@@ -65,13 +69,13 @@ const getStyles = (theme: CustomTheme) =>
 			backgroundColor: theme.colors.danger,
 		},
 		dangerButtonDisabled: {
-			backgroundColor: theme.colors.textMuted,
+			backgroundColor: theme.colors.disabled,
 		},
 		primaryButton: {
 			backgroundColor: theme.colors.textSecondary,
 		},
 		baseText: {
-			fontSize: theme.fontSize.lg,
+			fontSize: theme.fontSize.md,
 			fontWeight: "600",
 			color: theme.colors.text,
 		},

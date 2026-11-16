@@ -114,9 +114,13 @@ const GameCard = ({
 						label={formatSpotsLeft(spotsLeft)}
 						color={isAlmostFull ? theme.colors.warning : undefined}
 					/>
-					<Chip label={formatCost(game.cost)} color={game.cost === 0 ? theme.colors.success : undefined} />
+					<Chip
+						label={formatCost(game.cost)}
+						color={game.cost === 0 ? theme.colors.success : undefined}
+						tinted
+					/>
 					{game.min_reputation > 0 && <Chip icon="star-outline" label={`${game.min_reputation}+ only`} />}
-					{isCancelled && <Chip label="Cancelled" color={theme.colors.danger} />}
+					{isCancelled && <Chip label="Cancelled" color={theme.colors.danger} tinted />}
 				</View>
 			)}
 
@@ -161,15 +165,16 @@ type ChipProps = {
 	label: string;
 	icon?: IconName;
 	color?: string;
+	tinted?: boolean;
 };
 
-const Chip = ({ label, icon, color }: ChipProps) => {
+const Chip = ({ label, icon, color, tinted }: ChipProps) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
 	const textColor = color ?? theme.colors.text;
 
 	return (
-		<View style={styles.chip}>
+		<View style={[styles.chip, tinted && color && { backgroundColor: `${color}26` }]}>
 			{icon && <MaterialCommunityIcons name={icon} size={14} color={textColor} />}
 			<Text style={[styles.chipText, { color: textColor }]}>{label}</Text>
 		</View>
@@ -207,9 +212,9 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		joinButton: {
 			backgroundColor: theme.colors.textSecondary,
-			borderRadius: 16,
-			paddingHorizontal: 18,
-			paddingVertical: 8,
+			borderRadius: 8,
+			paddingHorizontal: 14,
+			paddingVertical: 6,
 		},
 		joinButtonDisabled: {
 			backgroundColor: "transparent",
@@ -218,7 +223,7 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		joinText: {
 			color: theme.colors.background,
-			fontSize: theme.fontSize.md,
+			fontSize: theme.fontSize.sm,
 			fontWeight: "600",
 		},
 		joinTextDisabled: {

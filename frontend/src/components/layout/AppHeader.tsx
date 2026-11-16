@@ -31,7 +31,7 @@ export default AppHeader;
 const getStyles = (theme: CustomTheme) =>
 	StyleSheet.create({
 		safeArea: {
-			backgroundColor: theme.colors.background,
+			backgroundColor: theme.colors.chrome,
 			borderBottomWidth: 1,
 			borderBottomColor: theme.colors.border,
 		},
