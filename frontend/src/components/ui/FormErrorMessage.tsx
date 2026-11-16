@@ -18,15 +18,15 @@ const getStyles = (theme: CustomTheme) =>
 	StyleSheet.create({
 		container: {
 			width: "100%",
-			backgroundColor: theme.colors.danger,
+			backgroundColor: `${theme.colors.danger}1F`,
 			padding: 10,
-			borderColor: theme.colors.border,
+			borderColor: theme.colors.danger,
 			borderWidth: 1,
 			borderRadius: 5,
 		},
 		text: {
 			fontSize: theme.fontSize.md,
-			color: theme.colors.text,
+			color: theme.colors.danger,
 			fontWeight: "500",
 		},
 	});

@@ -20,7 +20,7 @@ const ProfileGameCard = ({ game, user, onPress }: { game: Game; user: User; onPr
 
 	const getBottomInfoText = (): string => {
 		if (isHost) return `${showed_up_count}/${marked_count} showed up`;
-		if (my_showed_up === null || my_reputation_change === null) return "Unknown";
+		if (my_showed_up === null || my_reputation_change === null) return "Not marked yet";
 		if (my_reputation_change === 0) return "No change";
 		return `${my_reputation_change > 0 ? "+" : ""}${my_reputation_change}`;
 	};
@@ -57,6 +57,7 @@ const getStyles = (theme: CustomTheme) =>
 			justifyContent: "space-between",
 			alignItems: "center",
 			padding: 12,
+			borderWidth: 0,
 		},
 		left: {
 			flex: 2,

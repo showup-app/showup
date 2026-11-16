@@ -60,8 +60,8 @@ describe("GameDetailsScreen", () => {
 		});
 		const { getByText, getByTestId, findByText, queryByText } = await render(<GameDetailsScreen {...params} />);
 
-		await findByText("Edit Game Details");
-		await fireEvent.press(getByText("Edit Game Details"));
+		await findByText(/Edit details/);
+		await fireEvent.press(getByText(/Edit details/));
 		expect(mockNavigation.navigate).toHaveBeenCalledWith(
 			"CreatePost",
 			expect.objectContaining({ edit: expect.objectContaining({ gameId: 1, minSpots: 2 }) }),
@@ -74,7 +74,7 @@ describe("GameDetailsScreen", () => {
 		expect(mockApi.removePlayer).toHaveBeenCalledWith(1, 2, "test-token");
 		expect(queryByText("Player One")).toBeNull();
 
-		await fireEvent.press(getByText("Cancel Game"));
+		await fireEvent.press(getByText(/Cancel game/));
 		expect(mockApi.cancelGame).not.toHaveBeenCalled();
 		await fireEvent.press(await findByText("Confirm"));
 
@@ -83,7 +83,7 @@ describe("GameDetailsScreen", () => {
 		});
 		expect(await findByText("This game has been cancelled by the host.")).toBeTruthy();
 		expect(mockApi.cancelGame).toHaveBeenCalledWith(1, "test-token");
-		await fireEvent.press(getByText("Cancel Game"));
+		await fireEvent.press(getByText(/Cancel game/));
 		expect(mockApi.cancelGame).toHaveBeenCalledTimes(1);
 	});
 
@@ -177,8 +177,8 @@ describe("GameDetailsScreen", () => {
 			status: 200,
 		});
 		const played = await render(<GameDetailsScreen {...params} />);
-		expect(await played.findByText("Edit Game Details")).toBeTruthy();
-		await fireEvent.press(played.getByText("Edit Game Details"));
+		expect(await played.findByText(/Edit details/)).toBeTruthy();
+		await fireEvent.press(played.getByText(/Edit details/));
 		expect(mockNavigation.navigate).not.toHaveBeenCalled();
 		await played.unmount();
 
@@ -188,10 +188,10 @@ describe("GameDetailsScreen", () => {
 			status: 200,
 		});
 		const cancelled = await render(<GameDetailsScreen {...params} />);
-		await cancelled.findByText("Cancel Game");
+		await cancelled.findByText(/Cancel game/);
 		await fireEvent.press(await cancelled.findByTestId("remove-player-2"));
 		expect(mockApi.removePlayer).not.toHaveBeenCalled();
-		await fireEvent.press(cancelled.getByText("Cancel Game"));
+		await fireEvent.press(cancelled.getByText(/Cancel game/));
 		expect(mockNavigation.navigate).not.toHaveBeenCalled();
 	});
 
@@ -205,7 +205,7 @@ describe("GameDetailsScreen", () => {
 			.mockResolvedValueOnce({ ok: false, data: null, status: 500, error: "Game unavailable" });
 		mockApi.removePlayer.mockReturnValue(promise);
 		const view = await render(<GameDetailsScreen {...params} />);
-		await view.findByText("Edit Game Details");
+		await view.findByText(/Edit details/);
 		const playerCard = await view.findByTestId("remove-player-2");
 		await fireEvent.press(playerCard);
 		await fireEvent.press(await view.findByText("Confirm"));
@@ -229,7 +229,7 @@ describe("GameDetailsScreen", () => {
 		mockApi.cancelGame.mockReturnValue(promise);
 
 		const view = await render(<GameDetailsScreen {...params} />);
-		await fireEvent.press(await view.findByText("Cancel Game"));
+		await fireEvent.press(await view.findByText(/Cancel game/));
 		await fireEvent.press(await view.findByText("Confirm"));
 
 		await waitFor(() => expect(mockApi.cancelGame).toHaveBeenCalledWith(1, "test-token"));
@@ -250,9 +250,9 @@ describe("GameDetailsScreen", () => {
 			status: 200,
 		});
 		const game = await render(<GameDetailsScreen {...params} />);
-		expect(await game.findByText("Edit Game Details")).toBeTruthy();
+		expect(await game.findByText(/Edit details/)).toBeTruthy();
 
-		await fireEvent.press(game.getByText("Edit Game Details"));
+		await fireEvent.press(game.getByText(/Edit details/));
 		expect(mockNavigation.navigate).not.toHaveBeenCalled();
 
 		await fireEvent.press(await game.findByTestId("remove-player-2"));

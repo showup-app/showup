@@ -5,7 +5,7 @@ interface ButtonProps extends Omit<PressableProps, "style"> {
 	buttonStyle?: StyleProp<ViewStyle>;
 	textStyle?: StyleProp<TextStyle>;
 	children: React.ReactNode;
-	variant: "primary" | "outline" | "danger";
+	variant: "primary" | "outline" | "danger" | "dangerSoft";
 }
 
 const Button: React.FC<ButtonProps> = ({ buttonStyle, textStyle, children, variant, ...buttonProps }) => {
@@ -30,7 +30,7 @@ const Button: React.FC<ButtonProps> = ({ buttonStyle, textStyle, children, varia
 			{...buttonProps}
 		>
 			<Text
-				style={[styles.baseText, textVariantStyle, textStyle]}
+				style={[styles.baseText, textVariantStyle, textStyle, buttonProps.disabled && styles.baseTextDisabled]}
 				numberOfLines={1}
 				adjustsFontSizeToFit
 				minimumFontScale={0.5}
@@ -48,10 +48,14 @@ const getStyles = (theme: CustomTheme) =>
 		baseButton: {
 			borderWidth: 1,
 			borderColor: "transparent",
-			borderRadius: 16,
 			padding: 18,
 			alignItems: "center",
 			justifyContent: "center",
+			borderRadius: 8,
+			paddingVertical: 12,
+			paddingHorizontal: 16,
+			flexDirection: "row",
+			gap: 6,
 		},
 		baseButtonDisabled: {
 			backgroundColor: theme.colors.disabled,
@@ -65,13 +69,28 @@ const getStyles = (theme: CustomTheme) =>
 			backgroundColor: theme.colors.danger,
 		},
 		dangerButtonDisabled: {
-			backgroundColor: theme.colors.textMuted,
+			backgroundColor: theme.colors.disabled,
+		},
+		dangerSoftButton: {
+			backgroundColor: `${theme.colors.danger}26`,
+			borderColor: theme.colors.danger,
+			borderWidth: 1,
+		},
+		dangerSoftButtonDisabled: {
+			backgroundColor: theme.colors.disabled,
+			borderColor: "transparent",
+		},
+		dangerSoftText: {
+			color: theme.colors.danger,
+		},
+		baseTextDisabled: {
+			color: theme.colors.textMuted,
 		},
 		primaryButton: {
 			backgroundColor: theme.colors.textSecondary,
 		},
 		baseText: {
-			fontSize: theme.fontSize.lg,
+			fontSize: theme.fontSize.md,
 			fontWeight: "600",
 			color: theme.colors.text,
 		},
