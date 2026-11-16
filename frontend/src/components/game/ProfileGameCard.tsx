@@ -53,12 +53,12 @@ export default ProfileGameCard;
 const getStyles = (theme: CustomTheme) =>
 	StyleSheet.create({
 		card: {
-	flexDirection: "row",
-	justifyContent: "space-between",
-	alignItems: "center",
-	padding: 12,
-	borderWidth: 0,
-},
+			flexDirection: "row",
+			justifyContent: "space-between",
+			alignItems: "center",
+			padding: 12,
+			borderWidth: 0,
+		},
 		left: {
 			flex: 2,
 			justifyContent: "flex-start",
