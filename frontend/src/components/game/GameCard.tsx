@@ -282,7 +282,7 @@ const getStyles = (theme: CustomTheme) =>
 			width: "50%",
 		},
 		detailName: {
-			color: "#ADADAD",
+			color: theme.colors.textMuted,
 			fontSize: 14,
 			fontWeight: 400,
 		},

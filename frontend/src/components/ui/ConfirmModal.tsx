@@ -52,7 +52,7 @@ const getStyles = (theme: CustomTheme) =>
 	StyleSheet.create({
 		backdrop: {
 			flex: 1,
-			backgroundColor: "rgba(0, 0, 0, 0.5)",
+			backgroundColor: theme.colors.overlay,
 			justifyContent: "center",
 			alignItems: "center",
 			padding: 24,

@@ -56,8 +56,8 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		input: {
 			borderWidth: 1,
-			borderColor: "#3C3C3C",
-			backgroundColor: "#2B2B2B",
+			borderColor: theme.colors.border,
+			backgroundColor: theme.colors.surface,
 			color: theme.colors.text,
 			fontSize: 14,
 			padding: 10,

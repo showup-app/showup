@@ -278,7 +278,7 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		playersText: {
 			fontSize: 14,
-			color: "#ADADAD",
+			color: theme.colors.textMuted,
 		},
 		playersContainer: {
 			gap: 10,

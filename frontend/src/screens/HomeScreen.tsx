@@ -233,7 +233,7 @@ const getStyles = (theme: CustomTheme) =>
 			paddingVertical: 1,
 		},
 		countText: {
-			color: "#FFFFFF",
+			color: theme.colors.textOnDanger,
 			fontSize: 11,
 			fontWeight: "600",
 		},

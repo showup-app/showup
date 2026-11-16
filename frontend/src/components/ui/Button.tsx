@@ -54,18 +54,18 @@ const getStyles = (theme: CustomTheme) =>
 			justifyContent: "center",
 		},
 		baseButtonDisabled: {
-			backgroundColor: "#E9ECEF",
+			backgroundColor: theme.colors.disabled,
 			borderColor: "transparent",
 		},
 		outlineButton: {
-			borderColor: "#8E8E8E",
+			borderColor: theme.colors.borderStrong,
 			backgroundColor: "transparent",
 		},
 		dangerButton: {
 			backgroundColor: theme.colors.danger,
 		},
 		dangerButtonDisabled: {
-			backgroundColor: theme.colors.textMuted || "#CCCCCC",
+			backgroundColor: theme.colors.textMuted,
 		},
 		primaryButton: {
 			backgroundColor: theme.colors.textSecondary,
@@ -79,7 +79,7 @@ const getStyles = (theme: CustomTheme) =>
 			color: theme.colors.background,
 		},
 		dangerText: {
-			color: "#FFFFFF",
+			color: theme.colors.textOnDanger,
 		},
 		outlineText: {
 			color: theme.colors.text,

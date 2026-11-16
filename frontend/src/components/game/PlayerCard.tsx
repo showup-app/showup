@@ -45,13 +45,13 @@ const getStyles = (theme: CustomTheme) =>
 		container: {
 			display: "flex",
 			flexDirection: "row",
-			borderColor: "#3C3C3C",
+			borderColor: theme.colors.border,
 			borderWidth: 1,
 			borderRadius: 5,
 			justifyContent: "space-between",
 			width: "100%",
 			alignItems: "center",
-			backgroundColor: "#2B2B2B",
+			backgroundColor: theme.colors.surface,
 			padding: 7,
 		},
 		reputation: {
