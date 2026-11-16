@@ -12,6 +12,7 @@ import ErrorView from "../components/layout/ErrorView";
 import Chip from "../components/form/Chip";
 import { SPORTS, sportIcon } from "../utils/sports";
 import { capitalize } from "../utils/format";
+import Toast from "react-native-toast-message";
 
 const MIN_SEARCH_LENGTH = 2;
 const SEARCH_DELAY_MS = 400;
@@ -110,14 +111,21 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 							onJoin={async () => {
 								const res = await api.joinGame(item.id, token);
 								if (!res.ok) {
-									// TODO: Unify error message display across the entire app (i.e.: modal popup? toast message?)
-									console.log(res.error, res.status);
+									Toast.show({
+										type: "error",
+										text1: "Failed to join the game, please try again later",
+										text2: res.error,
+									});
 									return;
 								}
 								// Set current game status to joined
 								setGames((prevGames) =>
 									prevGames.map((game) => (game.id === item.id ? { ...item, joined: true } : game)),
 								);
+								Toast.show({
+									type: "success",
+									text1: "Successfully joined the game",
+								});
 							}}
 						/>
 					)}

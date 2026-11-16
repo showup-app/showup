@@ -14,6 +14,7 @@ import LoadingView from "../components/layout/LoadingView";
 import ErrorView from "../components/layout/ErrorView";
 import FormErrorMessage from "../components/ui/FormErrorMessage";
 import ConfirmModal, { ConfirmModalProps } from "../components/ui/ConfirmModal";
+import Toast from "react-native-toast-message";
 
 type GameState = { status: "loading" } | { status: "error"; error: string } | { status: "success"; game: GameDetail };
 type ModalTypes =
@@ -77,11 +78,18 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 
 	const handleJoinLeaveGame = async () => {
 		setIsSubmitting(true);
-		const res = game.joined ? await api.leaveGame(game.id, token!) : await api.joinGame(game.id, token!);
+		const res = game.joined ? await api.leaveGame(game.id, token) : await api.joinGame(game.id, token);
 		if (!res.ok) {
-			// TODO: Unify error message display across the entire app (i.e.: modal popup? toast message?)
-			console.log(res.error, res.status);
+			Toast.show({
+				type: "error",
+				text1: `Failed to ${game.joined ? "leave" : "join"} the game, please try again later`,
+				text2: res.error,
+			});
 		} else {
+			Toast.show({
+				type: "success",
+				text1: `Successfully ${game.joined ? "left" : "joined"} the game!`,
+			});
 			setGameState({
 				status: "success",
 				game: res.data,
@@ -95,6 +103,10 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 
 		const res = await api.removePlayer(game.id, playerId, token);
 		if (res.ok) {
+			Toast.show({
+				type: "success",
+				text1: "Player was successfully removed from the game",
+			});
 			setGameState((prev) => {
 				if (prev.status !== "success") return prev;
 
@@ -104,7 +116,11 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 				};
 			});
 		} else {
-			console.log(res.error);
+			Toast.show({
+				type: "error",
+				text1: "Failed to remove player from the game",
+				text2: res.error,
+			});
 		}
 	};
 
@@ -138,7 +154,11 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 				};
 			});
 		} else {
-			console.log(res.error);
+			Toast.show({
+				type: "error",
+				text1: "Failed to cancel this game, please try again later",
+				text2: res.error,
+			});
 		}
 	};
 

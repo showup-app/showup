@@ -8,6 +8,7 @@ import { LoginForm } from "../types/auth";
 import { api } from "../services/api";
 import FormErrorMessage from "../components/ui/FormErrorMessage";
 import { useUser } from "../context/UserContext";
+import Toast from "react-native-toast-message";
 
 const LoginScreen = () => {
 	const styles = getStyles();
@@ -33,6 +34,10 @@ const LoginScreen = () => {
 			const token = loginRes.data;
 			const meRes = await api.me(token.access_token);
 			if (meRes.ok) {
+				Toast.show({
+					type: "success",
+					text1: "Login successful!",
+				});
 				login(meRes.data, token.access_token);
 			} else {
 				setError("root.server", {
