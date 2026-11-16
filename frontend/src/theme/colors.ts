@@ -14,7 +14,7 @@ export const colors = {
 	warning: "#FFD27A",
 	success: "#7ED6C4",
 	overlay: "rgba(0, 0, 0, 0.5)",
-	borderStrong: "#A1C0D5",
+	borderStrong: "#55739A",
 	disabled: "#4A5568",
 	textOnDanger: "#1C2029",
 };
