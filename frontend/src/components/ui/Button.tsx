@@ -5,7 +5,7 @@ interface ButtonProps extends Omit<PressableProps, "style"> {
 	buttonStyle?: StyleProp<ViewStyle>;
 	textStyle?: StyleProp<TextStyle>;
 	children: React.ReactNode;
-	variant: "primary" | "outline" | "danger";
+	variant: "primary" | "outline" | "danger" | "dangerSoft";
 }
 
 const Button: React.FC<ButtonProps> = ({ buttonStyle, textStyle, children, variant, ...buttonProps }) => {
@@ -30,11 +30,11 @@ const Button: React.FC<ButtonProps> = ({ buttonStyle, textStyle, children, varia
 			{...buttonProps}
 		>
 			<Text
-				style={[styles.baseText, textVariantStyle, textStyle]}
-				numberOfLines={1}
-				adjustsFontSizeToFit
-				minimumFontScale={0.5}
-			>
+	style={[styles.baseText, textVariantStyle, textStyle, buttonProps.disabled && styles.baseTextDisabled]}
+	numberOfLines={1}
+	adjustsFontSizeToFit
+	minimumFontScale={0.5}
+>
 				{children}
 			</Text>
 		</Pressable>
@@ -71,6 +71,21 @@ const getStyles = (theme: CustomTheme) =>
 		dangerButtonDisabled: {
 			backgroundColor: theme.colors.disabled,
 		},
+		dangerSoftButton: {
+	backgroundColor: `${theme.colors.danger}26`,
+	borderColor: theme.colors.danger,
+	borderWidth: 1,
+},
+dangerSoftButtonDisabled: {
+	backgroundColor: theme.colors.disabled,
+	borderColor: "transparent",
+},
+dangerSoftText: {
+	color: theme.colors.danger,
+		},
+baseTextDisabled: {
+	color: theme.colors.textMuted,
+},
 		primaryButton: {
 			backgroundColor: theme.colors.textSecondary,
 		},
