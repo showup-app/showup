@@ -96,17 +96,17 @@ const ProfileScreen = ({ navigation }: TabScreenProps<"Profile">) => {
 	return (
 		<SafeAreaView edges={["left", "right"]} style={styles.screen}>
 			<View style={styles.playerInfo}>
-	<MaterialCommunityIcons name="account-circle" size={46} color={theme.colors.textMuted} />
-	<Text style={styles.name}>{user.name}</Text>
-	<Button
-		onPress={logout}
-		variant="outline"
-		buttonStyle={styles.logoutButton}
-		textStyle={styles.logoutText}
-	>
-		<MaterialCommunityIcons name="logout" size={16} color={theme.colors.text} /> Log out
-	</Button>
-</View>
+				<MaterialCommunityIcons name="account-circle" size={46} color={theme.colors.textMuted} />
+				<Text style={styles.name}>{user.name}</Text>
+				<Button
+					onPress={logout}
+					variant="outline"
+					buttonStyle={styles.logoutButton}
+					textStyle={styles.logoutText}
+				>
+					<MaterialCommunityIcons name="logout" size={16} color={theme.colors.text} /> Log out
+				</Button>
+			</View>
 			<View style={[globalStyles.container, styles.reputationContainer]}>
 				<Text style={styles.info}>REPUTATION</Text>
 				<View style={styles.progressContainer}>
@@ -189,11 +189,11 @@ const getStyles = (theme: CustomTheme) =>
 			alignItems: "center",
 		},
 		logoutButton: {
-	paddingVertical: 8,
-	paddingHorizontal: 12,
-	minHeight: 40,
-},
-logoutText: {
-	fontSize: theme.fontSize.sm,
-},
+			paddingVertical: 8,
+			paddingHorizontal: 12,
+			minHeight: 40,
+		},
+		logoutText: {
+			fontSize: theme.fontSize.sm,
+		},
 	});
