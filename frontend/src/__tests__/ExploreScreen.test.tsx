@@ -1,6 +1,14 @@
 import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import { ExploreScreen } from "../screens/ExploreScreen";
-import { getTestTabParams, makeGame, makeGameDetail, mockApi, mockNavigation, mockUserContext } from "./utils/mocks";
+import {
+	getTestTabParams,
+	makeGame,
+	makeGameDetail,
+	mockApi,
+	mockNavigation,
+	mockToastShow,
+	mockUserContext,
+} from "./utils/mocks";
 
 describe("ExploreScreen", () => {
 	const params = getTestTabParams("Explore");
@@ -58,6 +66,7 @@ describe("ExploreScreen", () => {
 			expect(mockApi.joinGame).toHaveBeenCalledWith(1, "test-token");
 		});
 		expect(await findByText("Joined")).toBeTruthy();
+		expect(mockToastShow).toHaveBeenCalled();
 	});
 
 	it("shows the location-specific empty state and retries a load error", async () => {
@@ -80,10 +89,22 @@ describe("ExploreScreen", () => {
 		expect(await findByText('No upcoming games near "Burnaby"')).toBeTruthy();
 	});
 
-	it("uses the sport-only empty message and logs join failures", async () => {
-		mockApi.getGames.mockResolvedValue({ ok: true, data: [], status: 200 });
+	it("uses the sport-only empty message and shows join failures", async () => {
+		mockApi.getGames
+			.mockResolvedValueOnce({ ok: true, data: [makeGame()], status: 200 })
+			.mockResolvedValueOnce({ ok: true, data: [], status: 200 });
+		mockApi.joinGame.mockResolvedValue({
+			ok: false,
+			data: null,
+			status: 500,
+			error: "Unable to join game",
+		});
 		const { getByText, findByText } = await render(<ExploreScreen {...params} />);
 		await runSearch();
+		await fireEvent.press(getByText("Join"));
+		await waitFor(() => {
+			expect(mockToastShow).toHaveBeenCalled();
+		});
 		await fireEvent.press(getByText("Tennis"));
 		await runSearch();
 		expect(await findByText("No upcoming tennis games yet")).toBeTruthy();

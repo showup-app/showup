@@ -10,6 +10,7 @@ import { api } from "../services/api";
 import { RegisterBody } from "../types/auth";
 import FormErrorMessage from "../components/ui/FormErrorMessage";
 import { useUser } from "../context/UserContext";
+import Toast from "react-native-toast-message";
 
 type RegisterForm = {
 	email: string;
@@ -51,6 +52,11 @@ const RegisterScreen = ({ navigation }: AuthScreenProps<"Register">) => {
 		if (res.ok) {
 			const { id, email, name, reputation, access_token } = res.data;
 			login({ id, email, name, reputation }, access_token);
+			Toast.show({
+				type: "success",
+				text1: "Account creation successful!",
+				bottomOffset: 90,
+			});
 		} else {
 			if (res.status === 409) {
 				setError(

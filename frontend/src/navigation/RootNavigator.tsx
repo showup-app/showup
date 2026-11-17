@@ -3,11 +3,15 @@ import { AppNavigator } from "./AppNavigator";
 import { theme } from "../theme";
 import { useUser } from "../context/UserContext";
 import { AuthNavigator } from "./AuthNavigator";
+import { ThemedToast } from "../components/ui/ThemedToast";
 
 export function RootNavigator() {
 	const { token } = useUser();
 
 	return (
-		<NavigationContainer theme={theme}>{token !== null ? <AppNavigator /> : <AuthNavigator />}</NavigationContainer>
+		<NavigationContainer theme={theme}>
+			{token !== null ? <AppNavigator /> : <AuthNavigator />}
+			<ThemedToast position="bottom" />
+		</NavigationContainer>
 	);
 }

@@ -16,7 +16,7 @@ const ConfirmModal = ({ visible, title, message, onConfirm, onCancel }: ConfirmM
 
 	return (
 		<Modal visible={visible} transparent statusBarTranslucent animationType="fade">
-			<Pressable style={styles.backdrop} onPress={() => console.log("cancel")}>
+			<Pressable style={styles.backdrop} onPress={onCancel}>
 				<Pressable style={styles.container}>
 					<Text style={styles.title}>{title}</Text>
 					<Text style={styles.message}>{message}</Text>

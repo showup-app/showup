@@ -16,7 +16,8 @@
 		"react-hook-form": "^7.89.0",
 		"react-native": "0.88.0",
 		"react-native-safe-area-context": "~5.10.1",
-		"react-native-screens": "~4.30.0"
+		"react-native-screens": "~4.30.0",
+		"react-native-toast-message": "^2.5.2"
 	},
 	"devDependencies": {
 		"@testing-library/react-native": "^14.1.0",
