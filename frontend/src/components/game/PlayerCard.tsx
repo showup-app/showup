@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Player } from "../../types/game";
 import { CustomTheme, useTheme } from "@react-navigation/native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -24,14 +24,16 @@ const PlayerCard = ({
 			<View style={styles.rightSection}>
 				<Text style={styles.reputation}>★ {player.reputation}</Text>
 				{onPress && (
-					<MaterialCommunityIcons
+					<Pressable
 						testID={`remove-player-${player.id}`}
-						name="close"
 						onPress={onPress}
 						disabled={isDisabled}
-						size={36}
-						color={isDisabled ? theme.colors.textMuted : theme.colors.danger}
-					/>
+						hitSlop={10}
+						accessibilityLabel={`Remove ${player.name}`}
+						style={isDisabled && styles.removeDisabled}
+					>
+						<MaterialCommunityIcons name="close" size={20} color={theme.colors.textMuted} />
+					</Pressable>
 				)}
 			</View>
 		</View>
@@ -43,16 +45,14 @@ export default PlayerCard;
 const getStyles = (theme: CustomTheme) =>
 	StyleSheet.create({
 		container: {
-			display: "flex",
 			flexDirection: "row",
-			borderColor: theme.colors.border,
-			borderWidth: 1,
-			borderRadius: 5,
 			justifyContent: "space-between",
-			width: "100%",
 			alignItems: "center",
+			width: "100%",
 			backgroundColor: theme.colors.surface,
-			padding: 7,
+			borderRadius: 8,
+			paddingVertical: 10,
+			paddingHorizontal: 12,
 		},
 		reputation: {
 			color: theme.colors.textSecondary,
@@ -73,5 +73,8 @@ const getStyles = (theme: CustomTheme) =>
 			flexDirection: "row",
 			gap: 10,
 			alignItems: "center",
+		},
+		removeDisabled: {
+			opacity: 0.4,
 		},
 	});

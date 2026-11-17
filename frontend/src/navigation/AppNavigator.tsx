@@ -22,7 +22,7 @@ export function AppNavigator() {
 			/>
 			<Stack.Screen name="ConfirmPost" component={ConfirmPostScreen} options={{ title: "Confirm post" }} />
 			<Stack.Screen name="GameDetails" component={GameDetailsScreen} options={{ title: "Game details" }} />
-			<Stack.Screen name="Attendance" component={AttendanceScreen} options={{ title: "Mark Attendance" }} />
+			<Stack.Screen name="Attendance" component={AttendanceScreen} options={{ title: "Mark attendance" }} />
 		</Stack.Navigator>
 	);
 }

@@ -1,26 +1,21 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { CustomTheme, useTheme } from "@react-navigation/native";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Logo from "../ui/Logo";
+import LogoMark from "../ui/LogoMark";
 
 type AppHeaderProps = {
-	reputation?: number;
-	onAvatarPress?: () => void;
+	title: string;
 };
 
-const AppHeader = ({ reputation, onAvatarPress }: AppHeaderProps) => {
+const AppHeader = ({ title }: AppHeaderProps) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
 
 	return (
 		<SafeAreaView edges={["top"]} style={styles.safeArea}>
 			<View style={styles.bar}>
-				<Logo textStyle={styles.logo} />
-				<Pressable onPress={onAvatarPress} hitSlop={8} style={styles.avatarWrap}>
-					<MaterialCommunityIcons name="account-circle" size={36} color={theme.colors.textMuted} />
-					{reputation !== undefined && <Text style={styles.reputation}>★ {reputation}</Text>}
-				</Pressable>
+				<LogoMark size={34} strokeWidth={90} />
+				<Text style={styles.title}>{title}</Text>
 			</View>
 		</SafeAreaView>
 	);
@@ -38,22 +33,13 @@ const getStyles = (theme: CustomTheme) =>
 		bar: {
 			flexDirection: "row",
 			alignItems: "center",
-			justifyContent: "space-between",
-			paddingHorizontal: 24,
+			gap: 12,
+			paddingHorizontal: 20,
 			paddingVertical: 12,
 		},
-		logo: {
+		title: {
 			fontSize: theme.fontSize.xxl,
-			textAlign: "left",
-		},
-		avatarWrap: {
-			alignItems: "center",
-		},
-		reputation: {
-			position: "absolute",
-			top: -4,
-			right: -18,
-			color: theme.colors.textSecondary,
-			fontSize: theme.fontSize.xxs,
+			fontWeight: "600",
+			color: theme.colors.text,
 		},
 	});

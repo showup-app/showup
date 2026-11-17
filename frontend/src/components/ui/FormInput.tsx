@@ -47,12 +47,11 @@ export default FormInput;
 const getStyles = (theme: CustomTheme) =>
 	StyleSheet.create({
 		container: {
-			display: "flex",
-			gap: 5,
+			gap: 6,
 		},
 		label: {
 			color: theme.colors.textMuted,
-			fontSize: theme.fontSize.xs,
+			fontSize: theme.fontSize.sm,
 		},
 		input: {
 			borderWidth: 1,
@@ -60,6 +59,8 @@ const getStyles = (theme: CustomTheme) =>
 			backgroundColor: theme.colors.surface,
 			color: theme.colors.text,
 			fontSize: theme.fontSize.md,
-			padding: 10,
+			borderRadius: 8,
+			paddingVertical: 10,
+			paddingHorizontal: 12,
 		},
 	});

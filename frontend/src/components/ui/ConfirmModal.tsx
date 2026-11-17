@@ -15,28 +15,16 @@ const ConfirmModal = ({ visible, title, message, onConfirm, onCancel }: ConfirmM
 	const styles = getStyles(theme);
 
 	return (
-		<Modal visible={visible} transparent statusBarTranslucent animationType="fade">
+		<Modal visible={visible} transparent statusBarTranslucent animationType="fade" onRequestClose={onCancel}>
 			<Pressable style={styles.backdrop} onPress={onCancel}>
 				<Pressable style={styles.container}>
 					<Text style={styles.title}>{title}</Text>
 					<Text style={styles.message}>{message}</Text>
 					<View style={styles.buttonsContainer}>
-						<Button
-							variant="danger"
-							buttonStyle={{
-								flex: 1,
-							}}
-							onPress={onCancel}
-						>
+						<Button variant="outline" buttonStyle={{ flex: 1 }} onPress={onCancel}>
 							Cancel
 						</Button>
-						<Button
-							variant="primary"
-							buttonStyle={{
-								flex: 1,
-							}}
-							onPress={onConfirm}
-						>
+						<Button variant="primary" buttonStyle={{ flex: 1 }} onPress={onConfirm}>
 							Confirm
 						</Button>
 					</View>
@@ -61,27 +49,28 @@ const getStyles = (theme: CustomTheme) =>
 			backgroundColor: theme.colors.surface,
 			borderColor: theme.colors.border,
 			borderWidth: 1,
-			borderRadius: 10,
+			borderRadius: 12,
 			width: "100%",
+			maxWidth: 320,
 			padding: 20,
 			alignItems: "center",
-			justifyContent: "center",
-			gap: 10,
+			gap: 8,
 		},
 		buttonsContainer: {
-			padding: 10,
-			gap: 5,
+			marginTop: 12,
+			gap: 10,
 			width: "100%",
 			flexDirection: "row",
 		},
 		title: {
 			color: theme.colors.text,
 			textAlign: "center",
-			fontSize: theme.fontSize.xxl,
+			fontSize: theme.fontSize.lg,
+			fontWeight: "600",
 		},
 		message: {
 			color: theme.colors.textMuted,
 			textAlign: "center",
-			fontSize: theme.fontSize.xl,
+			fontSize: theme.fontSize.md,
 		},
 	});

@@ -280,10 +280,11 @@ const getStyles = (theme: CustomTheme) =>
 			backgroundColor: theme.colors.background,
 			alignItems: "center",
 			paddingHorizontal: 20,
+			paddingTop: 16,
 			gap: 16,
 		},
 		playerCards: {
-			gap: 10,
+			gap: 8,
 		},
 		playersHeading: {
 			flexDirection: "row",
