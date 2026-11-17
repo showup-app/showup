@@ -41,19 +41,19 @@ export const ThemedToast: React.FC<Omit<ToastProps, "config">> = (props) => {
 const getStyles = (theme: CustomTheme) =>
 	StyleSheet.create({
 		toastContainer: {
-			backgroundColor: theme.colors.background,
+			backgroundColor: theme.colors.surface,
 			height: "auto",
 			paddingVertical: 10,
 			borderColor: theme.colors.border,
 			borderWidth: 1,
 		},
 		primaryText: {
-			fontSize: 15,
+			fontSize: theme.fontSize.md,
 			fontWeight: "600",
 			color: theme.colors.text,
 		},
 		secondaryText: {
-			fontSize: 13,
+			fontSize: theme.fontSize.sm,
 			color: theme.colors.textSecondary,
 		},
 	});
