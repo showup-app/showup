@@ -12,6 +12,7 @@ import { AttendanceMark, GameDetail } from "../types/game";
 import { capitalize, formatShortDate } from "../utils/format";
 import LoadingView from "../components/layout/LoadingView";
 import ErrorView from "../components/layout/ErrorView";
+import Toast from "react-native-toast-message";
 
 /** Each player's mark */
 type Marks = Record<number, boolean | undefined>;
@@ -79,6 +80,11 @@ const AttendanceScreen = ({ navigation, route }: AppScreenProps<"Attendance">) =
 		setIsSaving(false);
 
 		if (res.ok) {
+			Toast.show({
+				type: "success",
+				text1: "Attendance successfully saved!",
+				bottomOffset: 90,
+			});
 			navigation.goBack();
 		} else {
 			setSaveError(res.error);

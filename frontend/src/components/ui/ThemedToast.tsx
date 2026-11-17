@@ -1,0 +1,59 @@
+import { CustomTheme, useTheme } from "@react-navigation/native";
+import React from "react";
+import Toast, { BaseToast, ErrorToast, ToastConfig, ToastProps } from "react-native-toast-message";
+import { StyleSheet } from "react-native";
+
+export const ThemedToast: React.FC<Omit<ToastProps, "config">> = (props) => {
+	const theme = useTheme();
+	const styles = getStyles(theme);
+
+	const toastConfig: ToastConfig = {
+		success: (toastProps) => (
+			<BaseToast
+				{...toastProps}
+				style={[{ borderLeftColor: theme.colors.success }, styles.toastContainer]}
+				contentContainerStyle={{ paddingHorizontal: 15 }}
+				text1Style={styles.primaryText}
+				text2Style={styles.secondaryText}
+				text2NumberOfLines={3}
+			/>
+		),
+		error: (toastProps) => (
+			<ErrorToast
+				{...toastProps}
+				style={[
+					{
+						borderLeftColor: theme.colors.danger,
+					},
+					styles.toastContainer,
+				]}
+				contentContainerStyle={{ paddingHorizontal: 15 }}
+				text1Style={styles.primaryText}
+				text2Style={styles.secondaryText}
+				text2NumberOfLines={3}
+			/>
+		),
+	};
+
+	return <Toast {...props} config={toastConfig} />;
+};
+
+const getStyles = (theme: CustomTheme) =>
+	StyleSheet.create({
+		toastContainer: {
+			backgroundColor: theme.colors.surface,
+			height: "auto",
+			paddingVertical: 10,
+			borderColor: theme.colors.border,
+			borderWidth: 1,
+		},
+		primaryText: {
+			fontSize: theme.fontSize.md,
+			fontWeight: "600",
+			color: theme.colors.text,
+		},
+		secondaryText: {
+			fontSize: theme.fontSize.sm,
+			color: theme.colors.textSecondary,
+		},
+	});

@@ -14,6 +14,7 @@ import ProfileGameCard from "../components/game/ProfileGameCard";
 import { getGlobalStyles } from "../theme/styles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import ProgressBar from "../components/ui/ProgressBar";
+import Toast from "react-native-toast-message";
 
 type ProfileState = { status: "loading" } | { status: "error"; error: string } | { status: "success"; data: MyGames };
 
@@ -93,13 +94,22 @@ const ProfileScreen = ({ navigation }: TabScreenProps<"Profile">) => {
 		return `${showedUpText} played • ${noShowText} no-show`;
 	};
 
+	const handleLogout = () => {
+		logout();
+		Toast.show({
+			type: "success",
+			text1: "Logout successful!",
+			bottomOffset: 20,
+		});
+	};
+
 	return (
 		<SafeAreaView edges={["left", "right"]} style={styles.screen}>
 			<View style={styles.playerInfo}>
 				<MaterialCommunityIcons name="account-circle" size={46} color={theme.colors.textMuted} />
 				<Text style={styles.name}>{user.name}</Text>
 				<Button
-					onPress={logout}
+					onPress={handleLogout}
 					variant="outline"
 					buttonStyle={styles.logoutButton}
 					textStyle={styles.logoutText}

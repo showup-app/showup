@@ -7,6 +7,7 @@ import {
 	mockApi,
 	mockContextLogout,
 	mockNavigation,
+	mockToastShow,
 	mockUserContext,
 } from "./utils/mocks";
 import { GameStatus } from "../types/game";
@@ -127,6 +128,7 @@ describe("ProfileScreen", () => {
 		await fireEvent.press(getByText(/Log out/));
 
 		expect(mockContextLogout).toHaveBeenCalledTimes(1);
+		expect(mockToastShow).toHaveBeenCalled();
 	});
 
 	it("shows zero attendance counts when there are no past games", async () => {

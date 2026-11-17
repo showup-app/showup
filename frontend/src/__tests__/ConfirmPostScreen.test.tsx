@@ -1,6 +1,6 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import ConfirmPostScreen from "../screens/ConfirmPostScreen";
-import { getTestScreenParams, makeGame, mockApi, mockNavigation } from "./utils/mocks";
+import { getTestScreenParams, makeGame, mockApi, mockNavigation, mockToastShow } from "./utils/mocks";
 
 describe("ConfirmPostScreen", () => {
 	const params = getTestScreenParams("ConfirmPost");
@@ -47,6 +47,7 @@ describe("ConfirmPostScreen", () => {
 				}),
 			);
 		});
+		expect(mockToastShow).toHaveBeenCalled();
 	});
 
 	it("shows an API error and keeps the confirmation screen open", async () => {

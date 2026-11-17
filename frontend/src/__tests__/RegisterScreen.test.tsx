@@ -1,6 +1,6 @@
 import { fireEvent, render, waitFor, type RenderResult } from "@testing-library/react-native";
 import RegisterScreen from "../screens/RegisterScreen";
-import { getTestScreenParams, mockApi, mockContextLogin, mockNavigation } from "./utils/mocks";
+import { getTestScreenParams, mockApi, mockContextLogin, mockNavigation, mockToastShow } from "./utils/mocks";
 
 describe("RegisterScreen", () => {
 	const params = getTestScreenParams("Register");
@@ -72,6 +72,7 @@ describe("RegisterScreen", () => {
 			});
 			expect(mockContextLogin).toHaveBeenCalled();
 		});
+		expect(mockToastShow).toHaveBeenCalled();
 	});
 
 	it("shows an email-specific error when the address is already registered", async () => {

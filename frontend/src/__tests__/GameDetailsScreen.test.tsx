@@ -1,6 +1,13 @@
 import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import GameDetailsScreen from "../screens/GameDetailsScreen";
-import { getTestScreenParams, makeGameDetail, mockApi, mockNavigation, mockUserContext } from "./utils/mocks";
+import {
+	getTestScreenParams,
+	makeGameDetail,
+	mockApi,
+	mockNavigation,
+	mockToastShow,
+	mockUserContext,
+} from "./utils/mocks";
 import { GameStatus } from "../types/game";
 
 describe("GameDetailsScreen", () => {
@@ -73,6 +80,7 @@ describe("GameDetailsScreen", () => {
 		await fireEvent.press(await findByText("Confirm"));
 		expect(mockApi.removePlayer).toHaveBeenCalledWith(1, 2, "test-token");
 		expect(queryByText("Player One")).toBeNull();
+		expect(mockToastShow).toHaveBeenCalled();
 
 		await fireEvent.press(getByText(/Cancel game/));
 		expect(mockApi.cancelGame).not.toHaveBeenCalled();
@@ -83,6 +91,7 @@ describe("GameDetailsScreen", () => {
 		});
 		expect(await findByText("This game has been cancelled by the host.")).toBeTruthy();
 		expect(mockApi.cancelGame).toHaveBeenCalledWith(1, "test-token");
+		expect(mockToastShow).toHaveBeenCalledTimes(1);
 		await fireEvent.press(getByText(/Cancel game/));
 		expect(mockApi.cancelGame).toHaveBeenCalledTimes(1);
 	});
@@ -114,6 +123,7 @@ describe("GameDetailsScreen", () => {
 			});
 			await joinPress;
 		});
+		expect(mockToastShow).toHaveBeenCalled();
 		await findByText("Leave");
 		const leavePress = fireEvent.press(getByText("Leave"));
 		await fireEvent.press(await findByText("Confirm"));
@@ -127,6 +137,7 @@ describe("GameDetailsScreen", () => {
 			await leavePress;
 		});
 		await waitFor(() => expect(mockApi.leaveGame).toHaveBeenCalledWith(1, "test-token"));
+		expect(mockToastShow).toHaveBeenCalledTimes(2);
 		expect(getByText("Join")).toBeTruthy();
 	});
 
