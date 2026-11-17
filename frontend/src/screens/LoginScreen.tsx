@@ -47,12 +47,12 @@ const LoginScreen = () => {
 	};
 
 	return (
-		<SafeAreaView style={styles.screen}>
-			<View style={{ alignSelf: "center" }}>
+		<SafeAreaView style={styles.screen} edges={["left", "right", "bottom"]}>
+			<View style={styles.titleContainer}>
 				<TitleAndSubtitle titleText="Login" subtitleText="Enter your email and password to log in" />
 			</View>
-			<View style={{ display: "flex", gap: 25 }}>
-				<View style={{ display: "flex", gap: 10 }}>
+			<View style={styles.form}>
+				<View style={styles.fields}>
 					<FormInput
 						label="Email"
 						placeholder="Email"
@@ -93,13 +93,19 @@ export default LoginScreen;
 const getStyles = () =>
 	StyleSheet.create({
 		screen: {
-			display: "flex",
 			flex: 1,
-			justifyContent: "flex-start",
-			marginTop: 50,
-			marginBottom: 50,
-			gap: 30,
-			width: "90%",
+			justifyContent: "center",
+			paddingHorizontal: 20,
+			paddingBottom: 160,
+			gap: 32,
+		},
+		titleContainer: {
 			alignSelf: "center",
+		},
+		form: {
+			gap: 24,
+		},
+		fields: {
+			gap: 16,
 		},
 	});

@@ -25,8 +25,8 @@ const NoScreen = () => null;
 export function MainTabs() {
 	return (
 		<Tab.Navigator
-			screenOptions={({ route, navigation }) => ({
-				header: () => <AppHeader onAvatarPress={() => navigation.navigate("Profile")} />,
+			screenOptions={({ route }) => ({
+				header: () => <AppHeader title={route.name} />,
 				tabBarStyle: {
 					backgroundColor: theme.colors.background,
 					borderTopColor: theme.colors.border,

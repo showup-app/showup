@@ -21,7 +21,7 @@ describe("RegisterScreen", () => {
 		expect(getByPlaceholderText("Password")).toBeTruthy();
 		expect(getByPlaceholderText("Confirm Password")).toBeTruthy();
 		expect(getAllByText("Register")).toHaveLength(2);
-		expect(getByText("Log In")).toBeTruthy();
+		expect(getByText("Log in")).toBeTruthy();
 	});
 
 	it("validates required fields, email format, password length, and confirmation", async () => {
@@ -109,7 +109,7 @@ describe("RegisterScreen", () => {
 	it("navigates to login from the existing-account link", async () => {
 		const { getByText } = await render(<RegisterScreen {...params} />);
 
-		await fireEvent.press(getByText("Log In"));
+		await fireEvent.press(getByText("Log in"));
 
 		expect(mockNavigation.navigate).toHaveBeenCalledWith("Login");
 	});

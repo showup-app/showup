@@ -69,15 +69,15 @@ const RegisterScreen = ({ navigation }: AuthScreenProps<"Register">) => {
 	};
 
 	return (
-		<SafeAreaView style={styles.screen}>
-			<View style={{ alignSelf: "center" }}>
+		<SafeAreaView style={styles.screen} edges={["left", "right", "bottom"]}>
+			<View style={styles.titleContainer}>
 				<TitleAndSubtitle
 					titleText="Register"
 					subtitleText="Create an account to start hosting and joining games"
 				/>
 			</View>
-			<View style={{ display: "flex", gap: 25 }}>
-				<View style={{ display: "flex", gap: 10 }}>
+			<View style={styles.form}>
+				<View style={styles.fields}>
 					<FormInput
 						label="Email"
 						placeholder="Email"
@@ -150,8 +150,8 @@ const RegisterScreen = ({ navigation }: AuthScreenProps<"Register">) => {
 				</Button>
 				<Text style={styles.footerText}>
 					Already have an account?{" "}
-					<Text style={{ color: theme.colors.textSecondary }} onPress={() => navigation.navigate("Login")}>
-						Log In
+					<Text style={styles.footerLink} onPress={() => navigation.navigate("Login")}>
+						Log in
 					</Text>
 				</Text>
 			</View>
@@ -164,19 +164,28 @@ export default RegisterScreen;
 const getStyles = (theme: CustomTheme) =>
 	StyleSheet.create({
 		screen: {
-			display: "flex",
 			flex: 1,
-			justifyContent: "flex-start",
-			marginTop: 50,
-			marginBottom: 50,
-			gap: 30,
-			width: "90%",
+			justifyContent: "center",
+			paddingHorizontal: 20,
+			paddingBottom: 80,
+			gap: 32,
+		},
+		titleContainer: {
 			alignSelf: "center",
 		},
+		form: {
+			gap: 24,
+		},
+		fields: {
+			gap: 16,
+		},
 		footerText: {
-			color: theme.colors.text,
-			fontSize: theme.fontSize.lg,
+			color: theme.colors.textMuted,
+			fontSize: theme.fontSize.md,
 			textAlign: "center",
-			fontWeight: 600,
+		},
+		footerLink: {
+			color: theme.colors.brand,
+			fontWeight: "600",
 		},
 	});
