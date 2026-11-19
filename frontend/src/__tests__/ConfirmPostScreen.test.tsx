@@ -1,3 +1,4 @@
+// Portions of this file were generated with AI assistance (GitHub Copilot) and human-reviewed afterwards
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import ConfirmPostScreen from "../screens/ConfirmPostScreen";
 import { getTestScreenParams, makeGame, mockApi, mockNavigation, mockToastShow } from "./utils/mocks";
