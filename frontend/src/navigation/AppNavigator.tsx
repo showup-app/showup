@@ -2,7 +2,6 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { AppStackParamList } from "./types";
 import { stackScreenOptions } from "./options";
 import { MainTabs } from "./MainTabs";
-import { SearchScreen } from "../screens/SearchScreen";
 import { CreatePostScreen } from "../screens/CreatePostScreen";
 import ConfirmPostScreen from "../screens/ConfirmPostScreen";
 import GameDetailsScreen from "../screens/GameDetailsScreen";
@@ -14,7 +13,6 @@ export function AppNavigator() {
 	return (
 		<Stack.Navigator initialRouteName="Tabs" screenOptions={stackScreenOptions}>
 			<Stack.Screen name="Tabs" component={MainTabs} options={{ headerShown: false }} />
-			<Stack.Screen name="Search" component={SearchScreen} />
 			<Stack.Screen
 				name="CreatePost"
 				component={CreatePostScreen}
