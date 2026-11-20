@@ -22,6 +22,7 @@ Swagger UI: http://localhost:8000/docs. The React Native app reads the same cont
 | New migration after changing models | `uv run alembic revision --autogenerate -m "add users table"` |
 | Apply migrations | `uv run alembic upgrade head` |
 | Load demo users and games (safe to repeat) | `uv run python -m app.seed` |
+| Load the presentation cast: one account with every screen state (safe to repeat, resets a rehearsal) | `uv run python -m app.demo_seed` |
 | Build the deploy image | `docker build -t showup-api .` |
 
 Tests use the `showup_test` database so they never touch dev data. Postgres creates it from `docker/initdb/01-test-db.sql` the first time the volume is created.
