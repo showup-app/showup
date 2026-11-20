@@ -5,8 +5,8 @@ import { TabScreenProps } from "../navigation/types";
 import { SectionList, StyleSheet, View, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../components/ui/Button";
-import { useCallback, useState } from "react";
-import { Game, MyGames } from "../types/game";
+import { useCallback } from "react";
+import { Game } from "../types/game";
 import { api } from "../services/api";
 import LoadingView from "../components/layout/LoadingView";
 import ErrorView from "../components/layout/ErrorView";
@@ -15,8 +15,7 @@ import { getGlobalStyles } from "../theme/styles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import ProgressBar from "../components/ui/ProgressBar";
 import Toast from "react-native-toast-message";
-
-type ProfileState = { status: "loading" } | { status: "error"; error: string } | { status: "success"; data: MyGames };
+import useAsync from "../hooks/useAsync";
 
 type ProfileSection = {
 	title: string;
@@ -29,26 +28,10 @@ const ProfileScreen = ({ navigation }: TabScreenProps<"Profile">) => {
 	const styles = getStyles(theme);
 	const globalStyles = getGlobalStyles(theme);
 
-	const [profileState, setProfileState] = useState<ProfileState>({
-		status: "loading",
-	});
-
 	const { user, token, logout } = useAuthenticatedUser();
 
-	const loadProfileData = useCallback(async () => {
-		const res = await api.getMyGames(token, true);
-		if (res.ok) {
-			setProfileState({
-				status: "success",
-				data: res.data,
-			});
-		} else {
-			setProfileState({
-				status: "error",
-				error: res.error,
-			});
-		}
-	}, [token]);
+	const fetchProfileData = useCallback(() => api.getMyGames(token, true), [token]);
+	const { status, error, data: myGames, execute: loadProfileData } = useAsync(fetchProfileData);
 
 	useFocusEffect(
 		useCallback(() => {
@@ -56,12 +39,12 @@ const ProfileScreen = ({ navigation }: TabScreenProps<"Profile">) => {
 		}, [loadProfileData]),
 	);
 
-	if (profileState.status === "loading") {
+	if (status === "loading") {
 		return <LoadingView message="Loading your games…" />;
 	}
 
-	if (profileState.status === "error") {
-		return <ErrorView errorMsg={profileState.error} onRetry={loadProfileData} />;
+	if (status === "error") {
+		return <ErrorView errorMsg={error} onRetry={loadProfileData} />;
 	}
 
 	const filterPastGames = (games: Game[]): Game[] => games.filter((game) => new Date(game.starts_at) <= new Date());
@@ -73,12 +56,12 @@ const ProfileScreen = ({ navigation }: TabScreenProps<"Profile">) => {
 	const profileData: ProfileSection[] = [
 		{
 			title: "PLAYED GAMES",
-			data: filterPastGames(profileState.data.joined),
+			data: filterPastGames(myGames.joined),
 			type: "played",
 		},
 		{
 			title: "HOSTED GAMES",
-			data: filterPastGames(profileState.data.hosting),
+			data: filterPastGames(myGames.hosting),
 			type: "hosted",
 		},
 	];
