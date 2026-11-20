@@ -12,9 +12,6 @@ const config: Config = {
 	// Stop running tests after `n` failures
 	// bail: 0,
 
-	// The directory where Jest should store its cached dependency information
-	// cacheDirectory: "C:\\Users\\Nikola\\AppData\\Local\\Temp\\jest",
-
 	// Automatically clear mock calls, instances, contexts and results before every test
 	clearMocks: true,
 
@@ -24,6 +21,8 @@ const config: Config = {
 	// An array of glob patterns indicating a set of files for which coverage information should be collected
 	collectCoverageFrom: [
 		"src/screens/*.tsx",
+		"src/components/game/GameCard.tsx",
+		"src/components/game/PlayerCard.tsx",
 		"!**/coverage/**",
 		"!**/node_modules/**",
 		"!**/babel.config.js",

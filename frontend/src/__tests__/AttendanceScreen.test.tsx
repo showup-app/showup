@@ -1,3 +1,4 @@
+// Portions of this file were generated with AI assistance (GitHub Copilot) and human-reviewed afterwards
 import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import AttendanceScreen from "../screens/AttendanceScreen";
 import { getTestScreenParams, makeGameDetail, mockApi, mockNavigation, mockToastShow } from "./utils/mocks";
