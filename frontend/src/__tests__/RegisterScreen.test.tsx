@@ -1,3 +1,4 @@
+// Portions of this file were generated with AI assistance (GitHub Copilot) and human-reviewed afterwards
 import { fireEvent, render, waitFor, type RenderResult } from "@testing-library/react-native";
 import RegisterScreen from "../screens/RegisterScreen";
 import { getTestScreenParams, mockApi, mockContextLogin, mockNavigation, mockToastShow } from "./utils/mocks";

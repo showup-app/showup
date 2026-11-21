@@ -20,7 +20,6 @@ export type AuthStackParamList = {
 /** Logged-in stack: the tabs plus screens that push on top of them. */
 export type AppStackParamList = {
 	Tabs: NavigatorScreenParams<MainTabParamList>;
-	Search: undefined;
 	CreatePost: { edit?: { gameId: number; values: GameCreate; minSpots: number } } | undefined;
 	ConfirmPost: { draft: GameCreate };
 	GameDetails: { gameId: number };

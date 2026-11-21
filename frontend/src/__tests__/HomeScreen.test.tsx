@@ -1,3 +1,4 @@
+// Portions of this file were generated with AI assistance (GitHub Copilot) and human-reviewed afterwards
 import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import { HomeScreen } from "../screens/HomeScreen";
 import { getTestTabParams, makeGame, makeMyGames, mockApi, mockNavigation, mockUserContext } from "./utils/mocks";
