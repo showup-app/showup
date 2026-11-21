@@ -8,11 +8,12 @@ import FormErrorMessage from "../components/ui/FormErrorMessage";
 import { useAuthenticatedUser } from "../context/UserContext";
 import { AppScreenProps } from "../navigation/types";
 import { api } from "../services/api";
-import { AttendanceMark, GameDetail } from "../types/game";
+import { AttendanceMark } from "../types/game";
 import { capitalize, formatShortDate } from "../utils/format";
 import LoadingView from "../components/layout/LoadingView";
 import ErrorView from "../components/layout/ErrorView";
 import Toast from "react-native-toast-message";
+import useAsync from "../hooks/useAsync";
 
 /** Each player's mark */
 type Marks = Record<number, boolean | undefined>;
@@ -23,34 +24,34 @@ const AttendanceScreen = ({ navigation, route }: AppScreenProps<"Attendance">) =
 	const { gameId } = route.params;
 	const { token } = useAuthenticatedUser();
 
-	const [game, setGame] = useState<GameDetail | null>(null);
 	const [marks, setMarks] = useState<Marks>({});
-	const [loading, setLoading] = useState(true);
-	const [loadError, setLoadError] = useState<string | null>(null);
-	const [saveError, setSaveError] = useState<string | null>(null);
-	const [isSaving, setIsSaving] = useState(false);
 
-	const loadGame = useCallback(async () => {
-		const res = await api.getGame(gameId);
-		if (res.ok) {
-			const loaded = res.data;
-			setGame(loaded);
-			// Start from any marks the host already saved
-			const saved: Marks = {};
-			for (const player of loaded.players) {
-				saved[player.id] = player.showed_up ?? undefined;
-			}
-			setMarks(saved);
-			setLoadError(null);
-		} else {
-			setLoadError(res.error);
-		}
-		setLoading(false);
-	}, [gameId]);
+	const fetchGame = useCallback(() => api.getGame(gameId), [gameId]);
+	const { data: game, error: gameError, status: gameStatus, execute: loadGame } = useAsync(fetchGame);
+
+	const markAttendance = useCallback(() => {
+		const body: AttendanceMark[] = Object.entries(marks)
+			.filter(([, showedUp]) => showedUp !== undefined)
+			.map(([userId, showedUp]) => ({ user_id: Number(userId), showed_up: showedUp as boolean }));
+
+		return api.markAttendance(gameId, body, token);
+	}, [gameId, marks, token]);
+	const { status: saveStatus, error: saveError, execute: saveAttendance } = useAsync(markAttendance);
 
 	useFocusEffect(
 		useCallback(() => {
-			loadGame();
+			const loadSavedMarks = async () => {
+				const { data, ok } = await loadGame();
+				if (!ok) return;
+
+				const saved: Marks = {};
+				for (const player of data.players) {
+					saved[player.id] = player.showed_up ?? undefined;
+				}
+				setMarks(saved);
+			};
+
+			loadSavedMarks();
 		}, [loadGame]),
 	);
 
@@ -70,14 +71,7 @@ const AttendanceScreen = ({ navigation, route }: AppScreenProps<"Attendance">) =
 	const markedCount = Object.values(marks).filter((mark) => mark !== undefined).length;
 
 	const handleSave = async () => {
-		const body: AttendanceMark[] = Object.entries(marks)
-			.filter(([, showedUp]) => showedUp !== undefined)
-			.map(([userId, showedUp]) => ({ user_id: Number(userId), showed_up: showedUp as boolean }));
-
-		setIsSaving(true);
-		setSaveError(null);
-		const res = await api.markAttendance(gameId, body, token);
-		setIsSaving(false);
+		const res = await saveAttendance();
 
 		if (res.ok) {
 			Toast.show({
@@ -86,17 +80,15 @@ const AttendanceScreen = ({ navigation, route }: AppScreenProps<"Attendance">) =
 				bottomOffset: 90,
 			});
 			navigation.goBack();
-		} else {
-			setSaveError(res.error);
 		}
 	};
 
-	if (loading) {
+	if (gameStatus === "loading" || gameStatus === "idle") {
 		return <LoadingView message="Loading players…" />;
 	}
 
-	if (loadError || !game) {
-		return <ErrorView errorMsg={loadError ?? "Couldn't load this game"} onRetry={loadGame} />;
+	if (gameStatus === "error" || !game) {
+		return <ErrorView errorMsg={gameError ?? "Couldn't load this game"} onRetry={loadGame} />;
 	}
 
 	const allMarked = game.players.length > 0 && markedCount === game.players.length;
@@ -167,8 +159,8 @@ const AttendanceScreen = ({ navigation, route }: AppScreenProps<"Attendance">) =
 							<Text style={styles.link}>Everyone showed up</Text>
 						</Pressable>
 					</View>
-					<Button variant="primary" onPress={handleSave} disabled={!allMarked || isSaving}>
-						{isSaving ? "Saving..." : "Save attendance"}
+					<Button variant="primary" onPress={handleSave} disabled={!allMarked || saveStatus === "loading"}>
+						{saveStatus === "loading" ? "Saving..." : "Save attendance"}
 					</Button>
 					{!allMarked && (
 						<View style={styles.hintRow}>
