@@ -39,7 +39,7 @@ const ProfileScreen = ({ navigation }: TabScreenProps<"Profile">) => {
 		}, [loadProfileData]),
 	);
 
-	if (status === "loading") {
+	if (status === "loading" || status === "idle") {
 		return <LoadingView message="Loading your games…" />;
 	}
 

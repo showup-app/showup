@@ -107,7 +107,8 @@ export const api = {
 			token,
 			fallbackErrorMessage: "Couldn't load games",
 		}),
-	getGame: (id: number, token?: string) => request<GameDetail>(`/games/${id}`, { token }),
+	getGame: (id: number, token?: string) =>
+		request<GameDetail>(`/games/${id}`, { token, fallbackErrorMessage: "Couldn't load this game" }),
 	createGame: (gameBody: GameCreate, token: string) =>
 		request<Game>(`/games`, {
 			method: "POST",

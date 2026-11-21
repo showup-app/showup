@@ -2,7 +2,7 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppScreenProps } from "../navigation/types";
 import { CustomTheme, useFocusEffect, useTheme } from "@react-navigation/native";
-import { GameDetail, GameStatus, Player } from "../types/game";
+import { GameStatus, Player } from "../types/game";
 import { api } from "../services/api";
 import { useCallback, useState } from "react";
 import PlayerCard from "../components/game/PlayerCard";
@@ -16,8 +16,8 @@ import FormErrorMessage from "../components/ui/FormErrorMessage";
 import ConfirmModal, { ConfirmModalProps } from "../components/ui/ConfirmModal";
 import Toast from "react-native-toast-message";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import useAsync from "../hooks/useAsync";
 
-type GameState = { status: "loading" } | { status: "error"; error: string } | { status: "success"; game: GameDetail };
 type ModalTypes =
 	{ type: "join" } | { type: "leave" } | { type: "cancel" } | { type: "removePlayer"; player: Player } | null;
 
@@ -27,47 +27,26 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 	const styles = getStyles(theme);
 	const { gameId } = route.params;
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [gameState, setGameState] = useState<GameState>({
-		status: "loading",
-	});
 	const [modal, setModal] = useState<ModalTypes>(null);
 	const [loadTime] = useState(() => Date.now());
 
-	const fetchGame = useCallback(async () => {
-		const res = await api.getGame(gameId, token);
-		if (res.ok) {
-			setGameState({
-				status: "success",
-				game: res.data,
-			});
-		} else {
-			setGameState({
-				status: "error",
-				error: res.error,
-			});
-		}
-	}, [gameId, token]);
+	const fetchGame = useCallback(() => api.getGame(gameId, token), [token, gameId]);
+	const { data: game, status, error, execute: loadGame, setData: setGame } = useAsync(fetchGame);
 
 	useFocusEffect(
 		useCallback(() => {
-			fetchGame();
-		}, [fetchGame]),
+			loadGame();
+		}, [loadGame]),
 	);
 
-	if (gameState.status === "loading") {
+	if (status === "loading" || status === "idle") {
 		return <LoadingView message="Loading game…" />;
 	}
 
-	if (gameState.status === "error") {
-		return (
-			<ErrorView
-				onRetry={fetchGame}
-				errorMsg={gameState.error !== null ? gameState.error : "Something went wrong..."}
-			/>
-		);
+	if (status === "error" || !game) {
+		return <ErrorView onRetry={loadGame} errorMsg={error} />;
 	}
 
-	const { game } = gameState;
 	const isFull = game.spots_left <= 0 || game.status === GameStatus.Full;
 	const isHost = user.id === game.host_id;
 	const isCancelled = game.status === GameStatus.Cancelled;
@@ -91,10 +70,7 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 				type: "success",
 				text1: `Successfully ${game.joined ? "left" : "joined"} the game!`,
 			});
-			setGameState({
-				status: "success",
-				game: res.data,
-			});
+			setGame(res.data);
 		}
 		setIsSubmitting(false);
 	};
@@ -108,14 +84,10 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 				type: "success",
 				text1: "Player was successfully removed from the game",
 			});
-			setGameState((prev) => {
-				if (prev.status !== "success") return prev;
-
-				return {
-					...prev,
-					game: { ...prev.game, players: prev.game.players.filter((player) => player.id !== playerId) },
-				};
-			});
+			setGame((prev) => ({
+				...prev,
+				players: prev.players.filter((player) => player.id !== playerId),
+			}));
 		} else {
 			Toast.show({
 				type: "error",
@@ -146,14 +118,10 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 	const handleCancelGame = async () => {
 		const res = await api.cancelGame(game.id, token);
 		if (res.ok) {
-			setGameState((prev) => {
-				if (prev.status !== "success") return prev;
-
-				return {
-					...prev,
-					game: { ...prev.game, status: GameStatus.Cancelled },
-				};
-			});
+			setGame((prev) => ({
+				...prev,
+				status: GameStatus.Cancelled,
+			}));
 		} else {
 			Toast.show({
 				type: "error",

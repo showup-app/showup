@@ -2,19 +2,27 @@ import { useCallback, useState } from "react";
 import { ResponseObject } from "../services/api";
 
 type AsyncState<T> =
+	| { status: "idle"; error: null; data: null }
 	| { status: "loading"; error: null; data: null }
 	| { status: "error"; error: string; data: null }
 	| { status: "success"; error: null; data: T };
 
 const useAsync = <T>(asyncFunction: () => Promise<ResponseObject<T>>) => {
 	const [state, setState] = useState<AsyncState<T>>({
-		status: "loading",
+		status: "idle",
 		data: null,
 		error: null,
 	});
 
 	const execute = useCallback(async () => {
+		setState({
+			status: "loading",
+			data: null,
+			error: null,
+		});
+
 		const res = await asyncFunction();
+
 		if (res.ok) {
 			setState({
 				status: "success",
@@ -28,6 +36,8 @@ const useAsync = <T>(asyncFunction: () => Promise<ResponseObject<T>>) => {
 				data: null,
 			});
 		}
+
+		return res;
 	}, [asyncFunction]);
 
 	const setData = useCallback((data: T | ((prev: T) => T)) => {
