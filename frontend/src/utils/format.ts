@@ -57,7 +57,16 @@ export function capitalize(text: string): string {
 }
 
 /** Gets the text of the join game button depending on the conditions of that game */
-export function getJoinButtonText(game: GameDetail | Game, user: User, allowLeave = false): string {
+export function getJoinButtonText(
+	game: GameDetail | Game,
+	user: User,
+	allowLeave = false,
+	isSubmitting = false,
+): string {
+	if (isSubmitting) {
+		return game.joined ? "Leaving..." : "Joining...";
+	}
+
 	if (game.joined) {
 		return allowLeave ? "Leave" : "Joined";
 	}
