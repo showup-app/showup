@@ -7,38 +7,41 @@ type AsyncState<T> =
 	| { status: "error"; error: string; data: null }
 	| { status: "success"; error: null; data: T };
 
-const useAsync = <T>(asyncFunction: () => Promise<ResponseObject<T>>) => {
+const useAsync = <T, Args extends unknown[]>(asyncFunction: (...args: Args) => Promise<ResponseObject<T>>) => {
 	const [state, setState] = useState<AsyncState<T>>({
 		status: "idle",
 		data: null,
 		error: null,
 	});
 
-	const execute = useCallback(async () => {
-		setState({
-			status: "loading",
-			data: null,
-			error: null,
-		});
-
-		const res = await asyncFunction();
-
-		if (res.ok) {
+	const execute = useCallback(
+		async (...args: Args) => {
 			setState({
-				status: "success",
-				data: res.data,
+				status: "loading",
+				data: null,
 				error: null,
 			});
-		} else {
-			setState({
-				status: "error",
-				error: res.error,
-				data: null,
-			});
-		}
 
-		return res;
-	}, [asyncFunction]);
+			const res = await asyncFunction(...args);
+
+			if (res.ok) {
+				setState({
+					status: "success",
+					data: res.data,
+					error: null,
+				});
+			} else {
+				setState({
+					status: "error",
+					error: res.error,
+					data: null,
+				});
+			}
+
+			return res;
+		},
+		[asyncFunction],
+	);
 
 	const setData = useCallback((data: T | ((prev: T) => T)) => {
 		setState((prev) => {

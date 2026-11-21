@@ -4,11 +4,12 @@ import Button from "../components/ui/Button";
 import { AppScreenProps } from "../navigation/types";
 import { CommonActions, CustomTheme, useTheme } from "@react-navigation/native";
 import GameCard from "../components/game/GameCard";
-import { useState } from "react";
+import { useCallback } from "react";
 import FormErrorMessage from "../components/ui/FormErrorMessage";
 import { api } from "../services/api";
 import { useAuthenticatedUser } from "../context/UserContext";
 import Toast from "react-native-toast-message";
+import useAsync from "../hooks/useAsync";
 
 const ConfirmPostScreen = ({ navigation, route }: AppScreenProps<"ConfirmPost">) => {
 	const theme = useTheme();
@@ -16,13 +17,12 @@ const ConfirmPostScreen = ({ navigation, route }: AppScreenProps<"ConfirmPost">)
 	const { draft } = route.params;
 	const { token } = useAuthenticatedUser();
 
-	const [error, setError] = useState<string | null>(null);
-	const [isSubmitting, setIsSubmitting] = useState(false);
+	const createGameCallback = useCallback(() => api.createGame(draft, token), [draft, token]);
+	const { error, execute: createGame, status } = useAsync(createGameCallback);
 
 	const handlePost = async () => {
-		setIsSubmitting(true);
-		const res = await api.createGame(draft, token);
-		setIsSubmitting(false);
+		const res = await createGame();
+
 		if (res.ok) {
 			Toast.show({
 				type: "success",
@@ -40,8 +40,6 @@ const ConfirmPostScreen = ({ navigation, route }: AppScreenProps<"ConfirmPost">)
 					],
 				}),
 			);
-		} else {
-			setError(res.error);
 		}
 	};
 
@@ -65,8 +63,8 @@ const ConfirmPostScreen = ({ navigation, route }: AppScreenProps<"ConfirmPost">)
 							flex: 2,
 						}}
 						variant="primary"
-						onPress={() => handlePost()}
-						disabled={isSubmitting}
+						onPress={handlePost}
+						disabled={status === "loading"}
 					>
 						Post game
 					</Button>

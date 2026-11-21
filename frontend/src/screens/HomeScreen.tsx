@@ -6,9 +6,10 @@ import GameCard from "../components/game/GameCard";
 import { useAuthenticatedUser } from "../context/UserContext";
 import { TabScreenProps } from "../navigation/types";
 import { api } from "../services/api";
-import { Game, GameStatus, MyGames } from "../types/game";
+import { Game, GameStatus } from "../types/game";
 import LoadingView from "../components/layout/LoadingView";
 import ErrorView from "../components/layout/ErrorView";
+import useAsync from "../hooks/useAsync";
 
 // Hosts can mark attendance for this many days after kickoff
 const MARK_WINDOW_DAYS = 7;
@@ -38,34 +39,27 @@ export function HomeScreen({ navigation }: TabScreenProps<"Home">) {
 	const styles = getStyles(theme);
 	const { token } = useAuthenticatedUser();
 
-	const [myGames, setMyGames] = useState<MyGames | null>(null);
-	const [loading, setLoading] = useState(true);
 	const [refreshing, setRefreshing] = useState(false);
-	const [error, setError] = useState<string | null>(null);
 	const [loadedAt, setLoadedAt] = useState(0);
 
-	const loadGames = useCallback(async () => {
-		setError(null);
-		const res = await api.getMyGames(token, true);
-		if (res.ok) {
-			setMyGames(res.data);
-			setLoadedAt(Date.now());
-		} else {
-			setError(res.error);
-		}
-		setLoading(false);
-	}, [token]);
+	const fetchMyGames = useCallback(() => api.getMyGames(token, true), [token]);
+	const { status, error, data: myGames, execute: loadGames } = useAsync(fetchMyGames);
+
+	const fetchGames = useCallback(async () => {
+		const res = await loadGames();
+		if (res.ok) setLoadedAt(Date.now());
+	}, [loadGames]);
 
 	// Reloads list every time you come back to Home
 	useFocusEffect(
 		useCallback(() => {
-			loadGames();
-		}, [loadGames]),
+			fetchGames();
+		}, [fetchGames]),
 	);
 
 	const onRefresh = async () => {
 		setRefreshing(true);
-		await loadGames();
+		await fetchGames();
 		setRefreshing(false);
 	};
 
@@ -119,11 +113,11 @@ export function HomeScreen({ navigation }: TabScreenProps<"Home">) {
 		},
 	];
 
-	if (loading && !refreshing) {
+	if (status === "idle" || (status === "loading" && !refreshing)) {
 		return <LoadingView message="Loading your games…" />;
 	}
 
-	if (error) {
+	if (status === "error") {
 		return <ErrorView errorMsg={error} onRetry={onRefresh} />;
 	}
 
