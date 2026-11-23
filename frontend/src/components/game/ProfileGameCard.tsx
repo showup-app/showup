@@ -33,7 +33,7 @@ const ProfileGameCard = ({ game, user, onPress }: { game: Game; user: User; onPr
 	};
 
 	return (
-		<Pressable style={[globalStyles.container, styles.card]} onPress={onPress}>
+		<Pressable style={[globalStyles.card, styles.card]} onPress={onPress}>
 			<View style={styles.left}>
 				<Text style={styles.game}>{capitalize(game.sport)} game</Text>
 				<Text style={styles.info}>
