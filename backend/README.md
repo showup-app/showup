@@ -65,6 +65,20 @@ until three games; the score is a show-up rate with a three-game cushion, recomp
 days); hosts set any minimum up to 100 and may set a one-step fallback
 that applies N hours before kickoff.
 
+## Following
+
+The design and the reasons are in `docs/decisions/0003-following.md`. A follow is one-way and
+needs no approval. Built so far:
+
+- `POST /users/{id}/follow` (Bearer): 201 with the followed player's public profile. 409 if you
+  already follow them, 422 if it is you, 404 for an unknown user.
+- `DELETE /users/{id}/follow` (Bearer): 200 with the profile. 404 if you do not follow them.
+
+The profile (`PublicProfileOut` in `app/schemas/user.py`) has id, name, reputation, games_played,
+games_hosted, is_new, followers_count, following_count and is_following. It never has the email.
+Still to come: `GET /users/{id}`, the `following=true` filter on `GET /games`, and the
+`/me/following` and `/me/followers` lists.
+
 ## Conventions
 
 - Routes are plain `def`, not `async def`. SQLAlchemy calls are blocking and FastAPI runs sync routes in a thread pool, so this is both simpler and correct.

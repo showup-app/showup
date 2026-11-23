@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routers import auth, games, health, me
+from app.routers import auth, games, health, me, users
 
 app = FastAPI(
     title="ShowUp API",
@@ -22,3 +22,4 @@ app.include_router(health.router)
 app.include_router(games.router)
 app.include_router(auth.router)
 app.include_router(me.router)
+app.include_router(users.router)
