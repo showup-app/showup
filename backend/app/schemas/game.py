@@ -69,6 +69,17 @@ class PlayerOut(BaseModel):
     )
 
 
+class FollowingInGameOut(BaseModel):
+    """The players the caller follows who are in a game, as its host or on its roster."""
+
+    count: int = Field(default=0, description="How many players the caller follows are in it")
+    names: list[str] = Field(
+        default_factory=list,
+        description="Up to two of their names for the card: the host first, then oldest signup "
+        "first. Use count for 'and 3 more'",
+    )
+
+
 class GameSummaryOut(GameOut):
     """A game as the Explore list shows it: the row plus its host and the places left.
 
@@ -103,6 +114,11 @@ class GameSummaryOut(GameOut):
     my_reputation_change: int | None = Field(
         default=None,
         description="What this game did to the caller's reputation. Null until marked or no token",
+    )
+    following_in_game: FollowingInGameOut = Field(
+        default_factory=FollowingInGameOut,
+        description="Players the caller follows who host or have joined this game. Count 0 and "
+        "no names without a token",
     )
 
 
