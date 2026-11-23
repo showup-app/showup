@@ -189,20 +189,20 @@ const getStyles = (theme: CustomTheme) =>
 		centered: {
 			alignItems: "center",
 			justifyContent: "center",
-			gap: 12,
-			padding: 20,
+			gap: theme.spacing.md,
+			padding: theme.spacing.xl,
 		},
 		list: {
-			paddingHorizontal: 20,
-			paddingBottom: 20,
+			paddingHorizontal: theme.spacing.xl,
+			paddingBottom: theme.spacing.xl,
 		},
 		header: {
 			alignItems: "center",
-			gap: 8,
-			paddingVertical: 20,
+			gap: theme.spacing.sm,
+			paddingVertical: theme.spacing.xl,
 			borderBottomWidth: 1,
 			borderBottomColor: theme.colors.border,
-			marginBottom: 8,
+			marginBottom: theme.spacing.sm,
 		},
 		title: {
 			color: theme.colors.text,
@@ -221,12 +221,12 @@ const getStyles = (theme: CustomTheme) =>
 		row: {
 			flexDirection: "row",
 			alignItems: "center",
-			gap: 14,
-			paddingVertical: 14,
+			gap: theme.spacing.lg,
+			paddingVertical: theme.spacing.lg,
 		},
 		playerInfo: {
 			flex: 1,
-			gap: 2,
+			gap: theme.spacing.xxs,
 		},
 		playerName: {
 			color: theme.colors.text,
@@ -242,8 +242,8 @@ const getStyles = (theme: CustomTheme) =>
 			backgroundColor: theme.colors.border,
 		},
 		footer: {
-			gap: 12,
-			padding: 20,
+			gap: theme.spacing.md,
+			padding: theme.spacing.xl,
 			borderTopWidth: 1,
 			borderTopColor: theme.colors.border,
 		},
@@ -265,7 +265,7 @@ const getStyles = (theme: CustomTheme) =>
 			flexDirection: "row",
 			alignItems: "center",
 			justifyContent: "center",
-			gap: 6,
+			gap: theme.spacing.sm,
 		},
 		hint: {
 			color: theme.colors.warning,

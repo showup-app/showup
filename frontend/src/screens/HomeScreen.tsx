@@ -170,17 +170,17 @@ const getStyles = (theme: CustomTheme) =>
 		centered: {
 			alignItems: "center",
 			justifyContent: "center",
-			gap: 12,
-			padding: 20,
+			gap: theme.spacing.md,
+			padding: theme.spacing.xl,
 		},
 		list: {
-			padding: 20,
+			padding: theme.spacing.xl,
 		},
 		greeting: {
 			color: theme.colors.text,
 			fontSize: theme.typography.title.fontSize,
 			fontWeight: theme.typography.title.fontWeight,
-			marginBottom: 16,
+			marginBottom: theme.spacing.lg,
 		},
 		sectionTitle: {
 			color: theme.colors.textMuted,
@@ -197,8 +197,8 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		empty: {
 			alignItems: "flex-start",
-			gap: 8,
-			paddingVertical: 8,
+			gap: theme.spacing.sm,
+			paddingVertical: theme.spacing.sm,
 		},
 		message: {
 			color: theme.colors.textMuted,
@@ -212,7 +212,7 @@ const getStyles = (theme: CustomTheme) =>
 		sectionHeader: {
 			flexDirection: "row",
 			alignItems: "center",
-			gap: 8,
+			gap: theme.spacing.sm,
 		},
 		dot: {
 			width: 8,
@@ -223,7 +223,7 @@ const getStyles = (theme: CustomTheme) =>
 		countBadge: {
 			backgroundColor: theme.colors.danger,
 			borderRadius: 9,
-			paddingHorizontal: 7,
+			paddingHorizontal: theme.spacing.sm,
 			paddingVertical: 1,
 		},
 		countText: {

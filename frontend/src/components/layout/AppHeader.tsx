@@ -33,9 +33,9 @@ const getStyles = (theme: CustomTheme) =>
 		bar: {
 			flexDirection: "row",
 			alignItems: "center",
-			gap: 12,
-			paddingHorizontal: 20,
-			paddingVertical: 12,
+			gap: theme.spacing.md,
+			paddingHorizontal: theme.spacing.xl,
+			paddingVertical: theme.spacing.md,
 		},
 		title: {
 			fontSize: theme.fontSize.xxl,

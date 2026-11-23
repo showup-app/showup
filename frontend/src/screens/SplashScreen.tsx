@@ -20,12 +20,12 @@ const SplashScreen = ({ navigation }: AuthScreenProps<"Splash">) => {
 		<SafeAreaView style={styles.screen}>
 			<View style={styles.hero}>
 				<LogoMark size={140} animated onDone={showRest} />
-				<Animated.View style={{ opacity: fade, alignItems: "center", gap: 6 }}>
+				<Animated.View style={{ opacity: fade, alignItems: "center", gap: theme.spacing.sm }}>
 					<Logo textStyle={styles.wordmark} />
 					<Text style={styles.subtitle}>Sports events you can count on</Text>
 				</Animated.View>
 			</View>
-			<Animated.View style={{ gap: 15, opacity: fade }}>
+			<Animated.View style={{ gap: theme.spacing.lg, opacity: fade }}>
 				<Button onPress={() => navigation.navigate("Register")} variant="primary">
 					Register
 				</Button>
@@ -56,7 +56,7 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		hero: {
 			alignItems: "center",
-			gap: 24,
+			gap: theme.spacing.xxl,
 		},
 		wordmark: {
 			fontSize: theme.fontSize.display,

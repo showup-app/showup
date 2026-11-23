@@ -74,6 +74,7 @@ async function request<T>(path: string, options: RequestObject = {}): Promise<Re
 	}
 }
 
+// Query string helper written with AI assistance (Claude)
 /** Turns { sport: "soccer", location: "" } into "?sport=soccer", skipping empty values. */
 function toQueryString(params: Record<string, string | boolean | undefined>): string {
 	const query = new URLSearchParams();

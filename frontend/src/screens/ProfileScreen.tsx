@@ -139,8 +139,8 @@ const getStyles = (theme: CustomTheme) =>
 		screen: {
 			flex: 1,
 			backgroundColor: theme.colors.background,
-			padding: 20,
-			gap: 20,
+			padding: theme.spacing.xl,
+			gap: theme.spacing.xl,
 		},
 		playersHeading: {
 			display: "flex",
@@ -165,11 +165,11 @@ const getStyles = (theme: CustomTheme) =>
 			color: theme.colors.textMuted,
 		},
 		reputationContainer: {
-			padding: 10,
-			gap: 10,
+			padding: theme.spacing.md,
+			gap: theme.spacing.md,
 		},
 		progressContainer: {
-			gap: 5,
+			gap: theme.spacing.xs,
 		},
 		name: {
 			fontSize: theme.fontSize.xxl,
@@ -178,12 +178,12 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		playerInfo: {
 			flexDirection: "row",
-			gap: 10,
+			gap: theme.spacing.md,
 			alignItems: "center",
 		},
 		logoutButton: {
-			paddingVertical: 8,
-			paddingHorizontal: 12,
+			paddingVertical: theme.spacing.sm,
+			paddingHorizontal: theme.spacing.md,
 			minHeight: 40,
 		},
 		logoutText: {

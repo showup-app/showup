@@ -31,8 +31,8 @@ const getStyles = (theme: CustomTheme) =>
 		centered: {
 			alignItems: "center",
 			justifyContent: "center",
-			gap: 12,
-			padding: 20,
+			gap: theme.spacing.md,
+			padding: theme.spacing.xl,
 		},
 		message: {
 			color: theme.colors.textMuted,

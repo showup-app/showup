@@ -28,6 +28,8 @@ export function formatTime(iso: string): string {
 	});
 }
 
+// Formatting helpers written with AI assistance (Claude)
+
 /** "4:00 PM – 5:30 PM" */
 export function formatTimeRange(iso: string, durationMinutes: number): string {
 	const end = new Date(new Date(iso).getTime() + durationMinutes * 60_000);

@@ -185,10 +185,10 @@ const getStyles = (theme: CustomTheme) =>
 			backgroundColor: theme.colors.background,
 		},
 		searchSection: {
-			paddingHorizontal: 20,
-			paddingTop: 20,
-			paddingBottom: 24,
-			gap: 6,
+			paddingHorizontal: theme.spacing.xl,
+			paddingTop: theme.spacing.xl,
+			paddingBottom: theme.spacing.xxl,
+			gap: theme.spacing.sm,
 		},
 		label: {
 			color: theme.colors.textMuted,
@@ -202,13 +202,13 @@ const getStyles = (theme: CustomTheme) =>
 			borderRadius: 6,
 			color: theme.colors.text,
 			fontSize: theme.fontSize.lg,
-			paddingHorizontal: 12,
-			paddingVertical: 12,
+			paddingHorizontal: theme.spacing.md,
+			paddingVertical: theme.spacing.md,
 		},
 		list: {
-			paddingHorizontal: 20,
-			paddingBottom: 20,
-			gap: 28,
+			paddingHorizontal: theme.spacing.xl,
+			paddingBottom: theme.spacing.xl,
+			gap: theme.spacing.xxl,
 		},
 		message: {
 			color: theme.colors.textMuted,
@@ -218,11 +218,11 @@ const getStyles = (theme: CustomTheme) =>
 		sportChipsRow: {
 			flexGrow: 0,
 			flexShrink: 0,
-			marginBottom: 20,
+			marginBottom: theme.spacing.xl,
 		},
 		sportChips: {
-			paddingHorizontal: 20,
-			gap: 8,
+			paddingHorizontal: theme.spacing.xl,
+			gap: theme.spacing.sm,
 			alignItems: "center",
 		},
 		header: {

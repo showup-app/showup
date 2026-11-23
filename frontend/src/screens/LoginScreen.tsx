@@ -1,3 +1,4 @@
+import { CustomTheme, useTheme } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet, View } from "react-native";
 import FormInput from "../components/ui/FormInput";
@@ -11,7 +12,8 @@ import { useUser } from "../context/UserContext";
 import Toast from "react-native-toast-message";
 
 const LoginScreen = () => {
-	const styles = getStyles();
+	const theme = useTheme();
+	const styles = getStyles(theme);
 	const { login } = useUser();
 
 	const {
@@ -96,22 +98,22 @@ const LoginScreen = () => {
 
 export default LoginScreen;
 
-const getStyles = () =>
+const getStyles = (theme: CustomTheme) =>
 	StyleSheet.create({
 		screen: {
 			flex: 1,
 			justifyContent: "center",
-			paddingHorizontal: 20,
+			paddingHorizontal: theme.spacing.xl,
 			paddingBottom: 160,
-			gap: 32,
+			gap: theme.spacing.xxxl,
 		},
 		titleContainer: {
 			alignSelf: "center",
 		},
 		form: {
-			gap: 24,
+			gap: theme.spacing.xxl,
 		},
 		fields: {
-			gap: 16,
+			gap: theme.spacing.lg,
 		},
 	});
