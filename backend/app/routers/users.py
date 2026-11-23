@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import delete, func, select
 from sqlalchemy.exc import IntegrityError
 
-from app.deps import CurrentUser, DbDep
+from app.deps import CurrentUser, DbDep, OptionalUser
 from app.models import Follow, User
 from app.reputation import player_stats
 from app.schemas.user import PublicProfileOut
@@ -37,6 +37,13 @@ def public_profile(db: DbDep, user: User, viewer: User | None) -> PublicProfileO
         is_following=is_following,
         **player_stats(db, [user.id])[user.id],
     )
+
+
+@router.get("/{user_id}", response_model=PublicProfileOut)
+def get_user(user_id: int, db: DbDep, viewer: OptionalUser) -> PublicProfileOut:
+    """A player's public profile: what the app shows when you tap a name on a roster. Works
+    without a token; with one, `is_following` says whether the caller follows this player."""
+    return public_profile(db, _get_user_or_404(db, user_id), viewer)
 
 
 @router.post(
