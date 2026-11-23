@@ -1,6 +1,7 @@
 # 0003: Following other players
 
-Date: 2026-10-31. Status: proposed for the team to discuss; nothing built yet. Trello card [F19].
+Date: 2026-10-31. Status: accepted; the backend was built on 2026-11-22 (endpoints listed in
+`backend/README.md`, section Following), the frontend screens are not built yet. Trello card [F19].
 
 The "social" part of ShowUp is one thing: **you can follow players you have played with, and the app
 uses that to show you where they are playing next.** No feed, no posts, no chat, no friend requests.
