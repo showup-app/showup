@@ -19,3 +19,19 @@ class PublicProfileOut(BaseModel):
         description="True when the caller's Bearer token belongs to a player who follows this "
         "one. Always false without a token"
     )
+
+
+class FollowedPlayerOut(BaseModel):
+    """A row in the Following and Followers lists on the Profile tab."""
+
+    id: int
+    name: str
+    reputation: int
+    games_played: int = Field(description="Games this player was marked present at")
+    is_new: bool = Field(
+        description="True until 3 marked or hosted games; the app shows 'New' instead of the score"
+    )
+    is_following: bool = Field(
+        description="True when the caller follows this player. Always true in /me/following; "
+        "in /me/followers it shows who the caller follows back"
+    )
