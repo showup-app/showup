@@ -22,6 +22,7 @@ Swagger UI: http://localhost:8000/docs. The React Native app reads the same cont
 | New migration after changing models | `uv run alembic revision --autogenerate -m "add users table"` |
 | Apply migrations | `uv run alembic upgrade head` |
 | Load demo users and games (safe to repeat) | `uv run python -m app.seed` |
+| Load the presentation cast: one account with every screen state (safe to repeat, resets a rehearsal) | `uv run python -m app.demo_seed` |
 | Build the deploy image | `docker build -t showup-api .` |
 
 Tests use the `showup_test` database so they never touch dev data. Postgres creates it from `docker/initdb/01-test-db.sql` the first time the volume is created.
@@ -73,12 +74,11 @@ needs no approval. Built so far:
 - `POST /users/{id}/follow` (Bearer): 201 with the followed player's public profile. 409 if you
   already follow them, 422 if it is you, 404 for an unknown user.
 - `DELETE /users/{id}/follow` (Bearer): 200 with the profile. 404 if you do not follow them.
-- `GET /users/{id}` (token optional): the public profile. `is_following` is false without a token.
 
 The profile (`PublicProfileOut` in `app/schemas/user.py`) has id, name, reputation, games_played,
 games_hosted, is_new, followers_count, following_count and is_following. It never has the email.
-Still to come: the `following=true` filter on `GET /games`, and the `/me/following` and
-`/me/followers` lists.
+Still to come: `GET /users/{id}`, the `following=true` filter on `GET /games`, and the
+`/me/following` and `/me/followers` lists.
 
 ## Conventions
 
