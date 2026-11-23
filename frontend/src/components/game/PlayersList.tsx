@@ -47,13 +47,13 @@ export default PlayersList;
 const getStyles = (theme: CustomTheme) =>
 	StyleSheet.create({
 		playerCardSeparator: {
-			height: 8,
+			height: theme.spacing.sm,
 		},
 		playersHeading: {
 			flexDirection: "row",
 			justifyContent: "space-between",
 			width: "100%",
-			marginBottom: 10,
+			marginBottom: theme.spacing.sm,
 		},
 		playersText: {
 			fontSize: theme.fontSize.md,
