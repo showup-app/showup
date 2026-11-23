@@ -73,11 +73,13 @@ needs no approval. Built so far:
 - `POST /users/{id}/follow` (Bearer): 201 with the followed player's public profile. 409 if you
   already follow them, 422 if it is you, 404 for an unknown user.
 - `DELETE /users/{id}/follow` (Bearer): 200 with the profile. 404 if you do not follow them.
+- `GET /games?following=true` (Bearer): only games where a player you follow hosts or has joined.
+  401 without a token. Every game row and the game detail also carry
+  `following_in_game: {"count": n, "names": [...]}` with up to two names, host first.
 
 The profile (`PublicProfileOut` in `app/schemas/user.py`) has id, name, reputation, games_played,
 games_hosted, is_new, followers_count, following_count and is_following. It never has the email.
-Still to come: `GET /users/{id}`, the `following=true` filter on `GET /games`, and the
-`/me/following` and `/me/followers` lists.
+Still to come: `GET /users/{id}`, and the `/me/following` and `/me/followers` lists.
 
 ## Conventions
 
