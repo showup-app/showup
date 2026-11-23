@@ -13,10 +13,11 @@ import { AppScreenProps } from "../navigation/types";
 import { GameCreate } from "../types/game";
 import { capitalize } from "../utils/format";
 import { SPORTS, sportIcon } from "../utils/sports";
-import { useState } from "react";
+import { useCallback } from "react";
 import { useAuthenticatedUser } from "../context/UserContext";
 import { api } from "../services/api";
 import Toast from "react-native-toast-message";
+import useAsync from "../hooks/useAsync";
 
 const MIN_SPOTS = 2;
 const MAX_SPOTS = 30;
@@ -93,8 +94,12 @@ export function CreatePostScreen({ navigation, route }: AppScreenProps<"CreatePo
 	// When editing, the form starts with the game's current values
 	const edit = route.params?.edit;
 	const minSpots = Math.max(MIN_SPOTS, edit?.minSpots ?? MIN_SPOTS);
-	const [isSaving, setIsSaving] = useState(false);
-	const [saveError, setSaveError] = useState<string | null>(null);
+
+	const updateGameCallback = useCallback(
+		(id: number, draft: GameCreate) => api.updateGame(id, draft, token),
+		[token],
+	);
+	const { error, execute: updateGame, status } = useAsync(updateGameCallback);
 
 	const { control, handleSubmit } = useForm<CreateGameForm>({
 		defaultValues: edit
@@ -134,18 +139,13 @@ export function CreatePostScreen({ navigation, route }: AppScreenProps<"CreatePo
 		}
 
 		// Editing: save straight away and go back to Game Details
-		setIsSaving(true);
-		setSaveError(null);
-		const res = await api.updateGame(edit.gameId, draft, token);
-		setIsSaving(false);
+		const res = await updateGame(edit.gameId, draft);
 		if (res.ok) {
 			Toast.show({
 				type: "success",
 				text1: "Game successfully updated!",
 			});
 			navigation.goBack();
-		} else {
-			setSaveError(res.error);
 		}
 	};
 
@@ -371,9 +371,9 @@ export function CreatePostScreen({ navigation, route }: AppScreenProps<"CreatePo
 				</ScrollView>
 
 				<View style={styles.footer}>
-					{saveError && <FormErrorMessage message={saveError} />}
-					<Button variant="primary" onPress={() => handleSubmit(onSubmit)()} disabled={isSaving}>
-						{edit ? (isSaving ? "Saving..." : "Save changes") : "Next"}
+					{error && <FormErrorMessage message={error} />}
+					<Button variant="primary" onPress={() => handleSubmit(onSubmit)()} disabled={status === "loading"}>
+						{edit ? (status === "loading" ? "Saving..." : "Save changes") : "Next"}
 					</Button>
 				</View>
 			</KeyboardAvoidingView>

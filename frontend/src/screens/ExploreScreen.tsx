@@ -1,5 +1,5 @@
 import { CustomTheme, useTheme } from "@react-navigation/native";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Animated, Platform, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import GameCard from "../components/game/GameCard";
 import { TabScreenProps } from "../navigation/types";
@@ -13,6 +13,7 @@ import Chip from "../components/form/Chip";
 import { SPORTS, sportIcon } from "../utils/sports";
 import { capitalize } from "../utils/format";
 import Toast from "react-native-toast-message";
+import useAsync from "../hooks/useAsync";
 
 const MIN_SEARCH_LENGTH = 2;
 const SEARCH_DELAY_MS = 400;
@@ -24,12 +25,18 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 
 	const [search, setSearch] = useState("");
 	const [sport, setSport] = useState<string | undefined>(undefined);
-	const [games, setGames] = useState<Game[]>([]);
-	const [loading, setLoading] = useState(true);
 	const [refreshing, setRefreshing] = useState(false);
-	const [error, setError] = useState<string | null>(null);
 
 	const location = search.trim().length >= MIN_SEARCH_LENGTH ? search.trim() : undefined;
+
+	const getGamesCallback = useCallback(
+		(location?: string, sport?: string) => api.getGames({ location, sport }, token),
+		[token],
+	);
+	const { data: games, error, status, execute: loadGames, setData: setGames } = useAsync(getGamesCallback);
+
+	const joinGameCallback = useCallback((id: number) => api.joinGame(id, token), [token]);
+	const { execute: joinGame } = useAsync(joinGameCallback);
 
 	// Hide-on-scroll header logic written with AI assistance (Claude)
 	const [scrollY] = useState(() => new Animated.Value(0));
@@ -49,29 +56,11 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 		useNativeDriver: true,
 	});
 
-	const loadGames = async () => {
-		setError(null);
-		const res = await api.getGames({ location }, token);
-		if (res.ok) {
-			setGames(res.data);
-		} else {
-			setError(res.error);
-		}
-	};
-
 	useEffect(() => {
 		let cancelled = false;
 		const timer = setTimeout(async () => {
-			setLoading(true);
-			setError(null);
 			if (!cancelled) {
-				const result = await api.getGames({ location, sport }, token);
-				if (result.ok) {
-					setGames(result.data);
-				} else {
-					setError(result.error);
-				}
-				setLoading(false);
+				loadGames(location, sport);
 			}
 		}, SEARCH_DELAY_MS);
 
@@ -79,27 +68,47 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 			cancelled = true;
 			clearTimeout(timer);
 		};
-	}, [location, sport, token]);
+	}, [location, sport, loadGames]);
 
 	const onRefresh = async () => {
 		setRefreshing(true);
-		await loadGames();
+		await loadGames(location, sport);
 		setRefreshing(false);
+	};
+
+	const handleJoinGame = async (gameId: Game["id"]) => {
+		const res = await joinGame(gameId);
+		if (!res.ok) {
+			Toast.show({
+				type: "error",
+				text1: "Failed to join the game",
+				text2: res.error,
+				bottomOffset: 90,
+			});
+			return;
+		}
+		// Set current game status to joined
+		setGames((prevGames) => prevGames.map((game) => (game.id === gameId ? { ...game, joined: true } : game)));
+		Toast.show({
+			type: "success",
+			text1: "Successfully joined the game!",
+			bottomOffset: 90,
+		});
 	};
 
 	return (
 		<SafeAreaView style={styles.screen} edges={["left", "right"]}>
-			{loading && !refreshing ? (
+			{status === "idle" || (status === "loading" && !refreshing) ? (
 				<View style={{ flex: 1, paddingTop: headerHeight }}>
 					<LoadingView message="Finding games…" screen={false} />
 				</View>
-			) : error ? (
+			) : status === "error" ? (
 				<View style={{ flex: 1, paddingTop: headerHeight }}>
 					<ErrorView errorMsg={error} onRetry={onRefresh} screen={false} />
 				</View>
 			) : (
 				<Animated.FlatList
-					data={games}
+					data={games ?? []}
 					keyExtractor={(game) => String(game.id)}
 					onScroll={onScroll}
 					scrollEventThrottle={16}
@@ -108,27 +117,7 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 						<GameCard
 							game={item}
 							onSeePlayers={() => navigation.navigate("GameDetails", { gameId: item.id })}
-							onJoin={async () => {
-								const res = await api.joinGame(item.id, token);
-								if (!res.ok) {
-									Toast.show({
-										type: "error",
-										text1: "Failed to join the game",
-										text2: res.error,
-										bottomOffset: 90,
-									});
-									return;
-								}
-								// Set current game status to joined
-								setGames((prevGames) =>
-									prevGames.map((game) => (game.id === item.id ? { ...item, joined: true } : game)),
-								);
-								Toast.show({
-									type: "success",
-									text1: "Successfully joined the game!",
-									bottomOffset: 90,
-								});
-							}}
+							onJoin={() => handleJoinGame(item.id)}
 						/>
 					)}
 					keyboardShouldPersistTaps="handled"
