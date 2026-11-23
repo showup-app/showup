@@ -44,7 +44,7 @@ const getStyles = (theme: CustomTheme) =>
 		row: {
 			flexDirection: "row",
 			alignItems: "center",
-			gap: 12,
+			gap: theme.spacing.md,
 		},
 		button: {
 			width: 32,

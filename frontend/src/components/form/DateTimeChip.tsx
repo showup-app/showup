@@ -97,7 +97,7 @@ const getStyles = (theme: CustomTheme) =>
 		sheetHeader: {
 			flexDirection: "row",
 			justifyContent: "space-between",
-			padding: 16,
+			padding: theme.spacing.lg,
 		},
 		cancel: {
 			color: theme.colors.textMuted,

@@ -48,14 +48,13 @@ const getStyles = (theme: CustomTheme) =>
 		baseButton: {
 			borderWidth: 1,
 			borderColor: "transparent",
-			padding: 18,
 			alignItems: "center",
 			justifyContent: "center",
 			borderRadius: 8,
-			paddingVertical: 12,
-			paddingHorizontal: 16,
+			paddingVertical: theme.spacing.md,
+			paddingHorizontal: theme.spacing.lg,
 			flexDirection: "row",
-			gap: 6,
+			gap: theme.spacing.sm,
 		},
 		baseButtonDisabled: {
 			backgroundColor: theme.colors.disabled,

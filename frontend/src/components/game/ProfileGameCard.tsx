@@ -56,7 +56,7 @@ const getStyles = (theme: CustomTheme) =>
 			flexDirection: "row",
 			justifyContent: "space-between",
 			alignItems: "center",
-			padding: 12,
+			padding: theme.spacing.md,
 			borderWidth: 0,
 		},
 		left: {

@@ -28,8 +28,8 @@ const getStyles = (theme: CustomTheme) =>
 			borderColor: theme.colors.border,
 			borderWidth: 1,
 			borderRadius: 10,
-			padding: 16,
-			gap: 10,
+			padding: theme.spacing.lg,
+			gap: theme.spacing.md,
 		},
 		label: {
 			color: theme.colors.textMuted,

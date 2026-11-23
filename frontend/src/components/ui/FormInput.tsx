@@ -47,7 +47,7 @@ export default FormInput;
 const getStyles = (theme: CustomTheme) =>
 	StyleSheet.create({
 		container: {
-			gap: 6,
+			gap: theme.spacing.sm,
 		},
 		label: {
 			color: theme.colors.textMuted,
@@ -60,7 +60,7 @@ const getStyles = (theme: CustomTheme) =>
 			color: theme.colors.text,
 			fontSize: theme.fontSize.md,
 			borderRadius: 8,
-			paddingVertical: 10,
-			paddingHorizontal: 12,
+			paddingVertical: theme.spacing.md,
+			paddingHorizontal: theme.spacing.md,
 		},
 	});

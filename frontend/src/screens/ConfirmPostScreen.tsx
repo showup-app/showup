@@ -46,7 +46,7 @@ const ConfirmPostScreen = ({ navigation, route }: AppScreenProps<"ConfirmPost">)
 	return (
 		<SafeAreaView style={styles.screen} edges={["left", "right", "bottom"]}>
 			<GameCard game={draft} />
-			<View style={{ display: "flex", gap: 10 }}>
+			<View style={{ display: "flex", gap: theme.spacing.md }}>
 				{error && <FormErrorMessage message={error} />}
 				<View style={styles.buttonsContainer}>
 					<Button
@@ -84,13 +84,13 @@ const getStyles = (theme: CustomTheme) =>
 			backgroundColor: theme.colors.background,
 			width: "90%",
 			alignSelf: "center",
-			gap: 10,
+			gap: theme.spacing.md,
 		},
 		buttonsContainer: {
 			display: "flex",
 			flexDirection: "row",
 			width: "100%",
-			gap: 20,
+			gap: theme.spacing.xl,
 			alignSelf: "center",
 			alignItems: "center",
 			justifyContent: "space-between",

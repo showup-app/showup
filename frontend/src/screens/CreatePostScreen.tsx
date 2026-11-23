@@ -388,24 +388,24 @@ const getStyles = (theme: CustomTheme) =>
 			backgroundColor: theme.colors.background,
 		},
 		content: {
-			padding: 20,
-			gap: 16,
+			padding: theme.spacing.xl,
+			gap: theme.spacing.lg,
 		},
 		chipRow: {
 			flexDirection: "row",
 			flexWrap: "wrap",
-			gap: 8,
+			gap: theme.spacing.sm,
 		},
 		row: {
 			flexDirection: "row",
 			alignItems: "center",
-			gap: 12,
+			gap: theme.spacing.md,
 		},
 		rowText: {
 			flex: 1,
 		},
 		block: {
-			gap: 10,
+			gap: theme.spacing.md,
 		},
 		rowTitle: {
 			color: theme.colors.text,
@@ -418,17 +418,17 @@ const getStyles = (theme: CustomTheme) =>
 		divider: {
 			height: 1,
 			backgroundColor: theme.colors.border,
-			marginVertical: 4,
+			marginVertical: theme.spacing.xs,
 		},
 		priceInput: {
 			flexDirection: "row",
 			alignItems: "center",
-			gap: 6,
+			gap: theme.spacing.sm,
 			backgroundColor: theme.colors.background,
 			borderColor: theme.colors.border,
 			borderWidth: 1,
 			borderRadius: 6,
-			paddingHorizontal: 12,
+			paddingHorizontal: theme.spacing.md,
 		},
 		dollar: {
 			color: theme.colors.textMuted,
@@ -438,10 +438,10 @@ const getStyles = (theme: CustomTheme) =>
 			flex: 1,
 			color: theme.colors.text,
 			fontSize: theme.fontSize.lg,
-			paddingVertical: 12,
+			paddingVertical: theme.spacing.md,
 		},
 		footer: {
-			paddingHorizontal: 20,
-			paddingVertical: 12,
+			paddingHorizontal: theme.spacing.xl,
+			paddingVertical: theme.spacing.md,
 		},
 	});

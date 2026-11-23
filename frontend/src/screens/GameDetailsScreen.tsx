@@ -247,12 +247,12 @@ const getStyles = (theme: CustomTheme) =>
 			flex: 1,
 			backgroundColor: theme.colors.background,
 			alignItems: "center",
-			paddingHorizontal: 20,
-			paddingTop: 16,
-			gap: 16,
+			paddingHorizontal: theme.spacing.xl,
+			paddingTop: theme.spacing.lg,
+			gap: theme.spacing.lg,
 		},
 		playerCards: {
-			gap: 8,
+			gap: theme.spacing.sm,
 		},
 		playersHeading: {
 			flexDirection: "row",
@@ -264,7 +264,7 @@ const getStyles = (theme: CustomTheme) =>
 			color: theme.colors.textMuted,
 		},
 		playersContainer: {
-			gap: 10,
+			gap: theme.spacing.md,
 			flex: 1,
 		},
 		joinButton: {
@@ -273,7 +273,7 @@ const getStyles = (theme: CustomTheme) =>
 		buttonsContainer: {
 			flexDirection: "row",
 			width: "100%",
-			gap: 10,
+			gap: theme.spacing.md,
 			alignSelf: "center",
 			alignItems: "center",
 			justifyContent: "space-between",

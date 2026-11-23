@@ -36,13 +36,13 @@ const getStyles = (theme: CustomTheme) =>
 		chip: {
 			flexDirection: "row",
 			alignItems: "center",
-			gap: 6,
+			gap: theme.spacing.sm,
 			backgroundColor: theme.colors.border,
 			borderColor: "transparent",
 			borderWidth: 1,
 			borderRadius: 16,
-			paddingHorizontal: 12,
-			paddingVertical: 7,
+			paddingHorizontal: theme.spacing.md,
+			paddingVertical: theme.spacing.sm,
 		},
 		text: {
 			fontSize: theme.fontSize.md,

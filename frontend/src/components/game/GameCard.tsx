@@ -193,13 +193,13 @@ const getStyles = (theme: CustomTheme) =>
 		header: {
 			flexDirection: "row",
 			alignItems: "center",
-			gap: 12,
-			paddingHorizontal: 16,
-			paddingTop: 16,
+			gap: theme.spacing.md,
+			paddingHorizontal: theme.spacing.lg,
+			paddingTop: theme.spacing.lg,
 		},
 		headerText: {
 			flex: 1,
-			gap: 2,
+			gap: theme.spacing.xxs,
 		},
 		title: {
 			color: theme.colors.text,
@@ -213,8 +213,8 @@ const getStyles = (theme: CustomTheme) =>
 		joinButton: {
 			backgroundColor: theme.colors.textSecondary,
 			borderRadius: 8,
-			paddingHorizontal: 14,
-			paddingVertical: 6,
+			paddingHorizontal: theme.spacing.lg,
+			paddingVertical: theme.spacing.sm,
 		},
 		joinButtonDisabled: {
 			backgroundColor: "transparent",
@@ -232,17 +232,17 @@ const getStyles = (theme: CustomTheme) =>
 		chips: {
 			flexDirection: "row",
 			flexWrap: "wrap",
-			gap: 8,
-			padding: 16,
+			gap: theme.spacing.sm,
+			padding: theme.spacing.lg,
 		},
 		chip: {
 			flexDirection: "row",
 			alignItems: "center",
-			gap: 4,
+			gap: theme.spacing.xs,
 			backgroundColor: theme.colors.border,
 			borderRadius: 12,
-			paddingHorizontal: 10,
-			paddingVertical: 5,
+			paddingHorizontal: theme.spacing.md,
+			paddingVertical: theme.spacing.xs,
 		},
 		chipText: {
 			fontSize: theme.fontSize.sm,
@@ -250,9 +250,9 @@ const getStyles = (theme: CustomTheme) =>
 		footer: {
 			flexDirection: "row",
 			alignItems: "center",
-			gap: 8,
-			paddingHorizontal: 16,
-			paddingVertical: 12,
+			gap: theme.spacing.sm,
+			paddingHorizontal: theme.spacing.lg,
+			paddingVertical: theme.spacing.md,
 			borderTopWidth: 1,
 			borderTopColor: theme.colors.border,
 		},
@@ -274,14 +274,14 @@ const getStyles = (theme: CustomTheme) =>
 			fontWeight: "500",
 		},
 		details: {
-			paddingVertical: 7,
+			paddingVertical: theme.spacing.sm,
 		},
 		detailRow: {
 			display: "flex",
 			flexDirection: "row",
 			width: "100%",
-			paddingVertical: 5,
-			paddingLeft: 10,
+			paddingVertical: theme.spacing.xs,
+			paddingLeft: theme.spacing.md,
 		},
 		detail: {
 			width: "50%",
@@ -299,10 +299,10 @@ const getStyles = (theme: CustomTheme) =>
 		hostContainer: {
 			display: "flex",
 			flexDirection: "row",
-			gap: 10,
+			gap: theme.spacing.md,
 		},
 		bottomBorder: {
-			paddingBottom: 12,
+			paddingBottom: theme.spacing.md,
 			borderBottomWidth: 1,
 			borderBottomColor: theme.colors.border,
 		},

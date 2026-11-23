@@ -51,8 +51,8 @@ const getStyles = (theme: CustomTheme) =>
 			width: "100%",
 			backgroundColor: theme.colors.surface,
 			borderRadius: 8,
-			paddingVertical: 10,
-			paddingHorizontal: 12,
+			paddingVertical: theme.spacing.md,
+			paddingHorizontal: theme.spacing.md,
 		},
 		reputation: {
 			color: theme.colors.textSecondary,
@@ -62,7 +62,7 @@ const getStyles = (theme: CustomTheme) =>
 		userProfile: {
 			display: "flex",
 			flexDirection: "row",
-			gap: 5,
+			gap: theme.spacing.xs,
 			alignItems: "center",
 		},
 		playerName: {
@@ -71,7 +71,7 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		rightSection: {
 			flexDirection: "row",
-			gap: 10,
+			gap: theme.spacing.md,
 			alignItems: "center",
 		},
 		removeDisabled: {
