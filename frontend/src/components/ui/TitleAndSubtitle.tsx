@@ -23,7 +23,7 @@ const getStyles = (theme: CustomTheme) =>
 	StyleSheet.create({
 		container: {
 			alignItems: "center",
-			gap: 8,
+			gap: theme.spacing.sm,
 		},
 		titleText: {
 			fontWeight: "600",

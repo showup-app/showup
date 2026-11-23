@@ -1,11 +1,11 @@
 from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, HTTPException, Query, status
-from sqlalchemy import Select, func, or_, select
+from sqlalchemy import Select, func, literal, or_, select, union_all
 from sqlalchemy.orm import selectinload
 
 from app.deps import CurrentUser, DbDep, OptionalUser
-from app.models import Attendance, Game, GameStatus, Signup, SignupStatus, User
+from app.models import Attendance, Follow, Game, GameStatus, Signup, SignupStatus, User
 from app.reputation import (
     MARK_WINDOW_DAYS,
     effective_min_reputation,
@@ -14,6 +14,7 @@ from app.reputation import (
 )
 from app.schemas.game import (
     AttendanceIn,
+    FollowingInGameOut,
     GameCreate,
     GameDetailOut,
     GameOut,
@@ -23,6 +24,9 @@ from app.schemas.game import (
 )
 
 router = APIRouter(prefix="/games", tags=["games"])
+
+# How many followed players a card names before it falls back on the count.
+FOLLOWING_NAMES_SHOWN = 2
 
 
 # ---------- helpers ----------
@@ -85,10 +89,49 @@ def _summary(
     )
 
 
+def _followees(user: User) -> Select[tuple[int]]:
+    """Ids of the players this user follows, as a subquery to use with IN."""
+    return select(Follow.followee_id).where(Follow.follower_id == user.id)
+
+
+def _following_in_games(
+    db: DbDep, user: User | None, game_ids: list[int]
+) -> dict[int, FollowingInGameOut]:
+    """game id -> the players `user` follows who are in that game, as host or with a joined
+    signup. One query however many games; games with nobody are left out of the result."""
+    if user is None or not game_ids:
+        return {}
+    followees = _followees(user)
+    # Columns are (game, rank, position, name) so a plain sort puts the host first and then
+    # the players in the order they signed up.
+    hosts = (
+        select(Game.id, literal(0), Game.id, User.name)
+        .join(User, User.id == Game.host_id)
+        .where(Game.id.in_(game_ids), Game.host_id.in_(followees))
+    )
+    players = (
+        select(Signup.game_id, literal(1), Signup.id, User.name)
+        .join(User, User.id == Signup.user_id)
+        .where(
+            Signup.game_id.in_(game_ids),
+            Signup.status == SignupStatus.JOINED,
+            Signup.user_id.in_(followees),
+        )
+    )
+    names: dict[int, list[str]] = {}
+    for game_id, _rank, _position, name in sorted(db.execute(union_all(hosts, players)).all()):
+        names.setdefault(game_id, []).append(name)
+    return {
+        game_id: FollowingInGameOut(count=len(found), names=found[:FOLLOWING_NAMES_SHOWN])
+        for game_id, found in names.items()
+    }
+
+
 def summaries(db: DbDep, stmt: Select[tuple[Game]], user: User | None) -> list[GameSummaryOut]:
     """Run a select(Game) and build list rows. Grouped counts of joined players and of
     attendance marks are joined in and, when a user is known, that user's own signup and mark,
-    so any list is two queries (games + hosts) however long it gets."""
+    so any list is two queries (games + hosts) however long it gets, plus one more for a
+    signed-in user: which of the players they follow are in these games."""
     counts = (
         select(Signup.game_id, func.count().label("joined"))
         .where(Signup.status == SignupStatus.JOINED)
@@ -136,10 +179,15 @@ def summaries(db: DbDep, stmt: Select[tuple[Game]], user: User | None) -> list[G
         .outerjoin(mine, mine.c.game_id == Game.id)
         .outerjoin(my_mark, my_mark.c.game_id == Game.id)
     )
-    return [
+    rows = [
         _summary(game, count, bool(joined), marked, showed, my_showed_up, change)
         for game, count, marked, showed, joined, my_showed_up, change in db.execute(stmt)
     ]
+    following = _following_in_games(db, user, [row.id for row in rows])
+    for row in rows:
+        if row.id in following:
+            row.following_in_game = following[row.id]
+    return rows
 
 
 def _detail(db: DbDep, game_id: int, user: User | None) -> GameDetailOut:
@@ -174,10 +222,14 @@ def _detail(db: DbDep, game_id: int, user: User | None) -> GameDetailOut:
         for s in joined
     ]
     joined_here = user is not None and any(s.user_id == user.id for s in joined)
-    return GameDetailOut(
+    detail = GameDetailOut(
         **_summary(game, len(players), joined_here).model_dump(),
         players=players,
     )
+    following = _following_in_games(db, user, [game.id])
+    if game.id in following:
+        detail.following_in_game = following[game.id]
+    return detail
 
 
 def _escape_like(text: str) -> str:
@@ -200,11 +252,28 @@ def list_games(
         description="Only games whose venue or address contains this text, e.g. burnaby",
     ),
     include_past: bool = Query(False, description="Also return games that already started"),
+    following: bool = Query(
+        False,
+        description="Only games where a player you follow is hosting or has joined. Needs a token",
+    ),
 ) -> list[GameSummaryOut]:
     """Upcoming games, soonest first, each with its host, places left, the minimum that applies
-    right now and, if a token is sent, whether the caller has joined. Cancelled games are never
-    listed."""
+    right now and, if a token is sent, whether the caller has joined and which players they
+    follow are in it. Cancelled games are never listed."""
     stmt = select(Game).where(Game.status != GameStatus.CANCELLED).order_by(Game.starts_at)
+    if following:
+        if user is None:
+            # "People I follow" has no meaning without a "me".
+            raise HTTPException(
+                status.HTTP_401_UNAUTHORIZED,
+                "Not authenticated",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        followees = _followees(user)
+        joined_by_followee = select(Signup.game_id).where(
+            Signup.status == SignupStatus.JOINED, Signup.user_id.in_(followees)
+        )
+        stmt = stmt.where(or_(Game.host_id.in_(followees), Game.id.in_(joined_by_followee)))
     if sport:
         stmt = stmt.where(func.lower(Game.sport) == sport.lower())
     if location:

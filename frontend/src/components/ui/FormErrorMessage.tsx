@@ -19,7 +19,7 @@ const getStyles = (theme: CustomTheme) =>
 		container: {
 			width: "100%",
 			backgroundColor: `${theme.colors.danger}1F`,
-			padding: 10,
+			padding: theme.spacing.md,
 			borderColor: theme.colors.danger,
 			borderWidth: 1,
 			borderRadius: 5,

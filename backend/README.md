@@ -69,16 +69,25 @@ that applies N hours before kickoff.
 ## Following
 
 The design and the reasons are in `docs/decisions/0003-following.md`. A follow is one-way and
-needs no approval. Built so far:
+needs no approval.
 
-- `POST /users/{id}/follow` (Bearer): 201 with the followed player's public profile. 409 if you
-  already follow them, 422 if it is you, 404 for an unknown user.
-- `DELETE /users/{id}/follow` (Bearer): 200 with the profile. 404 if you do not follow them.
+| Method and path | Auth | Result |
+|---|---|---|
+| `POST /users/{id}/follow` | Bearer | 201 with the followed player's public profile. 409 if you already follow them, 422 if it is you, 404 for an unknown user |
+| `DELETE /users/{id}/follow` | Bearer | 200 with the profile. 404 if you do not follow them |
+| `GET /users/{id}` | optional | The public profile. `is_following` is false without a token |
+| `GET /games?following=true` | Bearer | Only games where a player you follow hosts or has joined. 401 without a token |
+| `GET /me/following` | Bearer | The players you follow, most recently followed first |
+| `GET /me/followers` | Bearer | The players who follow you, newest first. `is_following` shows who you follow back |
 
-The profile (`PublicProfileOut` in `app/schemas/user.py`) has id, name, reputation, games_played,
-games_hosted, is_new, followers_count, following_count and is_following. It never has the email.
-Still to come: `GET /users/{id}`, the `following=true` filter on `GET /games`, and the
-`/me/following` and `/me/followers` lists.
+- The public profile (`PublicProfileOut` in `app/schemas/user.py`) has id, name, reputation,
+  games_played, games_hosted, is_new, followers_count, following_count and is_following. It never
+  has the email.
+- The two lists return `FollowedPlayerOut` rows: id, name, reputation, games_played, is_new and
+  is_following.
+- Every game row and the game detail carry `following_in_game: {"count": n, "names": [...]}`:
+  the players you follow who host or have joined that game, up to two names (host first, then
+  oldest signup first). Count 0 and no names without a token.
 
 ## Conventions
 

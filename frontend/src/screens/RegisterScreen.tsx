@@ -172,18 +172,18 @@ const getStyles = (theme: CustomTheme) =>
 		screen: {
 			flex: 1,
 			justifyContent: "center",
-			paddingHorizontal: 20,
+			paddingHorizontal: theme.spacing.xl,
 			paddingBottom: 80,
-			gap: 32,
+			gap: theme.spacing.xxxl,
 		},
 		titleContainer: {
 			alignSelf: "center",
 		},
 		form: {
-			gap: 24,
+			gap: theme.spacing.xxl,
 		},
 		fields: {
-			gap: 16,
+			gap: theme.spacing.lg,
 		},
 		footerText: {
 			color: theme.colors.textMuted,

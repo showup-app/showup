@@ -12,7 +12,7 @@ export const ThemedToast: React.FC<Omit<ToastProps, "config">> = (props) => {
 			<BaseToast
 				{...toastProps}
 				style={[{ borderLeftColor: theme.colors.success }, styles.toastContainer]}
-				contentContainerStyle={{ paddingHorizontal: 15 }}
+				contentContainerStyle={{ paddingHorizontal: theme.spacing.lg }}
 				text1Style={styles.primaryText}
 				text2Style={styles.secondaryText}
 				text2NumberOfLines={3}
@@ -27,7 +27,7 @@ export const ThemedToast: React.FC<Omit<ToastProps, "config">> = (props) => {
 					},
 					styles.toastContainer,
 				]}
-				contentContainerStyle={{ paddingHorizontal: 15 }}
+				contentContainerStyle={{ paddingHorizontal: theme.spacing.lg }}
 				text1Style={styles.primaryText}
 				text2Style={styles.secondaryText}
 				text2NumberOfLines={3}
@@ -43,7 +43,7 @@ const getStyles = (theme: CustomTheme) =>
 		toastContainer: {
 			backgroundColor: theme.colors.surface,
 			height: "auto",
-			paddingVertical: 10,
+			paddingVertical: theme.spacing.md,
 			borderColor: theme.colors.border,
 			borderWidth: 1,
 		},
