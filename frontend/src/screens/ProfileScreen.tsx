@@ -100,7 +100,7 @@ const ProfileScreen = ({ navigation }: TabScreenProps<"Profile">) => {
 					<MaterialCommunityIcons name="logout" size={16} color={theme.colors.text} /> Log out
 				</Button>
 			</View>
-			<View style={[globalStyles.container, styles.reputationContainer]}>
+			<View style={[globalStyles.card, styles.reputationContainer]}>
 				<Text style={styles.info}>REPUTATION</Text>
 				<View style={styles.progressContainer}>
 					<Text style={styles.reputation}>{user.reputation} ★</Text>
