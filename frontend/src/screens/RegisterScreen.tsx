@@ -11,6 +11,7 @@ import { RegisterBody } from "../types/auth";
 import FormErrorMessage from "../components/ui/FormErrorMessage";
 import { useUser } from "../context/UserContext";
 import Toast from "react-native-toast-message";
+import { getGlobalStyles } from "../theme/styles";
 
 type RegisterForm = {
 	email: string;
@@ -22,6 +23,7 @@ type RegisterForm = {
 const RegisterScreen = ({ navigation }: AuthScreenProps<"Register">) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
+	const globalStyles = getGlobalStyles(theme);
 	const { login } = useUser();
 
 	const {
@@ -75,7 +77,10 @@ const RegisterScreen = ({ navigation }: AuthScreenProps<"Register">) => {
 	};
 
 	return (
-		<SafeAreaView style={styles.screen} edges={["left", "right", "bottom"]}>
+		<SafeAreaView
+			style={[globalStyles.screen, globalStyles.screenPadding, styles.screen]}
+			edges={["left", "right", "bottom"]}
+		>
 			<View style={styles.titleContainer}>
 				<TitleAndSubtitle
 					titleText="Register"
@@ -170,9 +175,7 @@ export default RegisterScreen;
 const getStyles = (theme: CustomTheme) =>
 	StyleSheet.create({
 		screen: {
-			flex: 1,
 			justifyContent: "center",
-			paddingHorizontal: theme.spacing.xl,
 			paddingBottom: 80,
 			gap: theme.spacing.xxxl,
 		},

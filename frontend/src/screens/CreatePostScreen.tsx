@@ -18,6 +18,7 @@ import { useAuthenticatedUser } from "../context/UserContext";
 import { api } from "../services/api";
 import Toast from "react-native-toast-message";
 import useAsync from "../hooks/useAsync";
+import { getGlobalStyles } from "../theme/styles";
 
 const MIN_SPOTS = 2;
 const MAX_SPOTS = 30;
@@ -89,6 +90,7 @@ function toFormValues(game: GameCreate): CreateGameForm {
 export function CreatePostScreen({ navigation, route }: AppScreenProps<"CreatePost">) {
 	const theme = useTheme();
 	const styles = getStyles(theme);
+	const globalStyles = getGlobalStyles(theme);
 	const { token } = useAuthenticatedUser();
 
 	// When editing, the form starts with the game's current values
@@ -150,9 +152,9 @@ export function CreatePostScreen({ navigation, route }: AppScreenProps<"CreatePo
 	};
 
 	return (
-		<SafeAreaView style={styles.screen} edges={["bottom", "left", "right"]}>
+		<SafeAreaView style={globalStyles.screen} edges={["bottom", "left", "right"]}>
 			<KeyboardAvoidingView
-				style={styles.screen}
+				style={globalStyles.screen}
 				behavior={Platform.OS === "ios" ? "padding" : undefined}
 				keyboardVerticalOffset={100}
 			>
@@ -281,7 +283,7 @@ export function CreatePostScreen({ navigation, route }: AppScreenProps<"CreatePo
 							)}
 						/>
 
-						<View style={styles.divider} />
+						<View style={[globalStyles.divider, styles.divider]} />
 
 						<Controller
 							control={control}
@@ -306,7 +308,7 @@ export function CreatePostScreen({ navigation, route }: AppScreenProps<"CreatePo
 							)}
 						/>
 
-						<View style={styles.divider} />
+						<View style={[globalStyles.divider, styles.divider]} />
 
 						<View style={styles.block}>
 							<View style={styles.row}>
@@ -383,10 +385,6 @@ export function CreatePostScreen({ navigation, route }: AppScreenProps<"CreatePo
 
 const getStyles = (theme: CustomTheme) =>
 	StyleSheet.create({
-		screen: {
-			flex: 1,
-			backgroundColor: theme.colors.background,
-		},
 		content: {
 			padding: theme.spacing.xl,
 			gap: theme.spacing.lg,
@@ -416,8 +414,6 @@ const getStyles = (theme: CustomTheme) =>
 			fontSize: theme.fontSize.xs,
 		},
 		divider: {
-			height: 1,
-			backgroundColor: theme.colors.border,
 			marginVertical: theme.spacing.xs,
 		},
 		priceInput: {

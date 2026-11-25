@@ -10,10 +10,12 @@ import { api } from "../services/api";
 import FormErrorMessage from "../components/ui/FormErrorMessage";
 import { useUser } from "../context/UserContext";
 import Toast from "react-native-toast-message";
+import { getGlobalStyles } from "../theme/styles";
 
 const LoginScreen = () => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
+	const globalStyles = getGlobalStyles(theme);
 	const { login } = useUser();
 
 	const {
@@ -55,7 +57,10 @@ const LoginScreen = () => {
 	};
 
 	return (
-		<SafeAreaView style={styles.screen} edges={["left", "right", "bottom"]}>
+		<SafeAreaView
+			style={[globalStyles.screen, globalStyles.screenPadding, styles.screen]}
+			edges={["left", "right", "bottom"]}
+		>
 			<View style={styles.titleContainer}>
 				<TitleAndSubtitle titleText="Login" subtitleText="Enter your email and password to log in" />
 			</View>
@@ -101,9 +106,7 @@ export default LoginScreen;
 const getStyles = (theme: CustomTheme) =>
 	StyleSheet.create({
 		screen: {
-			flex: 1,
 			justifyContent: "center",
-			paddingHorizontal: theme.spacing.xl,
 			paddingBottom: 160,
 			gap: theme.spacing.xxxl,
 		},

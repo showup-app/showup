@@ -2,6 +2,7 @@ import { CustomTheme, useTheme } from "@react-navigation/native";
 import { Controller, FieldValues, UseControllerProps } from "react-hook-form";
 import { StyleProp, StyleSheet, Text, TextInput, TextStyle, TextInputProps, View } from "react-native";
 import FormErrorMessage from "./FormErrorMessage";
+import { getGlobalStyles } from "../../theme/styles";
 
 interface FormInputProps<T extends FieldValues> extends TextInputProps {
 	label: string;
@@ -19,6 +20,7 @@ const FormInput = <T extends FieldValues>({
 }: FormInputProps<T>) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
+	const globalStyles = getGlobalStyles(theme);
 
 	return (
 		<Controller
@@ -27,7 +29,7 @@ const FormInput = <T extends FieldValues>({
 				<View style={styles.container}>
 					<Text style={[styles.label, labelStyle]}>{label}</Text>
 					<TextInput
-						style={[styles.input, inputStyle]}
+						style={[globalStyles.input, inputStyle]}
 						placeholderTextColor={theme.colors.textMuted}
 						onBlur={onBlur}
 						onChangeText={onChange}
@@ -52,15 +54,5 @@ const getStyles = (theme: CustomTheme) =>
 		label: {
 			color: theme.colors.textMuted,
 			fontSize: theme.fontSize.sm,
-		},
-		input: {
-			borderWidth: 1,
-			borderColor: theme.colors.border,
-			backgroundColor: theme.colors.surface,
-			color: theme.colors.text,
-			fontSize: theme.fontSize.md,
-			borderRadius: 8,
-			paddingVertical: theme.spacing.md,
-			paddingHorizontal: theme.spacing.md,
 		},
 	});
