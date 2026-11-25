@@ -40,7 +40,7 @@ const getStyles = (theme: CustomTheme) =>
 			backgroundColor: theme.colors.border,
 			borderColor: "transparent",
 			borderWidth: 1,
-			borderRadius: 16,
+			borderRadius: 8,
 			paddingHorizontal: theme.spacing.md,
 			paddingVertical: theme.spacing.sm,
 		},

@@ -2,6 +2,7 @@ import { FlatList, StyleSheet, Text, View } from "react-native";
 import PlayerCard from "./PlayerCard";
 import { GameDetail, Player } from "../../types/game";
 import { CustomTheme, useTheme } from "@react-navigation/native";
+import { getGlobalStyles } from "../../theme/styles";
 
 const PlayersList = ({
 	game,
@@ -16,6 +17,7 @@ const PlayersList = ({
 }) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
+	const globalStyles = getGlobalStyles(theme);
 
 	return (
 		<FlatList
@@ -23,9 +25,9 @@ const PlayersList = ({
 			data={game.players}
 			keyExtractor={(player) => String(player.id)}
 			ListHeaderComponent={
-				<View style={styles.playersHeading}>
-					<Text style={styles.playersText}>PLAYERS</Text>
-					<Text style={styles.playersText}>
+				<View style={[globalStyles.sectionHeader, styles.playersHeading]}>
+					<Text style={globalStyles.sectionTitle}>PLAYERS</Text>
+					<Text style={styles.joinedCount}>
 						{game.players.length}/{game.spots} joined
 					</Text>
 				</View>
@@ -50,13 +52,10 @@ const getStyles = (theme: CustomTheme) =>
 			height: theme.spacing.sm,
 		},
 		playersHeading: {
-			flexDirection: "row",
-			justifyContent: "space-between",
-			width: "100%",
 			marginBottom: theme.spacing.sm,
 		},
-		playersText: {
-			fontSize: theme.fontSize.md,
+		joinedCount: {
+			fontSize: theme.fontSize.sm,
 			color: theme.colors.textMuted,
 		},
 	});

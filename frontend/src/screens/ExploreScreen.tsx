@@ -14,6 +14,7 @@ import { SPORTS, sportIcon } from "../utils/sports";
 import { capitalize } from "../utils/format";
 import Toast from "react-native-toast-message";
 import useAsync from "../hooks/useAsync";
+import { getGlobalStyles } from "../theme/styles";
 
 const MIN_SEARCH_LENGTH = 2;
 const SEARCH_DELAY_MS = 400;
@@ -21,6 +22,7 @@ const SEARCH_DELAY_MS = 400;
 export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 	const theme = useTheme();
 	const styles = getStyles(theme);
+	const globalStyles = getGlobalStyles(theme);
 	const { token } = useAuthenticatedUser();
 
 	const [search, setSearch] = useState("");
@@ -97,7 +99,7 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 	};
 
 	return (
-		<SafeAreaView style={styles.screen} edges={["left", "right"]}>
+		<SafeAreaView style={globalStyles.screen} edges={["left", "right"]}>
 			{status === "idle" || (status === "loading" && !refreshing) ? (
 				<View style={{ flex: 1, paddingTop: headerHeight }}>
 					<LoadingView message="Finding games…" screen={false} />
@@ -140,7 +142,7 @@ export function ExploreScreen({ navigation }: TabScreenProps<"Explore">) {
 				<View style={styles.searchSection}>
 					<Text style={styles.label}>Search by location</Text>
 					<TextInput
-						style={styles.input}
+						style={globalStyles.input}
 						value={search}
 						onChangeText={setSearch}
 						placeholder="e.g. Burnaby"
@@ -180,10 +182,6 @@ function emptyMessage(sport?: string, location?: string): string {
 
 const getStyles = (theme: CustomTheme) =>
 	StyleSheet.create({
-		screen: {
-			flex: 1,
-			backgroundColor: theme.colors.background,
-		},
 		searchSection: {
 			paddingHorizontal: theme.spacing.xl,
 			paddingTop: theme.spacing.xl,
@@ -194,16 +192,6 @@ const getStyles = (theme: CustomTheme) =>
 			color: theme.colors.textMuted,
 			fontSize: theme.fontSize.sm,
 			fontFamily: Platform.select({ ios: "Menlo", default: "monospace" }),
-		},
-		input: {
-			backgroundColor: theme.colors.surface,
-			borderColor: theme.colors.border,
-			borderWidth: 1,
-			borderRadius: 6,
-			color: theme.colors.text,
-			fontSize: theme.fontSize.lg,
-			paddingHorizontal: theme.spacing.md,
-			paddingVertical: theme.spacing.md,
 		},
 		list: {
 			paddingHorizontal: theme.spacing.xl,
