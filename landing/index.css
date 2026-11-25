@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@theme {
+    --color-background: #293241;
+	--color-surface: #343C4E;
+	--color-chrome: #232A37;
+	--color-border: #3D5A80;
+	--color-text: #E3F8FB;
+	--color-textSecondary: #F0967A;
+	--color-textMuted: #A1C0D5;
+	--color-brand: #F0967A;
+	--color-danger: #FF8591;
+	--color-warning: #FFD27A;
+	--color-success: #7ED6C4;
+	--color-overlay: rgba(0, 0, 0, 0.5);
+	--color-borderStrong: #55739A;
+	--color-disabled: #4A5568;
+	--color-textOnDanger: #1C2029;
+}
