@@ -53,5 +53,16 @@ export const getGlobalStyles = (theme: CustomTheme) => {
 			borderBottomWidth: 1,
 			borderBottomColor: theme.colors.border,
 		},
+		/** Text input box */
+		input: {
+			backgroundColor: theme.colors.surface,
+			borderColor: theme.colors.border,
+			borderWidth: 1,
+			borderRadius: 8,
+			color: theme.colors.text,
+			fontSize: theme.fontSize.md,
+			paddingVertical: theme.spacing.md,
+			paddingHorizontal: theme.spacing.md,
+		},
 	});
 };

@@ -10,6 +10,7 @@ import { Game, GameStatus } from "../types/game";
 import LoadingView from "../components/layout/LoadingView";
 import ErrorView from "../components/layout/ErrorView";
 import useAsync from "../hooks/useAsync";
+import { getGlobalStyles } from "../theme/styles";
 
 // Hosts can mark attendance for this many days after kickoff
 const MARK_WINDOW_DAYS = 7;
@@ -37,6 +38,7 @@ const needsAttendance = (game: Game, now: number) =>
 export function HomeScreen({ navigation }: TabScreenProps<"Home">) {
 	const theme = useTheme();
 	const styles = getStyles(theme);
+	const globalStyles = getGlobalStyles(theme);
 	const { token } = useAuthenticatedUser();
 
 	const [refreshing, setRefreshing] = useState(false);
@@ -122,7 +124,7 @@ export function HomeScreen({ navigation }: TabScreenProps<"Home">) {
 	}
 
 	return (
-		<SafeAreaView style={styles.screen} edges={["left", "right"]}>
+		<SafeAreaView style={globalStyles.screen} edges={["left", "right"]}>
 			<SectionList
 				sections={sections}
 				keyExtractor={(game) => String(game.id)}
@@ -137,7 +139,7 @@ export function HomeScreen({ navigation }: TabScreenProps<"Home">) {
 				renderSectionHeader={({ section }) => (
 					<View style={styles.sectionHeader}>
 						{section.urgent && <View style={styles.dot} />}
-						<Text style={styles.sectionTitle}>{section.title}</Text>
+						<Text style={globalStyles.sectionTitle}>{section.title}</Text>
 						{section.urgent && (
 							<View style={styles.countBadge}>
 								<Text style={styles.countText}>{section.data.length}</Text>
@@ -163,51 +165,14 @@ export function HomeScreen({ navigation }: TabScreenProps<"Home">) {
 
 const getStyles = (theme: CustomTheme) =>
 	StyleSheet.create({
-		screen: {
-			flex: 1,
-			backgroundColor: theme.colors.background,
-		},
-		centered: {
-			alignItems: "center",
-			justifyContent: "center",
-			gap: theme.spacing.md,
-			padding: theme.spacing.xl,
-		},
 		list: {
 			padding: theme.spacing.xl,
-		},
-		greeting: {
-			color: theme.colors.text,
-			fontSize: theme.typography.title.fontSize,
-			fontWeight: theme.typography.title.fontWeight,
-			marginBottom: theme.spacing.lg,
-		},
-		sectionTitle: {
-			color: theme.colors.textMuted,
-			fontSize: theme.fontSize.sm,
-			fontWeight: "600",
-			letterSpacing: 1,
-			textTransform: "uppercase",
 		},
 		separator: {
 			height: 28,
 		},
 		sectionGap: {
-			height: 12,
-		},
-		empty: {
-			alignItems: "flex-start",
-			gap: theme.spacing.sm,
-			paddingVertical: theme.spacing.sm,
-		},
-		message: {
-			color: theme.colors.textMuted,
-			fontSize: theme.fontSize.md,
-		},
-		link: {
-			color: theme.colors.textSecondary,
-			fontSize: theme.fontSize.md,
-			fontWeight: "600",
+			height: theme.spacing.md,
 		},
 		sectionHeader: {
 			flexDirection: "row",
