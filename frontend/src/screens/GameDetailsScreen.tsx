@@ -18,14 +18,16 @@ import useAsync from "../hooks/useAsync";
 import PlayersList from "../components/game/PlayersList";
 import { getGameModalProps, getGamePermissions } from "../utils/game";
 import useGameDetailsActions from "../hooks/useGameDetailsActions";
+import { getGlobalStyles } from "../theme/styles";
 
 export type ModalTypes =
 	{ type: "join" } | { type: "leave" } | { type: "cancel" } | { type: "removePlayer"; player: Player } | null;
 
 const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">) => {
 	const theme = useTheme();
-	const { user, token } = useAuthenticatedUser();
+	const globalStyles = getGlobalStyles(theme);
 	const styles = getStyles(theme);
+	const { user, token } = useAuthenticatedUser();
 	const { gameId } = route.params;
 	const [modal, setModal] = useState<ModalTypes>(null);
 
@@ -83,7 +85,7 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 			: null;
 
 	return (
-		<SafeAreaView style={styles.screen} edges={["left", "right", "bottom"]}>
+		<SafeAreaView style={[globalStyles.screen, styles.screen]} edges={["left", "right", "bottom"]}>
 			<GameCard game={game} isDetailed />
 			{isCancelled && (
 				<View style={{ width: "100%" }}>
@@ -91,7 +93,7 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 				</View>
 			)}
 			{isHost ? (
-				<View style={styles.buttonsContainer}>
+				<View style={globalStyles.buttonRow}>
 					<Button buttonStyle={{ flex: 1 }} variant="outline" disabled={!canManage} onPress={handleEditGame}>
 						<MaterialCommunityIcons name="pencil-outline" size={16} color={theme.colors.text} /> Edit
 						details
@@ -145,8 +147,6 @@ export default GameDetailsScreen;
 const getStyles = (theme: CustomTheme) =>
 	StyleSheet.create({
 		screen: {
-			flex: 1,
-			backgroundColor: theme.colors.background,
 			alignItems: "center",
 			paddingHorizontal: theme.spacing.xl,
 			paddingTop: theme.spacing.lg,
@@ -154,13 +154,5 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		joinButton: {
 			width: "100%",
-		},
-		buttonsContainer: {
-			flexDirection: "row",
-			width: "100%",
-			gap: theme.spacing.md,
-			alignSelf: "center",
-			alignItems: "center",
-			justifyContent: "space-between",
 		},
 	});
