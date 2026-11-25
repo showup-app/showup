@@ -1,11 +1,10 @@
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppScreenProps } from "../navigation/types";
 import { CustomTheme, useFocusEffect, useTheme } from "@react-navigation/native";
-import { GameStatus, Player } from "../types/game";
+import { Player } from "../types/game";
 import { api } from "../services/api";
 import { useCallback, useState } from "react";
-import PlayerCard from "../components/game/PlayerCard";
 import GameCard from "../components/game/GameCard";
 import Button from "../components/ui/Button";
 import { getJoinButtonText } from "../utils/format";
@@ -13,12 +12,14 @@ import { useAuthenticatedUser } from "../context/UserContext";
 import LoadingView from "../components/layout/LoadingView";
 import ErrorView from "../components/layout/ErrorView";
 import FormErrorMessage from "../components/ui/FormErrorMessage";
-import ConfirmModal, { ConfirmModalProps } from "../components/ui/ConfirmModal";
-import Toast from "react-native-toast-message";
+import ConfirmModal from "../components/ui/ConfirmModal";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import useAsync from "../hooks/useAsync";
+import PlayersList from "../components/game/PlayersList";
+import { getGameModalProps, getGamePermissions } from "../utils/game";
+import useGameDetailsActions from "../hooks/useGameDetailsActions";
 
-type ModalTypes =
+export type ModalTypes =
 	{ type: "join" } | { type: "leave" } | { type: "cancel" } | { type: "removePlayer"; player: Player } | null;
 
 const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">) => {
@@ -26,12 +27,16 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 	const { user, token } = useAuthenticatedUser();
 	const styles = getStyles(theme);
 	const { gameId } = route.params;
-	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [modal, setModal] = useState<ModalTypes>(null);
-	const [loadTime] = useState(() => Date.now());
 
 	const fetchGame = useCallback(() => api.getGame(gameId, token), [token, gameId]);
 	const { data: game, status, error, execute: loadGame, setData: setGame } = useAsync(fetchGame);
+
+	const { isSubmitting, handleCancelGame, handleJoinLeaveGame, handleRemovePlayer } = useGameDetailsActions(
+		game,
+		token,
+		setGame,
+	);
 
 	useFocusEffect(
 		useCallback(() => {
@@ -47,55 +52,7 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 		return <ErrorView onRetry={loadGame} errorMsg={error} />;
 	}
 
-	const isFull = game.spots_left <= 0 || game.status === GameStatus.Full;
-	const isHost = user.id === game.host_id;
-	const isCancelled = game.status === GameStatus.Cancelled;
-	const isStarted = new Date(game.starts_at).getTime() <= loadTime;
-	const isPlayable = game.status === GameStatus.Open || game.status === GameStatus.Full;
-
-	const canManage = isPlayable && !isStarted;
-	const canJoinLeave = (!isFull || game.joined) && isPlayable && !isStarted && !isSubmitting;
-
-	const handleJoinLeaveGame = async () => {
-		setIsSubmitting(true);
-		const res = game.joined ? await api.leaveGame(game.id, token) : await api.joinGame(game.id, token);
-		if (!res.ok) {
-			Toast.show({
-				type: "error",
-				text1: `Failed to ${game.joined ? "leave" : "join"} the game`,
-				text2: res.error,
-			});
-		} else {
-			Toast.show({
-				type: "success",
-				text1: `Successfully ${game.joined ? "left" : "joined"} the game!`,
-			});
-			setGame(res.data);
-		}
-		setIsSubmitting(false);
-	};
-
-	const handleRemovePlayer = async (playerId: number) => {
-		if (!canManage) return;
-
-		const res = await api.removePlayer(game.id, playerId, token);
-		if (res.ok) {
-			Toast.show({
-				type: "success",
-				text1: "Player was successfully removed from the game",
-			});
-			setGame((prev) => ({
-				...prev,
-				players: prev.players.filter((player) => player.id !== playerId),
-			}));
-		} else {
-			Toast.show({
-				type: "error",
-				text1: "Failed to remove player from the game",
-				text2: res.error,
-			});
-		}
-	};
+	const { isCancelled, isHost, canJoinLeave, canManage } = getGamePermissions(game, user.id, isSubmitting);
 
 	const handleEditGame = () =>
 		navigation.navigate("CreatePost", {
@@ -115,57 +72,15 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 			},
 		});
 
-	const handleCancelGame = async () => {
-		const res = await api.cancelGame(game.id, token);
-		if (res.ok) {
-			setGame((prev) => ({
-				...prev,
-				status: GameStatus.Cancelled,
-			}));
-		} else {
-			Toast.show({
-				type: "error",
-				text1: "Failed to cancel this game",
-				text2: res.error,
-			});
-		}
-	};
-
-	const joinLeaveButtonText = isSubmitting
-		? game.joined
-			? "Leaving..."
-			: "Joining..."
-		: getJoinButtonText(game, user, true);
-
-	const getModalProps = (modal: NonNullable<ModalTypes>): Omit<ConfirmModalProps, "onCancel" | "visible"> => {
-		switch (modal.type) {
-			case "cancel":
-				return {
-					title: "Cancel Game",
-					message: "Are you sure you want to cancel this game? This action cannot be undone.",
-					onConfirm: handleCancelGame,
-				};
-			case "join":
-				return {
-					title: "Join Game",
-					message:
-						"Are you sure you want to join this game? Failing to attend may decrease your profile's reputation.",
-					onConfirm: handleJoinLeaveGame,
-				};
-			case "leave":
-				return {
-					title: "Leave Game",
-					message: "Are you sure you want to leave this game?",
-					onConfirm: handleJoinLeaveGame,
-				};
-			case "removePlayer":
-				return {
-					title: "Remove Player",
-					message: `Are you sure you want to remove ${modal.player.name} from the game?`,
-					onConfirm: () => handleRemovePlayer(modal.player.id),
-				};
-		}
-	};
+	const modalProps =
+		modal !== null
+			? getGameModalProps(modal, {
+					onCancel: handleCancelGame,
+					onLeave: handleJoinLeaveGame,
+					onJoin: handleJoinLeaveGame,
+					onRemovePlayer: (player) => handleRemovePlayer(player.id),
+				})
+			: null;
 
 	return (
 		<SafeAreaView style={styles.screen} edges={["left", "right", "bottom"]}>
@@ -197,40 +112,26 @@ const GameDetailsScreen = ({ navigation, route }: AppScreenProps<"GameDetails">)
 						variant={game.joined ? "dangerSoft" : "primary"}
 						onPress={() => setModal(game.joined ? { type: "leave" } : { type: "join" })}
 					>
-						{joinLeaveButtonText}
+						{getJoinButtonText(game, user, true, isSubmitting)}
 					</Button>
 				</View>
 			)}
-			<View style={styles.playersContainer}>
-				<View style={styles.playersHeading}>
-					<Text style={styles.playersText}>PLAYERS</Text>
-					<Text style={styles.playersText}>
-						{game.players.length}/{game.spots} joined
-					</Text>
-				</View>
-				<ScrollView contentContainerStyle={styles.playerCards}>
-					{game.players.map((player) => (
-						<PlayerCard
-							key={player.id}
-							player={player}
-							isDisabled={!canManage}
-							{...(isHost && {
-								onPress: () => {
-									setModal({ type: "removePlayer", player: player });
-								},
-							})}
-						/>
-					))}
-				</ScrollView>
-			</View>
+			<PlayersList
+				game={game}
+				isDisabled={!canManage}
+				isHost={isHost}
+				onPress={(player) => {
+					setModal({ type: "removePlayer", player: player });
+				}}
+			/>
 
-			{modal !== null && (
+			{modalProps && (
 				<ConfirmModal
 					visible
 					onCancel={() => setModal(null)}
-					{...getModalProps(modal)}
+					{...modalProps}
 					onConfirm={() => {
-						getModalProps(modal).onConfirm();
+						modalProps.onConfirm();
 						setModal(null);
 					}}
 				/>
@@ -250,22 +151,6 @@ const getStyles = (theme: CustomTheme) =>
 			paddingHorizontal: theme.spacing.xl,
 			paddingTop: theme.spacing.lg,
 			gap: theme.spacing.lg,
-		},
-		playerCards: {
-			gap: theme.spacing.sm,
-		},
-		playersHeading: {
-			flexDirection: "row",
-			justifyContent: "space-between",
-			width: "100%",
-		},
-		playersText: {
-			fontSize: theme.fontSize.md,
-			color: theme.colors.textMuted,
-		},
-		playersContainer: {
-			gap: theme.spacing.md,
-			flex: 1,
 		},
 		joinButton: {
 			width: "100%",
