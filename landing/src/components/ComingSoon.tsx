@@ -1,6 +1,6 @@
 import { HiOutlineSparkles } from "react-icons/hi2";
 
-const upcomingFeatures = ["1", "2", "3"];
+const upcomingFeatures = ["Lorem ipsum", "Dolor sit amet", "Consectetur adipiscing elit"];
 
 export const ComingSoon = () => (
 	<section id="coming-soon" className="scroll-mt-24 border-t border-border">
