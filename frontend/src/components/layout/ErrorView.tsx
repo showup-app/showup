@@ -47,12 +47,13 @@ const getStyles = (theme: CustomTheme) =>
 			padding: theme.spacing.xl,
 		},
 		message: {
+			fontFamily: theme.fontFamily.regular,
 			color: theme.colors.textMuted,
 			fontSize: theme.fontSize.md,
 		},
 		link: {
 			color: theme.colors.textSecondary,
 			fontSize: theme.fontSize.md,
-			fontWeight: 600,
+			fontFamily: theme.fontFamily.medium,
 		},
 	});

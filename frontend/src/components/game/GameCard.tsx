@@ -204,9 +204,10 @@ const getStyles = (theme: CustomTheme) =>
 		title: {
 			color: theme.colors.text,
 			fontSize: theme.fontSize.xl,
-			fontWeight: "500",
+			fontFamily: theme.fontFamily.medium,
 		},
 		subtitle: {
+			fontFamily: theme.fontFamily.regular,
 			color: theme.colors.textMuted,
 			fontSize: theme.fontSize.sm,
 		},
@@ -224,7 +225,7 @@ const getStyles = (theme: CustomTheme) =>
 		joinText: {
 			color: theme.colors.background,
 			fontSize: theme.fontSize.sm,
-			fontWeight: "600",
+			fontFamily: theme.fontFamily.medium,
 		},
 		joinTextDisabled: {
 			color: theme.colors.textMuted,
@@ -245,6 +246,7 @@ const getStyles = (theme: CustomTheme) =>
 			paddingVertical: theme.spacing.xs,
 		},
 		chipText: {
+			fontFamily: theme.fontFamily.regular,
 			fontSize: theme.fontSize.sm,
 		},
 		footer: {
@@ -257,13 +259,14 @@ const getStyles = (theme: CustomTheme) =>
 			borderTopColor: theme.colors.border,
 		},
 		hostName: {
+			fontFamily: theme.fontFamily.regular,
 			color: theme.colors.text,
 			fontSize: theme.fontSize.md,
 		},
 		reputation: {
 			color: theme.colors.textSecondary,
 			fontSize: theme.fontSize.xs,
-			fontWeight: 500,
+			fontFamily: theme.fontFamily.medium,
 		},
 		seePlayers: {
 			marginLeft: "auto",
@@ -271,7 +274,7 @@ const getStyles = (theme: CustomTheme) =>
 		link: {
 			color: theme.colors.textSecondary,
 			fontSize: theme.fontSize.sm,
-			fontWeight: "500",
+			fontFamily: theme.fontFamily.medium,
 		},
 		details: {
 			paddingVertical: theme.spacing.sm,
@@ -289,12 +292,12 @@ const getStyles = (theme: CustomTheme) =>
 		detailName: {
 			color: theme.colors.textMuted,
 			fontSize: theme.fontSize.md,
-			fontWeight: 400,
+			fontFamily: theme.fontFamily.regular,
 		},
 		detailValue: {
 			color: theme.colors.text,
 			fontSize: theme.fontSize.md,
-			fontWeight: 400,
+			fontFamily: theme.fontFamily.regular,
 		},
 		hostContainer: {
 			display: "flex",

@@ -57,7 +57,7 @@ const getStyles = (theme: CustomTheme) =>
 		reputation: {
 			color: theme.colors.textSecondary,
 			fontSize: theme.fontSize.md,
-			fontWeight: 600,
+			fontFamily: theme.fontFamily.medium,
 		},
 		userProfile: {
 			display: "flex",
@@ -66,8 +66,8 @@ const getStyles = (theme: CustomTheme) =>
 			alignItems: "center",
 		},
 		playerName: {
+			fontFamily: theme.fontFamily.regular,
 			color: theme.colors.text,
-			fontWeight: 400,
 		},
 		rightSection: {
 			flexDirection: "row",

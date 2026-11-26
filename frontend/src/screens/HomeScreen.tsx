@@ -194,6 +194,6 @@ const getStyles = (theme: CustomTheme) =>
 		countText: {
 			color: theme.colors.textOnDanger,
 			fontSize: theme.fontSize.xs,
-			fontWeight: "600",
+			fontFamily: theme.fontFamily.medium,
 		},
 	});

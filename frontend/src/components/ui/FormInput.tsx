@@ -52,6 +52,7 @@ const getStyles = (theme: CustomTheme) =>
 			gap: theme.spacing.sm,
 		},
 		label: {
+			fontFamily: theme.fontFamily.regular,
 			color: theme.colors.textMuted,
 			fontSize: theme.fontSize.sm,
 		},

@@ -66,9 +66,10 @@ const getStyles = (theme: CustomTheme) =>
 			color: theme.colors.text,
 			textAlign: "center",
 			fontSize: theme.fontSize.lg,
-			fontWeight: "600",
+			fontFamily: theme.fontFamily.medium,
 		},
 		message: {
+			fontFamily: theme.fontFamily.regular,
 			color: theme.colors.textMuted,
 			textAlign: "center",
 			fontSize: theme.fontSize.md,

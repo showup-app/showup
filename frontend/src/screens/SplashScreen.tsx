@@ -50,7 +50,7 @@ const getStyles = (theme: CustomTheme) =>
 			alignSelf: "center",
 		},
 		subtitle: {
-			fontWeight: 400,
+			fontFamily: theme.fontFamily.regular,
 			color: theme.colors.textMuted,
 			fontSize: theme.fontSize.lg,
 		},
@@ -59,6 +59,7 @@ const getStyles = (theme: CustomTheme) =>
 			gap: theme.spacing.xxl,
 		},
 		wordmark: {
+			fontFamily: theme.fontFamily.regular,
 			fontSize: theme.fontSize.display,
 		},
 	});

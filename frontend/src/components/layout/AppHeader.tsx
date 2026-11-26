@@ -39,7 +39,7 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		title: {
 			fontSize: theme.fontSize.xxl,
-			fontWeight: "600",
+			fontFamily: theme.fontFamily.medium,
 			color: theme.colors.text,
 		},
 	});

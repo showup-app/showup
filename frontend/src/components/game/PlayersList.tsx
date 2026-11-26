@@ -55,6 +55,7 @@ const getStyles = (theme: CustomTheme) =>
 			marginBottom: theme.spacing.sm,
 		},
 		joinedCount: {
+			fontFamily: theme.fontFamily.regular,
 			fontSize: theme.fontSize.sm,
 			color: theme.colors.textMuted,
 		},

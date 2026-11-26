@@ -18,7 +18,7 @@ export default Logo;
 const getStyles = (theme: CustomTheme) =>
 	StyleSheet.create({
 		logo: {
-			fontWeight: 600,
+			fontFamily: theme.fontFamily.medium,
 			color: theme.colors.text,
 			fontSize: theme.fontSize.hero,
 			textAlign: "center",

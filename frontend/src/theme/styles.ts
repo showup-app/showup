@@ -31,7 +31,7 @@ export const getGlobalStyles = (theme: CustomTheme) => {
 		sectionTitle: {
 			color: theme.colors.textMuted,
 			fontSize: theme.fontSize.sm,
-			fontWeight: "600",
+			fontFamily: theme.fontFamily.medium,
 			letterSpacing: 1,
 			textTransform: "uppercase",
 		},
@@ -46,7 +46,7 @@ export const getGlobalStyles = (theme: CustomTheme) => {
 		link: {
 			color: theme.colors.brand,
 			fontSize: theme.fontSize.sm,
-			fontWeight: "600",
+			fontFamily: theme.fontFamily.medium,
 		},
 		/** Line between sections */
 		divider: {
@@ -55,6 +55,7 @@ export const getGlobalStyles = (theme: CustomTheme) => {
 		},
 		/** Text input box */
 		input: {
+			fontFamily: theme.fontFamily.regular,
 			backgroundColor: theme.colors.surface,
 			borderColor: theme.colors.border,
 			borderWidth: 1,

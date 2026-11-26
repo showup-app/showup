@@ -27,6 +27,6 @@ const getStyles = (theme: CustomTheme) =>
 		text: {
 			fontSize: theme.fontSize.md,
 			color: theme.colors.danger,
-			fontWeight: "500",
+			fontFamily: theme.fontFamily.medium,
 		},
 	});

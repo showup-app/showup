@@ -70,9 +70,11 @@ const getStyles = (theme: CustomTheme) =>
 			textAlign: "right",
 		},
 		game: {
+			fontFamily: theme.fontFamily.regular,
 			color: theme.colors.text,
 		},
 		info: {
+			fontFamily: theme.fontFamily.regular,
 			color: theme.colors.textMuted,
 		},
 		showedUp: {
@@ -82,7 +84,7 @@ const getStyles = (theme: CustomTheme) =>
 			color: theme.colors.danger,
 		},
 		bold: {
-			fontWeight: 500,
+			fontFamily: theme.fontFamily.medium,
 			color: theme.colors.text,
 		},
 	});

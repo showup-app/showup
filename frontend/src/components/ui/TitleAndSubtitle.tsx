@@ -26,13 +26,13 @@ const getStyles = (theme: CustomTheme) =>
 			gap: theme.spacing.sm,
 		},
 		titleText: {
-			fontWeight: "600",
+			fontFamily: theme.fontFamily.medium,
 			color: theme.colors.text,
 			fontSize: theme.fontSize.display,
 			textAlign: "center",
 		},
 		subtitleText: {
-			fontWeight: "400",
+			fontFamily: theme.fontFamily.regular,
 			color: theme.colors.textMuted,
 			fontSize: theme.fontSize.lg,
 			textAlign: "center",
