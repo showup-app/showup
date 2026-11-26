@@ -2,15 +2,25 @@ import { useState } from "react";
 import { HiOutlineBars3, HiOutlineXMark } from "react-icons/hi2";
 import { SiGithub } from "react-icons/si";
 
+const links = [
+	{ href: "#home", label: "Home" },
+	{ href: "#features", label: "Features" },
+	{ href: "#tech-stack", label: "Tech Stack" },
+	{ href: "#architecture", label: "Architecture" },
+	{ href: "#coming-soon", label: "Coming Soon" },
+];
+
+const linkClassName = "text-textMuted transition-colors hover:text-brand";
+
 export const NavBar = () => {
 	const [mobileOpen, setMobileOpen] = useState(false);
 
 	return (
 		<nav
 			aria-label="Main navigation"
-			className="flex w-full items-center justify-between py-3 md:px-16 md:py-4 lg:px-24 xl:px-32"
+			className="sticky top-0 z-30 flex w-full items-center justify-between border-b border-borderStrong bg-chrome px-4 py-3 shadow-lg shadow-black/10 backdrop-blur sm:px-6 md:px-8 md:py-4 lg:px-24 xl:px-32"
 		>
-			<a href="/" aria-label="ShowUp home">
+			<a href="#home">
 				<span className="text-xl font-semibold tracking-tight text-text">
 					Show<span className="text-brand">Up</span>
 				</span>
@@ -18,32 +28,30 @@ export const NavBar = () => {
 
 			<div
 				id="menu"
-				className={`${mobileOpen ? "max-md:w-full" : "max-md:w-0"} max-md:absolute max-md:left-0 max-md:top-0 max-md:z-10 max-md:h-full max-md:flex-col max-md:justify-center max-md:overflow-hidden max-md:bg-overlay max-md:backdrop-blur max-md:transition-all max-md:duration-300 flex items-center gap-8 text-sm`}
+				className={[
+					mobileOpen ? "max-md:w-full" : "max-md:w-0",
+					"max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-40 max-md:h-dvh max-md:flex-col",
+					"max-md:justify-center max-md:overflow-hidden max-md:bg-overlay max-md:backdrop-blur",
+					"max-md:transition-all max-md:duration-300 flex items-center gap-4 text-sm",
+					"md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 lg:gap-8",
+				].join(" ")}
 			>
-				<a href="#" onClick={() => setMobileOpen(false)} className="text-textMuted hover:text-text">
-					Home
-				</a>
-				<a href="#" onClick={() => setMobileOpen(false)} className="text-textMuted hover:text-text">
-					Features
-				</a>
-				<a href="#" onClick={() => setMobileOpen(false)} className="text-textMuted hover:text-text">
-					Tech Stack
-				</a>
-				<a href="#" onClick={() => setMobileOpen(false)} className="text-textMuted hover:text-text">
-					Architecture
-				</a>
+				{links.map(({ href, label }) => (
+					<a key={href} href={href} onClick={() => setMobileOpen(false)} className={linkClassName}>
+						{label}
+					</a>
+				))}
 
 				<a
 					href="https://github.com/showup-app/showup"
 					onClick={() => setMobileOpen(false)}
-					className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-brand px-5 text-sm font-medium text-textOnDanger transition hover:bg-textSecondary md:hidden"
+					className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-borderStrong px-4 text-sm font-medium text-text transition hover:border-brand hover:text-brand md:hidden"
 				>
-					<SiGithub size={18} />
+					<SiGithub size={18} aria-hidden="true" />
 					View on GitHub
 				</a>
 				<button
 					type="button"
-					id="close-menu"
 					onClick={() => setMobileOpen(false)}
 					aria-label="Close navigation menu"
 					className="aspect-square rounded-md bg-chrome p-2 font-medium text-text transition hover:bg-disabled md:hidden"
@@ -54,9 +62,7 @@ export const NavBar = () => {
 
 			<a
 				href="https://github.com/showup-app/showup"
-				target="_blank"
-				rel="noopener noreferrer"
-				className="hidden h-10 items-center justify-center gap-2 rounded-full bg-brand px-5 text-sm font-medium text-textOnDanger transition hover:bg-textSecondary md:inline-flex"
+				className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-borderStrong px-4 text-sm font-medium text-text transition hover:border-brand hover:text-brand max-md:hidden"
 			>
 				<SiGithub size={18} aria-hidden="true" />
 				View on GitHub

@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-    --color-background: #293241;
+	--color-background: #293241;
 	--color-surface: #343C4E;
 	--color-chrome: #232A37;
 	--color-border: #3D5A80;
@@ -16,4 +16,15 @@
 	--color-borderStrong: #55739A;
 	--color-disabled: #4A5568;
 	--color-textOnDanger: #1C2029;
+}
+
+html {
+	scroll-behavior: smooth;
+	scroll-padding-top: 1.5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
 }
