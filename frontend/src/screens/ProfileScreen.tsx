@@ -87,7 +87,7 @@ const ProfileScreen = ({ navigation }: TabScreenProps<"Profile">) => {
 	};
 
 	return (
-		<SafeAreaView edges={["left", "right"]} style={styles.screen}>
+		<SafeAreaView edges={["left", "right"]} style={[globalStyles.screen, styles.screen]}>
 			<View style={styles.playerInfo}>
 				<MaterialCommunityIcons name="account-circle" size={46} color={theme.colors.textMuted} />
 				<Text style={styles.name}>{user.name}</Text>
@@ -108,7 +108,6 @@ const ProfileScreen = ({ navigation }: TabScreenProps<"Profile">) => {
 				</View>
 			</View>
 			<SectionList
-				contentContainerStyle={styles.list}
 				stickySectionHeadersEnabled={false}
 				sections={profileData}
 				keyExtractor={(game) => String(game.id)}
@@ -120,9 +119,9 @@ const ProfileScreen = ({ navigation }: TabScreenProps<"Profile">) => {
 					/>
 				)}
 				renderSectionHeader={({ section }) => (
-					<View style={styles.playersHeading}>
-						<Text style={styles.playersText}>{section.title}</Text>
-						<Text style={styles.playersText}>{getPlayersText(section)}</Text>
+					<View style={globalStyles.sectionHeader}>
+						<Text style={globalStyles.sectionTitle}>{section.title}</Text>
+						<Text style={styles.sectionCount}>{getPlayersText(section)}</Text>
 					</View>
 				)}
 				ItemSeparatorComponent={() => <View style={styles.separator} />}
@@ -137,25 +136,16 @@ export default ProfileScreen;
 const getStyles = (theme: CustomTheme) =>
 	StyleSheet.create({
 		screen: {
-			flex: 1,
-			backgroundColor: theme.colors.background,
 			padding: theme.spacing.xl,
 			gap: theme.spacing.xl,
 		},
-		playersHeading: {
-			display: "flex",
-			flexDirection: "row",
-			justifyContent: "space-between",
-			width: "100%",
-		},
-		playersText: {
-			fontSize: theme.fontSize.md,
+		sectionCount: {
+			fontSize: theme.fontSize.sm,
 			color: theme.colors.textMuted,
 		},
 		separator: {
-			height: 12,
+			height: theme.spacing.md,
 		},
-		list: {},
 		reputation: {
 			color: theme.colors.textSecondary,
 			fontWeight: 600,

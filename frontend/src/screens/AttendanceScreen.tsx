@@ -14,6 +14,7 @@ import LoadingView from "../components/layout/LoadingView";
 import ErrorView from "../components/layout/ErrorView";
 import Toast from "react-native-toast-message";
 import useAsync from "../hooks/useAsync";
+import { getGlobalStyles } from "../theme/styles";
 
 /** Each player's mark */
 type Marks = Record<number, boolean | undefined>;
@@ -21,6 +22,7 @@ type Marks = Record<number, boolean | undefined>;
 const AttendanceScreen = ({ navigation, route }: AppScreenProps<"Attendance">) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
+	const globalStyles = getGlobalStyles(theme);
 	const { gameId } = route.params;
 	const { token } = useAuthenticatedUser();
 
@@ -94,13 +96,13 @@ const AttendanceScreen = ({ navigation, route }: AppScreenProps<"Attendance">) =
 	const allMarked = game.players.length > 0 && markedCount === game.players.length;
 
 	return (
-		<SafeAreaView style={styles.screen} edges={["left", "right", "bottom"]}>
+		<SafeAreaView style={globalStyles.screen} edges={["left", "right", "bottom"]}>
 			<FlatList
 				data={game.players}
 				keyExtractor={(player) => String(player.id)}
 				contentContainerStyle={styles.list}
 				ListHeaderComponent={
-					<View style={styles.header}>
+					<View style={[globalStyles.divider, styles.header]}>
 						<Text style={styles.title}>Your game just ended!</Text>
 						<Text style={styles.subtitle}>Did they show up?</Text>
 						<Text style={styles.gameInfo}>
@@ -144,7 +146,7 @@ const AttendanceScreen = ({ navigation, route }: AppScreenProps<"Attendance">) =
 						</View>
 					);
 				}}
-				ItemSeparatorComponent={() => <View style={styles.divider} />}
+				ItemSeparatorComponent={() => <View style={globalStyles.divider} />}
 				ListEmptyComponent={<Text style={styles.message}>No players joined this game.</Text>}
 			/>
 
@@ -156,7 +158,7 @@ const AttendanceScreen = ({ navigation, route }: AppScreenProps<"Attendance">) =
 							{markedCount} of {game.players.length} marked
 						</Text>
 						<Pressable onPress={markEveryoneShowedUp} hitSlop={8}>
-							<Text style={styles.link}>Everyone showed up</Text>
+							<Text style={[globalStyles.link, styles.link]}>Everyone showed up</Text>
 						</Pressable>
 					</View>
 					<Button variant="primary" onPress={handleSave} disabled={!allMarked || saveStatus === "loading"}>
@@ -182,16 +184,6 @@ export default AttendanceScreen;
 
 const getStyles = (theme: CustomTheme) =>
 	StyleSheet.create({
-		screen: {
-			flex: 1,
-			backgroundColor: theme.colors.background,
-		},
-		centered: {
-			alignItems: "center",
-			justifyContent: "center",
-			gap: theme.spacing.md,
-			padding: theme.spacing.xl,
-		},
 		list: {
 			paddingHorizontal: theme.spacing.xl,
 			paddingBottom: theme.spacing.xl,
@@ -200,8 +192,6 @@ const getStyles = (theme: CustomTheme) =>
 			alignItems: "center",
 			gap: theme.spacing.sm,
 			paddingVertical: theme.spacing.xl,
-			borderBottomWidth: 1,
-			borderBottomColor: theme.colors.border,
 			marginBottom: theme.spacing.sm,
 		},
 		title: {
@@ -237,10 +227,6 @@ const getStyles = (theme: CustomTheme) =>
 			color: theme.colors.textSecondary,
 			fontSize: theme.fontSize.xs,
 		},
-		divider: {
-			height: 1,
-			backgroundColor: theme.colors.border,
-		},
 		footer: {
 			gap: theme.spacing.md,
 			padding: theme.spacing.xl,
@@ -257,9 +243,7 @@ const getStyles = (theme: CustomTheme) =>
 			fontSize: theme.fontSize.md,
 		},
 		link: {
-			color: theme.colors.textSecondary,
 			fontSize: theme.fontSize.md,
-			fontWeight: "600",
 		},
 		hintRow: {
 			flexDirection: "row",

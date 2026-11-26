@@ -10,10 +10,12 @@ import { api } from "../services/api";
 import { useAuthenticatedUser } from "../context/UserContext";
 import Toast from "react-native-toast-message";
 import useAsync from "../hooks/useAsync";
+import { getGlobalStyles } from "../theme/styles";
 
 const ConfirmPostScreen = ({ navigation, route }: AppScreenProps<"ConfirmPost">) => {
 	const theme = useTheme();
 	const styles = getStyles(theme);
+	const globalStyles = getGlobalStyles(theme);
 	const { draft } = route.params;
 	const { token } = useAuthenticatedUser();
 
@@ -44,11 +46,14 @@ const ConfirmPostScreen = ({ navigation, route }: AppScreenProps<"ConfirmPost">)
 	};
 
 	return (
-		<SafeAreaView style={styles.screen} edges={["left", "right", "bottom"]}>
+		<SafeAreaView
+			style={[globalStyles.screen, globalStyles.screenPadding, styles.screen]}
+			edges={["left", "right", "bottom"]}
+		>
 			<GameCard game={draft} />
 			<View style={{ display: "flex", gap: theme.spacing.md }}>
 				{error && <FormErrorMessage message={error} />}
-				<View style={styles.buttonsContainer}>
+				<View style={globalStyles.buttonRow}>
 					<Button
 						buttonStyle={{
 							flex: 1,
@@ -79,20 +84,7 @@ export default ConfirmPostScreen;
 const getStyles = (theme: CustomTheme) =>
 	StyleSheet.create({
 		screen: {
-			flex: 1,
 			justifyContent: "space-between",
-			backgroundColor: theme.colors.background,
-			width: "90%",
-			alignSelf: "center",
 			gap: theme.spacing.md,
-		},
-		buttonsContainer: {
-			display: "flex",
-			flexDirection: "row",
-			width: "100%",
-			gap: theme.spacing.xl,
-			alignSelf: "center",
-			alignItems: "center",
-			justifyContent: "space-between",
 		},
 	});
