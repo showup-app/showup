@@ -16,7 +16,9 @@ def _future(days: int = 3) -> str:
 
 
 def _game_id(db: Session, index: int) -> int:
-    return db.scalar(select(Game.id).where(Game.venue == GAMES[index][2]))
+    value = db.scalar(select(Game.id).where(Game.venue == GAMES[index][2]))
+    assert value is not None
+    return value
 
 
 VALID_BODY = {
@@ -45,8 +47,9 @@ def test_create_game_makes_caller_the_host(
     assert body["sport"] == "basketball"  # normalised to lowercase
     assert body["status"] == "open"
     assert body["cost"] == 5.0
-    host = db.scalar(select(Game).where(Game.id == body["id"])).host
-    assert host.name == "Maya"
+    game = db.scalar(select(Game).where(Game.id == body["id"]))
+    assert game is not None
+    assert game.host.name == "Maya"
 
 
 def test_create_game_requires_token(client: TestClient, db: Session) -> None:

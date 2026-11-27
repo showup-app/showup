@@ -1,4 +1,5 @@
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query, status
 from sqlalchemy import Select, func, literal, or_, select, union_all
@@ -89,7 +90,7 @@ def _summary(
     )
 
 
-def _followees(user: User) -> Select[tuple[int]]:
+def _followees(user: User) -> Select[int]:
     """Ids of the players this user follows, as a subquery to use with IN."""
     return select(Follow.followee_id).where(Follow.follower_id == user.id)
 
@@ -127,7 +128,7 @@ def _following_in_games(
     }
 
 
-def summaries(db: DbDep, stmt: Select[tuple[Game]], user: User | None) -> list[GameSummaryOut]:
+def summaries(db: DbDep, stmt: Select[Any], user: User | None) -> list[GameSummaryOut]:
     """Run a select(Game) and build list rows. Grouped counts of joined players and of
     attendance marks are joined in and, when a user is known, that user's own signup and mark,
     so any list is two queries (games + hosts) however long it gets, plus one more for a

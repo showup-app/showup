@@ -1,5 +1,8 @@
+from typing import Any, cast
+
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import delete, func, select
+from sqlalchemy.engine import CursorResult
 from sqlalchemy.exc import IntegrityError
 
 from app.deps import CurrentUser, DbDep, OptionalUser
@@ -69,8 +72,11 @@ def follow_user(user_id: int, db: DbDep, user: CurrentUser) -> PublicProfileOut:
 def unfollow_user(user_id: int, db: DbDep, user: CurrentUser) -> PublicProfileOut:
     """Stop following a player. Returns their profile with the new follower count."""
     target = _get_user_or_404(db, user_id)
-    removed = db.execute(
-        delete(Follow).where(Follow.follower_id == user.id, Follow.followee_id == target.id)
+    removed = cast(
+        "CursorResult[Any]",
+        db.execute(
+            delete(Follow).where(Follow.follower_id == user.id, Follow.followee_id == target.id)
+        ),
     )
     if removed.rowcount == 0:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "You do not follow this player")
