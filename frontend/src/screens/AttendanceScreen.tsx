@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { CustomTheme, useFocusEffect, useTheme } from "@react-navigation/native";
 import { useCallback, useState } from "react";
-import { FlatList, Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../components/ui/Button";
 import FormErrorMessage from "../components/ui/FormErrorMessage";
@@ -197,14 +197,15 @@ const getStyles = (theme: CustomTheme) =>
 		title: {
 			color: theme.colors.text,
 			fontSize: theme.fontSize.xl,
-			fontWeight: "600",
+			fontFamily: theme.fontFamily.medium,
 		},
 		subtitle: {
 			color: theme.colors.textMuted,
 			fontSize: theme.fontSize.md,
-			fontFamily: Platform.select({ ios: "Menlo", default: "monospace" }),
+			fontFamily: theme.fontFamily.mono,
 		},
 		gameInfo: {
+			fontFamily: theme.fontFamily.regular,
 			color: theme.colors.textMuted,
 			fontSize: theme.fontSize.xs,
 		},
@@ -221,9 +222,10 @@ const getStyles = (theme: CustomTheme) =>
 		playerName: {
 			color: theme.colors.text,
 			fontSize: theme.fontSize.lg,
-			fontWeight: "600",
+			fontFamily: theme.fontFamily.medium,
 		},
 		reputation: {
+			fontFamily: theme.fontFamily.regular,
 			color: theme.colors.textSecondary,
 			fontSize: theme.fontSize.xs,
 		},
@@ -239,10 +241,12 @@ const getStyles = (theme: CustomTheme) =>
 			alignItems: "center",
 		},
 		message: {
+			fontFamily: theme.fontFamily.regular,
 			color: theme.colors.textMuted,
 			fontSize: theme.fontSize.md,
 		},
 		link: {
+			fontFamily: theme.fontFamily.regular,
 			fontSize: theme.fontSize.md,
 		},
 		hintRow: {
@@ -254,6 +258,6 @@ const getStyles = (theme: CustomTheme) =>
 		hint: {
 			color: theme.colors.warning,
 			fontSize: theme.fontSize.sm,
-			fontWeight: "500",
+			fontFamily: theme.fontFamily.medium,
 		},
 	});

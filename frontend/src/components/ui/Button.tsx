@@ -90,7 +90,7 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		baseText: {
 			fontSize: theme.fontSize.md,
-			fontWeight: "600",
+			fontFamily: theme.fontFamily.medium,
 			color: theme.colors.text,
 		},
 		primaryText: {

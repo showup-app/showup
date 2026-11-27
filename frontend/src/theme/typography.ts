@@ -1,4 +1,10 @@
-import { DefaultTheme } from "@react-navigation/native";
+/** Font files loaded in App.tsx. Each weight is its own family, so use these instead of fontWeight. */
+export const fontFamily = {
+	regular: "Roboto_400Regular",
+	medium: "Roboto_500Medium",
+	bold: "Roboto_700Bold",
+	mono: "RobotoMono_400Regular",
+};
 
 export const fontSize = {
 	xxs: 10,
@@ -13,8 +19,15 @@ export const fontSize = {
 };
 
 export const typography = {
-	...DefaultTheme.fonts,
-	title: { fontSize: fontSize.xxl, fontWeight: "700" as const },
-	body: { fontSize: fontSize.lg, fontWeight: "400" as const },
-	caption: { fontSize: fontSize.sm, fontWeight: "400" as const },
+	title: { fontSize: fontSize.xxl, fontFamily: fontFamily.bold },
+	body: { fontSize: fontSize.lg, fontFamily: fontFamily.regular },
+	caption: { fontSize: fontSize.sm, fontFamily: fontFamily.regular },
+};
+
+/** React Navigation uses these for header titles and tab labels */
+export const navigationFonts = {
+	regular: { fontFamily: fontFamily.regular, fontWeight: "normal" as const },
+	medium: { fontFamily: fontFamily.medium, fontWeight: "normal" as const },
+	bold: { fontFamily: fontFamily.bold, fontWeight: "normal" as const },
+	heavy: { fontFamily: fontFamily.bold, fontWeight: "normal" as const },
 };

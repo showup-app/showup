@@ -189,12 +189,13 @@ const getStyles = (theme: CustomTheme) =>
 			gap: theme.spacing.lg,
 		},
 		footerText: {
+			fontFamily: theme.fontFamily.regular,
 			color: theme.colors.textMuted,
 			fontSize: theme.fontSize.md,
 			textAlign: "center",
 		},
 		footerLink: {
 			color: theme.colors.brand,
-			fontWeight: "600",
+			fontFamily: theme.fontFamily.medium,
 		},
 	});

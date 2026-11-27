@@ -140,6 +140,7 @@ const getStyles = (theme: CustomTheme) =>
 			gap: theme.spacing.xl,
 		},
 		sectionCount: {
+			fontFamily: theme.fontFamily.regular,
 			fontSize: theme.fontSize.sm,
 			color: theme.colors.textMuted,
 		},
@@ -148,10 +149,11 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		reputation: {
 			color: theme.colors.textSecondary,
-			fontWeight: 600,
+			fontFamily: theme.fontFamily.medium,
 			fontSize: theme.fontSize.xxl,
 		},
 		info: {
+			fontFamily: theme.fontFamily.regular,
 			color: theme.colors.textMuted,
 		},
 		reputationContainer: {
@@ -162,6 +164,7 @@ const getStyles = (theme: CustomTheme) =>
 			gap: theme.spacing.xs,
 		},
 		name: {
+			fontFamily: theme.fontFamily.regular,
 			fontSize: theme.fontSize.xxl,
 			color: theme.colors.text,
 			flex: 1,
@@ -177,6 +180,7 @@ const getStyles = (theme: CustomTheme) =>
 			minHeight: 40,
 		},
 		logoutText: {
+			fontFamily: theme.fontFamily.regular,
 			fontSize: theme.fontSize.sm,
 		},
 	});

@@ -49,10 +49,11 @@ const getStyles = (theme: CustomTheme) =>
 		},
 		primaryText: {
 			fontSize: theme.fontSize.md,
-			fontWeight: "600",
+			fontFamily: theme.fontFamily.medium,
 			color: theme.colors.text,
 		},
 		secondaryText: {
+			fontFamily: theme.fontFamily.regular,
 			fontSize: theme.fontSize.sm,
 			color: theme.colors.textSecondary,
 		},

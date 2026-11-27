@@ -100,12 +100,13 @@ const getStyles = (theme: CustomTheme) =>
 			padding: theme.spacing.lg,
 		},
 		cancel: {
+			fontFamily: theme.fontFamily.regular,
 			color: theme.colors.textMuted,
 			fontSize: theme.fontSize.lg,
 		},
 		done: {
 			color: theme.colors.textSecondary,
 			fontSize: theme.fontSize.lg,
-			fontWeight: "600",
+			fontFamily: theme.fontFamily.medium,
 		},
 	});

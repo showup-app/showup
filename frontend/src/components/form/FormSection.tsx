@@ -1,6 +1,6 @@
 import { CustomTheme, useTheme } from "@react-navigation/native";
 import { ReactNode } from "react";
-import { Platform, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { getGlobalStyles } from "../../theme/styles";
 
 type FormSectionProps = {
@@ -32,6 +32,6 @@ const getStyles = (theme: CustomTheme) =>
 		label: {
 			color: theme.colors.textMuted,
 			fontSize: theme.fontSize.xs,
-			fontFamily: Platform.select({ ios: "Menlo", default: "monospace" }),
+			fontFamily: theme.fontFamily.mono,
 		},
 	});

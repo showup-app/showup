@@ -45,6 +45,7 @@ const getStyles = (theme: CustomTheme) =>
 			paddingVertical: theme.spacing.sm,
 		},
 		text: {
+			fontFamily: theme.fontFamily.regular,
 			fontSize: theme.fontSize.md,
 		},
 	});

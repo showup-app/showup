@@ -1,6 +1,6 @@
 import { CustomTheme, useTheme } from "@react-navigation/native";
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Animated, Platform, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Animated, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import GameCard from "../components/game/GameCard";
 import { TabScreenProps } from "../navigation/types";
 import { api } from "../services/api";
@@ -191,7 +191,7 @@ const getStyles = (theme: CustomTheme) =>
 		label: {
 			color: theme.colors.textMuted,
 			fontSize: theme.fontSize.sm,
-			fontFamily: Platform.select({ ios: "Menlo", default: "monospace" }),
+			fontFamily: theme.fontFamily.mono,
 		},
 		list: {
 			paddingHorizontal: theme.spacing.xl,
@@ -199,6 +199,7 @@ const getStyles = (theme: CustomTheme) =>
 			gap: theme.spacing.xxl,
 		},
 		message: {
+			fontFamily: theme.fontFamily.regular,
 			color: theme.colors.textMuted,
 			fontSize: theme.fontSize.md,
 			textAlign: "center",

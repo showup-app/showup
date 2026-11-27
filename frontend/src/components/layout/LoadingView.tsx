@@ -35,6 +35,7 @@ const getStyles = (theme: CustomTheme) =>
 			padding: theme.spacing.xl,
 		},
 		message: {
+			fontFamily: theme.fontFamily.regular,
 			color: theme.colors.textMuted,
 			fontSize: theme.fontSize.md,
 		},

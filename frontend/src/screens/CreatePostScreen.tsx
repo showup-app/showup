@@ -406,10 +406,12 @@ const getStyles = (theme: CustomTheme) =>
 			gap: theme.spacing.md,
 		},
 		rowTitle: {
+			fontFamily: theme.fontFamily.regular,
 			color: theme.colors.text,
 			fontSize: theme.fontSize.lg,
 		},
 		caption: {
+			fontFamily: theme.fontFamily.regular,
 			color: theme.colors.textMuted,
 			fontSize: theme.fontSize.xs,
 		},
@@ -427,10 +429,12 @@ const getStyles = (theme: CustomTheme) =>
 			paddingHorizontal: theme.spacing.md,
 		},
 		dollar: {
+			fontFamily: theme.fontFamily.regular,
 			color: theme.colors.textMuted,
 			fontSize: theme.fontSize.lg,
 		},
 		priceText: {
+			fontFamily: theme.fontFamily.regular,
 			flex: 1,
 			color: theme.colors.text,
 			fontSize: theme.fontSize.lg,
