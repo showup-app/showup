@@ -1,6 +1,11 @@
 import { HiOutlineSparkles } from "react-icons/hi2";
 
-const upcomingFeatures = ["Lorem ipsum", "Dolor sit amet", "Consectetur adipiscing elit"];
+const upcomingFeatures = [
+	"Social Networking - Follow friends and join their games!",
+	"Instant Messaging - Communicate with the host for any game inquiries!",
+	"Game Day Reminders - Receive push notifications before your game starts!",
+	"Favourite Sports - Select your favourite sports and receive recommendations for upcoming games!",
+];
 
 export const ComingSoon = () => (
 	<section id="coming-soon" className="scroll-mt-24 border-t border-border">
