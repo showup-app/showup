@@ -60,4 +60,34 @@ describe("HomeScreen", () => {
 		await fireEvent.press(getByText("Try again"));
 		await waitFor(() => expect(mockApi.getMyGames).toHaveBeenCalledTimes(2));
 	});
+	it("filters the list with the All, Hosting and Joined tabs", async () => {
+		mockUserContext.user = { id: 99, email: "host@example.com", name: "Host", reputation: 80 };
+		mockApi.getMyGames.mockResolvedValue({
+			ok: true,
+			data: makeMyGames({
+				hosting: [relativeGame(1, -1), relativeGame(5, 1)],
+				joined: [relativeGame(6, 2)],
+			}),
+			status: 200,
+		});
+		const { getByText, queryByText, findByText } = await render(<HomeScreen {...params} />);
+
+		expect(await findByText("All (3)")).toBeTruthy();
+		expect(getByText("Hosting")).toBeTruthy();
+		expect(getByText("Joined")).toBeTruthy();
+
+		await fireEvent.press(getByText("Hosting (2)"));
+		expect(getByText("Needs attendance")).toBeTruthy();
+		expect(getByText("Hosting")).toBeTruthy();
+		expect(queryByText("Joined")).toBeNull();
+
+		await fireEvent.press(getByText("Joined (1)"));
+		expect(getByText("Joined")).toBeTruthy();
+		expect(queryByText("Hosting")).toBeNull();
+		expect(queryByText("Needs attendance")).toBeNull();
+
+		await fireEvent.press(getByText("All (3)"));
+		expect(getByText("Hosting")).toBeTruthy();
+		expect(getByText("Joined")).toBeTruthy();
+	});
 });

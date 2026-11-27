@@ -11,6 +11,7 @@ import LoadingView from "../components/layout/LoadingView";
 import ErrorView from "../components/layout/ErrorView";
 import useAsync from "../hooks/useAsync";
 import { getGlobalStyles } from "../theme/styles";
+import Chip from "../components/form/Chip";
 
 // Hosts can mark attendance for this many days after kickoff
 const MARK_WINDOW_DAYS = 7;
@@ -26,6 +27,8 @@ type Section = {
 	onOpen: (game: Game) => void;
 	urgent?: boolean;
 };
+
+type Filter = "all" | "hosting" | "joined";
 
 const hasStarted = (game: Game, now: number) => new Date(game.starts_at).getTime() <= now;
 
@@ -74,6 +77,7 @@ export function HomeScreen({ navigation }: TabScreenProps<"Home">) {
 	const toMark = hosting.filter((game) => needsAttendance(game, now));
 	const upcomingHosting = hosting.filter((game) => !hasStarted(game, now));
 	const upcomingJoined = (myGames?.joined ?? []).filter((game) => !hasStarted(game, now));
+	const [filter, setFilter] = useState<Filter>("all");
 
 	useEffect(() => {
 		navigation.setOptions({
@@ -82,7 +86,7 @@ export function HomeScreen({ navigation }: TabScreenProps<"Home">) {
 		});
 	}, [navigation, toMark.length, theme.colors.danger]);
 
-	const sections: Section[] = [
+	const allSections: Section[] = [
 		// Only shown when there is something to mark
 		...(toMark.length > 0
 			? [
@@ -115,6 +119,19 @@ export function HomeScreen({ navigation }: TabScreenProps<"Home">) {
 		},
 	];
 
+	const sections = allSections.filter((section) => {
+		if (filter === "hosting") return section.title !== "Joined";
+		if (filter === "joined") return section.title === "Joined";
+		return true;
+	});
+
+	const hostingCount = toMark.length + upcomingHosting.length;
+	const filters: { value: Filter; label: string }[] = [
+		{ value: "all", label: `All (${hostingCount + upcomingJoined.length})` },
+		{ value: "hosting", label: `Hosting (${hostingCount})` },
+		{ value: "joined", label: `Joined (${upcomingJoined.length})` },
+	];
+
 	if (status === "idle" || (status === "loading" && !refreshing)) {
 		return <LoadingView message="Loading your games…" />;
 	}
@@ -125,6 +142,11 @@ export function HomeScreen({ navigation }: TabScreenProps<"Home">) {
 
 	return (
 		<SafeAreaView style={globalStyles.screen} edges={["left", "right"]}>
+			<View style={styles.filters}>
+				{filters.map(({ value, label }) => (
+					<Chip key={value} label={label} selected={filter === value} onPress={() => setFilter(value)} />
+				))}
+			</View>
 			<SectionList
 				sections={sections}
 				keyExtractor={(game) => String(game.id)}
@@ -195,5 +217,11 @@ const getStyles = (theme: CustomTheme) =>
 			color: theme.colors.textOnDanger,
 			fontSize: theme.fontSize.xs,
 			fontFamily: theme.fontFamily.medium,
+		},
+		filters: {
+			flexDirection: "row",
+			gap: theme.spacing.sm,
+			paddingHorizontal: theme.spacing.xl,
+			paddingTop: theme.spacing.lg,
 		},
 	});
