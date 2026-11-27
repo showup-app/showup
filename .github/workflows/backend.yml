@@ -68,6 +68,10 @@ jobs:
       - name: Check formatting
         run: uv run ruff format --check .
 
+      # Settings are in pyproject.toml ([tool.mypy]): checks app/ and tests/.
+      - name: Type check
+        run: uv run mypy
+
       # Applies every migration to an empty database, the way a new teammate would.
       - name: Apply migrations
         run: uv run alembic upgrade head
