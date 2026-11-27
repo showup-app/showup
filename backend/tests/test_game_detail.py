@@ -8,7 +8,9 @@ from app.seed import ATTENDANCE, GAMES, SIGNUPS, USERS, seed
 
 def _game_id(db: Session, index: int) -> int:
     """Id of the seeded game at GAMES[index], found by its venue."""
-    return db.scalar(select(Game.id).where(Game.venue == GAMES[index][2]))
+    value = db.scalar(select(Game.id).where(Game.venue == GAMES[index][2]))
+    assert value is not None
+    return value
 
 
 def test_detail_has_host_players_and_spots_left(client: TestClient, db: Session) -> None:

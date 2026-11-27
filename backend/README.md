@@ -19,6 +19,7 @@ Swagger UI: http://localhost:8000/docs. The React Native app reads the same cont
 |---|---|
 | Run tests | `uv run pytest` |
 | Lint and format | `uv run ruff check . && uv run ruff format .` |
+| Type check | `uv run mypy` |
 | New migration after changing models | `uv run alembic revision --autogenerate -m "add users table"` |
 | Apply migrations | `uv run alembic upgrade head` |
 | Load demo users and games (safe to repeat) | `uv run python -m app.seed` |
@@ -29,10 +30,10 @@ Tests use the `showup_test` database so they never touch dev data. Postgres crea
 
 ## CI
 
-Every pull request runs `.github/workflows/backend.yml`: lint, format check, all migrations on an empty Postgres 17, a check that models and migrations agree, then the tests. Run the same thing locally before you push:
+Every pull request runs `.github/workflows/backend.yml`: lint, format check, type check (mypy), all migrations on an empty Postgres 17, a check that models and migrations agree, then the tests. Run the same thing locally before you push:
 
 ```bash
-uv run ruff check . && uv run ruff format --check . && uv run alembic check && uv run pytest
+uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run alembic check && uv run pytest
 ```
 
 ## Folder map

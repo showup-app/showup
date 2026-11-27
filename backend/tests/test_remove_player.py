@@ -11,11 +11,15 @@ Headers = Callable[[str], dict[str, str]]
 
 
 def _game_id(db: Session, index: int) -> int:
-    return db.scalar(select(Game.id).where(Game.venue == GAMES[index][2]))
+    value = db.scalar(select(Game.id).where(Game.venue == GAMES[index][2]))
+    assert value is not None
+    return value
 
 
 def _user_id(db: Session, name: str) -> int:
-    return db.scalar(select(User.id).where(User.name == name))
+    value = db.scalar(select(User.id).where(User.name == name))
+    assert value is not None
+    return value
 
 
 # Seed facts: game 0 is hosted by Maya with Jordan, Sam and Alex joined; game 5 is Maya's and
@@ -34,6 +38,7 @@ def test_host_removes_player(client: TestClient, db: Session, auth_headers: Head
     assert "Jordan" not in {p["name"] for p in body["players"]}
     assert body["spots_left"] == before + 1
     signup = db.scalar(select(Signup).where(Signup.game_id == game_id, Signup.user_id == jordan))
+    assert signup is not None
     assert signup.status == SignupStatus.REMOVED
 
 

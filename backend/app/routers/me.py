@@ -36,7 +36,7 @@ def my_games(
     return MyGamesOut(hosting=summaries(db, hosting, user), joined=summaries(db, joined, user))
 
 
-def _player_rows(db: DbDep, user: User, stmt: Select[tuple[User]]) -> list[FollowedPlayerOut]:
+def _player_rows(db: DbDep, user: User, stmt: Select[User]) -> list[FollowedPlayerOut]:
     """Run a select(User) and build list rows, with the reputation numbers and whether the
     caller follows each player. Three queries however long the list gets."""
     players = db.scalars(stmt).all()

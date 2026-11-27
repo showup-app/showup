@@ -11,7 +11,9 @@ Headers = Callable[[str], dict[str, str]]
 
 
 def _game_id(db: Session, index: int) -> int:
-    return db.scalar(select(Game.id).where(Game.venue == GAMES[index][2]))
+    value = db.scalar(select(Game.id).where(Game.venue == GAMES[index][2]))
+    assert value is not None
+    return value
 
 
 # Seed facts used below:

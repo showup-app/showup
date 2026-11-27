@@ -20,6 +20,7 @@ dev = [
     "pytest>=9",
     "httpx>=0.28",
     "ruff>=0.16",
+    "mypy>=2.4.1",
 ]
 
 [tool.ruff]
@@ -31,3 +32,13 @@ select = ["E", "F", "I", "B", "UP"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.13"
+files = ["app", "tests"]
+plugins = ["pydantic.mypy"]
+check_untyped_defs = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+no_implicit_optional = true
+exclude = ["alembic/versions/"]
