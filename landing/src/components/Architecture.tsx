@@ -5,13 +5,25 @@ import {
 	HiOutlineCircleStack,
 	HiOutlineDevicePhoneMobile,
 	HiOutlineServerStack,
-	HiOutlineSquares2X2,
 } from "react-icons/hi2";
+import { SiGithubactions } from "react-icons/si";
 
 const layers = [
-	{ icon: HiOutlineDevicePhoneMobile, label: "Lorem ipsum", detail: "Lorem ipsum dolor sit amet" },
-	{ icon: HiOutlineServerStack, label: "Dolor sit amet", detail: "Consectetur adipiscing elit" },
-	{ icon: HiOutlineCircleStack, label: "Consectetur", detail: "Sed do eiusmod tempor" },
+	{
+		icon: HiOutlineDevicePhoneMobile,
+		label: "Mobile App (TypeScript + React Native)",
+		detail: "Acts as a presentation layer that users interact with, and communicates with the backend to perform to perform actions",
+	},
+	{
+		icon: HiOutlineServerStack,
+		label: "Backend (Python + FastAPI)",
+		detail: "Validates and processes client API requests & communicates with the database. Deployed as a cloud instance hosted on Render.com",
+	},
+	{
+		icon: HiOutlineCircleStack,
+		label: "Database (PostgreSQL)",
+		detail: "Provides a data persistance layer that the backend communicates with. Managed through a cloud environment hosted on Supabase",
+	},
 ];
 
 export const Architecture = () => (
@@ -21,8 +33,26 @@ export const Architecture = () => (
 				Architecture
 			</h2>
 
-			<p className="mb-6 max-w-3xl text-sm leading-6 text-textMuted sm:text-base">
-				Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis aute irure dolor.
+			<p className="mb-6 max-w-6xl text-sm leading-6 text-textMuted sm:text-base">
+				ShowUp implements a layered client/server architecture split amongst different components. This includes
+				the client, which is a React Native + TypeScript mobile app, and the server, which is a Python + FastAPI
+				backend. Communication between client & server is facilitated through REST API endpoints. The backend
+				defines structured request and response bodies that the client interacts with to perform actions, such
+				as creating a game, joining a game, and saving attendance marks.
+				<br></br>
+				<br></br>
+				ShowUp uses cloud deployments for both the backend and database. The backend is a deployed instance
+				hosted on Render.io, and is automatically reployed on a successful push to the main branch. The database
+				is a managed PostgreSQL instance hosted on Supabase. CI pipelines are implemented through GitHub Actions
+				for both the frontend and backend. This supports functional and maintainable code by running tests, code
+				formatting, linting, and installing dependencies. This enforces code quality while ensuring that issues
+				are caught early.
+				<br></br>
+				<br></br>
+				The ShowUp source code is hosted on GitHub, where team members have adopted a feature branching
+				workflow. Tasks are divided into separate branches, and are merged into the main branch after team
+				member review and the required CI checks are passing. Team members working on separate features with
+				short-lived branches allows merge conflicts to be minimized.
 			</p>
 
 			<div className="rounded-xl border border-border bg-surface p-4 sm:p-5">
@@ -50,23 +80,20 @@ export const Architecture = () => (
 				</div>
 			</div>
 
-			<div className="mt-3 grid gap-3 sm:grid-cols-2">
+			<div className="mt-3 grid gap-3 grid-cols-1">
 				<div className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3 sm:p-4">
 					<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-chrome text-textMuted">
-						<HiOutlineSquares2X2 size={21} />
+						<SiGithubactions size={21} />
 					</div>
 					<div>
-						<p className="text-sm font-medium">Lorem ipsum</p>
-						<p className="mt-1 text-xs text-textMuted">Lorem ipsum dolor sit amet.</p>
-					</div>
-				</div>
-				<div className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3 sm:p-4">
-					<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-chrome text-textMuted">
-						<HiOutlineCircleStack size={21} />
-					</div>
-					<div>
-						<p className="text-sm font-medium">Dolor sit amet</p>
-						<p className="mt-1 text-xs text-textMuted">Consectetur adipiscing elit.</p>
+						<p className="text-sm font-medium">CI/CD Pipelines (GitHub Actions)</p>
+						<p className="mt-1 text-xs text-textMuted">
+							ShowUp supports a high standard of code quality by implementing CI/CD pipelines for both the
+							frontend and backend. The pipelines automatically run several build steps whenever code is
+							pushed to the repository. This includes: code formatting, linting, dependency installation,
+							and unit tests. The backend instance automatically redeploys on a successful push to the
+							main branch.
+						</p>
 					</div>
 				</div>
 			</div>
